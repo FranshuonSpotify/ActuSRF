@@ -72,7 +72,7 @@ function tablaClubes(lista, calc){
         (dif?'<span style="color:var(--accent)"> ≠</span>':'')+'</td>';
     }
     return '<tr class="'+(mal?'ojo':'')+(e.archivado?' apagado':'')+'">'+
-      '<td><button style="all:unset;cursor:pointer;display:block" data-a="equipos:ver" data-id="'+esc(e.id)+'">'+
+      '<td><button class="cel-btn" data-a="equipos:ver" data-id="'+esc(e.id)+'">'+
         U.celdaEquipo(e)+'</button></td>'+
       '<td><span class="badge '+(e.division==='ASCENSO'?'badge-ascenso':'badge-superliga')+'">'+esc(e.division||'—')+'</span>'+
         (e.archivado?' <span class="pastilla">archivado</span>':'')+'</td>'+
@@ -199,7 +199,8 @@ function plantilla(e){
       '<h3 style="font-size:.9375rem">Plantilla</h3>'+
       '<span class="pastilla">'+js.length+' jugadores</span>'+
       '<span class="pastilla'+(tit===11?' pastilla-ok':(tit>11?' pastilla-mal':' pastilla-ojo'))+'">'+tit+' titulares</span>'+
-      '<button class="btn btn-primary btn-sm" style="margin-left:auto" data-a="equipos:nuevoJugador"><i class="ph-bold ph-plus"></i> Añadir jugador</button>'+
+      '<button class="btn btn-secondary btn-sm" style="margin-left:auto" data-a="equipos:importar"><i class="ph ph-upload-simple"></i> Importar CSV</button>'+
+      '<button class="btn btn-primary btn-sm" data-a="equipos:nuevoJugador"><i class="ph-bold ph-plus"></i> Añadir jugador</button>'+
     '</div>'+
     (js.length ? '<div class="tabla-scroll"><table class="tabla"><thead><tr>'+
       '<th class="num">#</th><th>Jugador</th><th>Pos</th><th>Afinidad</th><th>Tit.</th>'+
@@ -209,7 +210,7 @@ function plantilla(e){
         var j = o.j;
         return '<tr>'+
           '<td class="num">'+esc(j.dorsal||'')+'</td>'+
-          '<td><button style="all:unset;cursor:pointer" data-a="equipos:editarJugador" data-i="'+o.i+'">'+esc(j.nombre||'Sin nombre')+'</button></td>'+
+          '<td><button class="cel-btn" data-a="equipos:editarJugador" data-i="'+o.i+'">'+esc(j.nombre||'Sin nombre')+'</button></td>'+
           '<td><span class="chip chip-'+String(j.posicion||'').toLowerCase()+'">'+esc(j.posicion||'—')+'</span></td>'+
           '<td>'+afinidadCel(j.afinidad)+'</td>'+
           '<td>'+(j.titular?'<i class="ph-bold ph-check" style="color:#6FD98A"></i>':'')+'</td>'+
@@ -342,6 +343,159 @@ function listaSupertecnicas(j){
 }
 
 /* --------------------------------------------------------------------------
+   IMPORTACIÓN MASIVA DE PLANTILLA (CSV / pegado desde una hoja de cálculo)
+
+   Escribir treinta jugadores a mano es el trabajo más aburrido de este
+   programa y donde más erratas entran. Se acepta lo que sale de copiar un
+   rango de Excel (separado por tabulaciones) igual que un .csv de verdad, sin
+   pedirle al usuario que sepa la diferencia.
+   -------------------------------------------------------------------------- */
+var COLS = {
+  nombre:'nombre', jugador:'nombre',
+  dorsal:'dorsal', numero:'dorsal', 'nº':'dorsal', n:'dorsal',
+  posicion:'posicion', pos:'posicion',
+  titular:'titular',
+  goles:'goles', g:'goles',
+  asistencias:'asistencias', asis:'asistencias', a:'asistencias',
+  amarillas:'amarillas', ta:'amarillas',
+  rojas:'rojas', tr:'rojas',
+  foto:'foto', afinidad:'afinidad', elemento:'afinidad'
+};
+var NUMERICOS = ['goles','asistencias','amarillas','rojas'];
+
+/* Separador: se elige el que más veces aparece en la cabecera. Excel en
+   español exporta con punto y coma y al copiar pega con tabuladores. */
+function separador(linea){
+  return [['\t',(linea.match(/\t/g)||[]).length], [';',(linea.match(/;/g)||[]).length], [',',(linea.match(/,/g)||[]).length]]
+    .sort(function(a,b){ return b[1]-a[1]; })[0][0];
+}
+/* Partidor que respeta las comillas: los nombres con coma dentro son raros
+   pero las descripciones copiadas de una hoja no lo son. */
+function partir(linea, sep){
+  var out=[], act='', dentro=false;
+  for(var i=0;i<linea.length;i++){
+    var c=linea[i];
+    if(c==='"'){
+      if(dentro && linea[i+1]==='"'){ act+='"'; i++; }
+      else dentro=!dentro;
+    }
+    else if(c===sep && !dentro){ out.push(act); act=''; }
+    else act+=c;
+  }
+  out.push(act);
+  return out.map(function(s){ return s.trim(); });
+}
+function parseCSV(texto){
+  var lineas = String(texto||'').split(/\r?\n/).filter(function(l){ return l.trim(); });
+  if(lineas.length<2) return {err:'Hacen falta al menos una fila de cabecera y una de datos.'};
+  var sep = separador(lineas[0]);
+  var cab = partir(lineas[0], sep).map(function(h){ return COLS[C.norm(h).replace(/[^a-zñº]/g,'')] || null; });
+  if(cab.indexOf('nombre')<0) return {err:'No encuentro una columna "nombre". Cabecera leída: '+partir(lineas[0],sep).join(' | ')};
+
+  var filas = [], avisos = [];
+  lineas.slice(1).forEach(function(l, n){
+    var celdas = partir(l, sep);
+    var j = {nombre:'', dorsal:'', posicion:'MED', titular:false,
+             goles:0, asistencias:0, amarillas:0, rojas:0, foto:'', afinidad:'Neutro'};
+    cab.forEach(function(k, i){
+      if(!k) return;
+      var v = celdas[i]!=null ? celdas[i] : '';
+      if(k==='titular') j.titular = /^(s[ií]|true|1|x|titular)$/i.test(v.trim());
+      else if(NUMERICOS.indexOf(k)>=0) j[k] = parseInt(v,10)||0;
+      else if(k==='posicion'){
+        var p = v.trim().toUpperCase().slice(0,3);
+        if(C.POS.indexOf(p)>=0) j.posicion = p;
+        else if(v.trim()) avisos.push('Fila '+(n+2)+': posición «'+v+'» no reconocida, se deja MED.');
+      }
+      else if(k==='afinidad'){
+        /* Se corrige contra las cinco oficiales aquí, en la entrada, que es
+           donde barato: si entra sucia se queda sucia para siempre. */
+        if(v.trim()){
+          j.afinidad = C.afName(v);
+          if(!C.afinidadLimpia(v.trim())) avisos.push('Fila '+(n+2)+': afinidad «'+v+'» normalizada a '+j.afinidad+'.');
+        }
+      }
+      else j[k] = v;
+    });
+    if(!j.nombre){ avisos.push('Fila '+(n+2)+': sin nombre, se descarta.'); return; }
+    j.dorsal = String(j.dorsal||'');
+    filas.push(j);
+  });
+  if(!filas.length) return {err:'Ninguna fila tenía nombre de jugador.'};
+  return {filas:filas, avisos:avisos};
+}
+
+function abrirImportador(){
+  U.modal({
+    titulo:'Importar plantilla',
+    ancho:true,
+    cuerpo:
+      '<p class="ayuda" style="margin-bottom:var(--g4)">Pega un rango de Excel o el contenido de un .csv. '+
+        'La primera fila son los nombres de columna. Sólo «nombre» es obligatoria; el resto se rellena con valores por defecto.</p>'+
+      '<p class="ayuda" style="margin-bottom:var(--g3)">Columnas reconocidas: '+
+        '<span class="mono">nombre, dorsal, posicion, titular, goles, asistencias, amarillas, rojas, foto, afinidad</span></p>'+
+      '<div class="color-par" style="margin-bottom:var(--g3)">'+
+        '<input type="file" id="csv-file" accept=".csv,.tsv,.txt" class="inp inp-sm">'+
+      '</div>'+
+      '<textarea class="inp" id="csv-txt" style="min-height:180px;font-family:var(--f-mono);font-size:.75rem" '+
+        'placeholder="nombre;dorsal;posicion;titular;goles&#10;Endo Mamoru;1;POR;sí;0"></textarea>'+
+      '<div id="csv-prev"></div>',
+    pie:[
+      {txt:'Cancelar', fn:U.cerrarModal},
+      {txt:'Añadir a la plantilla', cls:'btn-primary', id:'csv-ok', fn:function(){ aplicarCSV(false); }},
+      {txt:'Reemplazar plantilla', cls:'btn-secondary', fn:function(){ aplicarCSV(true); }}
+    ],
+    tras: function(cuerpo){
+      var ta = cuerpo.querySelector('#csv-txt');
+      ta.addEventListener('input', previsualizarCSV);
+      cuerpo.querySelector('#csv-file').addEventListener('change', function(){
+        var f = this.files[0]; if(!f) return;
+        f.text().then(function(t){ ta.value = t; previsualizarCSV(); });
+      });
+    }
+  });
+}
+function previsualizarCSV(){
+  var r = parseCSV(document.getElementById('csv-txt').value);
+  var prev = document.getElementById('csv-prev');
+  if(r.err){ prev.innerHTML = '<p class="mal" style="margin-top:var(--g3)">'+esc(r.err)+'</p>'; return; }
+  prev.innerHTML =
+    '<p class="ayuda" style="margin:var(--g4) 0 var(--g2)">'+r.filas.length+' jugadores detectados'+
+      (r.avisos.length ? ' · '+r.avisos.length+' avisos' : '')+'</p>'+
+    '<div class="tabla-caja"><div class="tabla-scroll"><table class="tabla"><thead><tr>'+
+      '<th class="num">#</th><th>Nombre</th><th>Pos</th><th>Afinidad</th><th>Tit.</th><th class="num">G</th><th class="num">A</th>'+
+    '</tr></thead><tbody>'+r.filas.slice(0,15).map(function(j){
+      return '<tr><td class="num">'+esc(j.dorsal)+'</td><td>'+esc(j.nombre)+'</td>'+
+        '<td><span class="chip chip-'+j.posicion.toLowerCase()+'">'+j.posicion+'</span></td>'+
+        '<td>'+esc(j.afinidad)+'</td><td>'+(j.titular?'sí':'')+'</td>'+
+        '<td class="num">'+j.goles+'</td><td class="num">'+j.asistencias+'</td></tr>';
+    }).join('')+'</tbody></table></div></div>'+
+    (r.filas.length>15 ? '<p class="ayuda" style="margin-top:.5rem">y '+(r.filas.length-15)+' más.</p>' : '')+
+    (r.avisos.length ? '<div class="tabla-caja" style="margin-top:var(--g3)">'+r.avisos.slice(0,8).map(function(a){
+      return '<div class="problema avi"><i class="ph-bold ph-warning"></i><span>'+esc(a)+'</span></div>'; }).join('')+'</div>' : '');
+}
+function aplicarCSV(reemplazar){
+  var r = parseCSV(document.getElementById('csv-txt').value);
+  if(r.err) return U.aviso(r.err, 'mal', 9000);
+  var e = club();
+  if(!e.jugadores) e.jugadores = [];
+  U.cerrarModal();
+  U.confirmar({
+    titulo: reemplazar ? 'Reemplazar la plantilla entera' : 'Añadir '+r.filas.length+' jugadores',
+    html: reemplazar
+      ? 'Se borrarán los '+e.jugadores.length+' jugadores actuales de «'+esc(e.nombre)+'», <b>con su historial y sus supertécnicas</b>, y se pondrán los '+r.filas.length+' del CSV en su lugar.'
+      : 'Se añadirán '+r.filas.length+' jugadores a los '+e.jugadores.length+' que ya tiene «'+esc(e.nombre)+'».',
+    ok: reemplazar ? 'Reemplazar' : 'Añadir', peligro: reemplazar
+  }).then(function(si){
+    if(!si) return;
+    if(reemplazar) e.jugadores = r.filas;
+    else e.jugadores = e.jugadores.concat(r.filas);
+    U.cambio();
+    U.aviso(r.filas.length+' jugadores importados.', 'ok');
+  });
+}
+
+/* --------------------------------------------------------------------------
    ACCIONES
    -------------------------------------------------------------------------- */
 var jugadorAbierto = null;     // índice del jugador que edita el modal
@@ -451,6 +605,7 @@ var A = {
     jugadorAbierto = Number(el.dataset.i);
     editarJugador(jugadorAbierto);
   },
+  importar: function(){ abrirImportador(); },
   jCampo: function(el){
     var j = club().jugadores[jugadorAbierto];
     if(el.dataset.k==='nombre'){

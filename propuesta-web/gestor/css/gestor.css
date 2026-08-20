@@ -88,9 +88,14 @@ body{
 .g-nav a .mal{ margin-left:auto; font-family:var(--f-mono); font-size:.6875rem; color:var(--c-copa); }
 
 /* ============================ VISTA ============================ */
-.g-vista{ grid-area:vista; overflow-y:auto; padding:var(--g6) var(--g5) 6rem; }
-.g-vista > .seccion{ display:none; max-width:1180px; margin-inline:auto; }
+/* min-width:0 en toda la cadena: un elemento de rejilla se niega por defecto a
+   encogerse por debajo de su contenido, así que una tabla ancha empujaba la
+   página entera y aparecía scroll horizontal de documento. Con esto el
+   desbordamiento se queda dentro de .tabla-scroll, que es donde debe estar. */
+.g-vista{ grid-area:vista; overflow-y:auto; overflow-x:hidden; min-width:0; padding:var(--g6) var(--g5) 6rem; }
+.g-vista > .seccion{ display:none; max-width:1180px; margin-inline:auto; min-width:0; }
 .g-vista > .seccion.on{ display:block; }
+.g-nav, .g-barra{ min-width:0; }
 
 .g-cab{ display:flex; align-items:flex-end; gap:var(--g4); flex-wrap:wrap; margin-bottom:var(--g5); }
 .g-cab h1{ font-size:1.75rem; font-weight:600; letter-spacing:-.035em; }
@@ -111,11 +116,14 @@ body{
    Lo único que styles.css no traía. Mismo lenguaje: hairline de 1px, radio
    pequeño, foco en ámbar, transición corta. */
 .campo{ display:flex; flex-direction:column; gap:.3rem; min-width:0; }
+/* --ink-3 y no --ink-4 en todo lo que sea texto informativo: sobre --surface,
+   --ink-4 (#525252) da 2,5:1 y no llega al 4,5:1 exigido. --ink-3 (#7A7A7A)
+   da 4,6:1. --ink-4 se reserva para marcas redundantes, nunca para leer. */
 .campo > label{
   font-family:var(--f-mono); font-size:.625rem; letter-spacing:.1em;
-  text-transform:uppercase; color:var(--ink-4);
+  text-transform:uppercase; color:var(--ink-3);
 }
-.campo .ayuda{ font-size:.6875rem; color:var(--ink-4); }
+.campo .ayuda, .ayuda{ font-size:.6875rem; color:var(--ink-3); }
 .campo .mal{ font-size:.6875rem; color:var(--c-copa); }
 
 .inp, .campo input:not([type=color]):not([type=checkbox]), .campo select, .campo textarea{
@@ -187,10 +195,19 @@ body{
 table.tabla{ width:100%; border-collapse:collapse; font-size:.8125rem; }
 table.tabla th{
   font-family:var(--f-mono); font-size:.625rem; letter-spacing:.1em; text-transform:uppercase;
-  color:var(--ink-4); font-weight:500; text-align:left;
+  color:var(--ink-3); font-weight:500; text-align:left;
   padding:.7rem .75rem; border-bottom:1px solid var(--line);
   background:var(--bg-raised); position:sticky; top:0; z-index:2; white-space:nowrap;
 }
+/* Celda que abre una ficha. Botón de verdad para que funcione con teclado, y
+   con alto suficiente: como enlace desnudo se quedaba en 20px, por debajo del
+   objetivo táctil mínimo. */
+.cel-btn{
+  all:unset; cursor:pointer; display:flex; align-items:center;
+  min-height:26px; padding-block:.2rem; color:inherit;
+}
+.cel-btn:hover{ color:var(--accent); }
+.cel-btn:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; border-radius:3px; }
 table.tabla td{ padding:.5rem .75rem; border-bottom:1px solid var(--line); vertical-align:middle; }
 table.tabla tr:last-child td{ border-bottom:none; }
 table.tabla tbody tr:hover{ background:rgba(255,255,255,.025); }

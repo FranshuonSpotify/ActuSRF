@@ -2,3 +2,6 @@
 Thumbs.db
 *.tmp
 node_modules/
+
+# Artefacto de test-ciclo.js, se regenera al ejecutarlo
+propuesta-web/gestor/.prueba.json
