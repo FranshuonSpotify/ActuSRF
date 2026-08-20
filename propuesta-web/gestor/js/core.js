@@ -66,6 +66,25 @@ var FASES=['RONDA 1 (PREVIA)','RONDA 2','CUARTOS DE FINAL','SEMIFINALES','FINAL'
 var FASES_TODAS=['FASE DE GRUPOS'].concat(FASES);
 var AFINIDADES=['Fuego','Montaña','Bosque','Aire','Neutro'];
 
+/* FASES DE LIGA Y ASCENSO
+   Un partido de liga sin `fase` es jornada regular. Con `fase`, es una
+   eliminatoria posterior: play-in, play-off, final.
+
+   Por qué se reutiliza `fase` en vez de inventar un campo nuevo: app.js ya lo
+   lee para el pie de la tarjeta de partido y para la insignia de su ficha
+   —`p.fase ? p.fase : 'Jornada N'`—, así que la web pública muestra la
+   etiqueta correcta sin tocar una línea de app.js. Un campo nuevo habría
+   necesitado modificarla.
+
+   Los nombres salen de renderPlayoff() de app.js, que es quien define el
+   cuadro de la Superliga; escribir otros crearía dos vocabularios. */
+var FASES_LIGA=['PARTIDO POR EL PLAY IN','PLAY IN','SEMIFINALES','FINAL','DESEMPATE'];
+
+/* Un partido cuenta para la clasificación sólo si es de jornada regular. Una
+   eliminatoria no reparte puntos: si los sumara, el campeón del play-off
+   adelantaría en la tabla al primero de la fase regular. */
+function esRegular(p){ return !p.fase; }
+
 function equipo(nombre){ return D&&D.equipos.find(function(e){ return e.nombre===nombre; }); }
 function equipoPorId(id){ return D&&D.equipos.find(function(e){ return e.id===id; }); }
 function pool(comp){ return comp==='ascenso'?D.partidos_ascenso:comp==='copa'?D.partidos_copa:D.partidos_liga; }
@@ -236,7 +255,8 @@ function tablaCalculada(){
   D.equipos.forEach(function(e){ t[e.nombre]={pj:0,g:0,e:0,p:0,gf:0,gc:0,pts:0}; });
   [D.partidos_liga,D.partidos_ascenso].forEach(function(lista){
     (lista||[]).forEach(function(p){
-      if(!isFin(p)) return;
+      /* Las eliminatorias (play-in, play-off, final) no reparten puntos. */
+      if(!isFin(p) || !esRegular(p)) return;
       var a=parseInt(gl(p),10), b=parseInt(gv(p),10);
       if(isNaN(a)||isNaN(b)) return;
       var L=t[p.local], V=t[p.visitante];
@@ -286,6 +306,69 @@ function statsJugadoresCalculadas(){
     });
   });
   return t;
+}
+
+/* Cierra la temporada en curso sobre los datos vivos.
+   No archiva: eso lo hace instantaneaTemporada() antes, y por separado, para
+   que quede claro que son dos pasos y que el archivado ocurre primero.
+
+   Lo delicado es el vuelco de estadísticas de jugador. La web calcula la
+   carrera como `goles_totales + goles` y `goles_totales` es exactamente la
+   suma del historial. Así que al cerrar hay que sumar los goles de la
+   temporada a LAS DOS cosas —al total y a la etapa abierta del historial— y
+   sólo entonces poner la temporada a cero. Sumar a una sola desajustaría la
+   carrera; no poner a cero la contaría dos veces. */
+var STATS_TEMP=[['goles','goles_totales'],['asistencias','asistencias_totales'],
+                ['amarillas','amarillas_totales'],['rojas','rojas_totales']];
+function cerrarTemporada(d, opciones){
+  opciones=opciones||{};
+  var etiqueta=opciones.etiqueta||('Temporada '+(d.config.temporada||'?'));
+  var resumen={equipos:0, jugadores:0, etapas:0, partidos:0};
+
+  d.equipos.forEach(function(e){
+    CAMPOS_TABLA.forEach(function(k){ if(e[k]) resumen.equipos++; e[k]=0; });
+    (e.jugadores||[]).forEach(function(j){
+      var tuvo=STATS_TEMP.some(function(par){ return (j[par[0]]||0)>0; });
+      if(!j.historial) j.historial=[];
+      /* La etapa abierta en este club es donde se acumula. Si no existe se
+         crea: un jugador fichado a mitad de temporada no tenía ninguna. */
+      var et=null;
+      for(var i=j.historial.length-1;i>=0;i--){
+        var h=j.historial[i];
+        if(h.abierto && (h.equipo_id===e.id || h.equipo===e.nombre)){ et=h; break; }
+      }
+      if(!et){
+        et={equipo:e.nombre, equipo_id:e.id, division:e.division,
+            temporada:etiqueta, temporada_inicio:etiqueta, temporada_fin:etiqueta,
+            fecha:new Date().toLocaleDateString('es-ES'),
+            goles:0, asistencias:0, amarillas:0, rojas:0, pj:0, abierto:true};
+        j.historial.push(et);
+        resumen.etapas++;
+      }
+      STATS_TEMP.forEach(function(par){
+        var v=j[par[0]]||0;
+        if(!v) return;
+        j[par[1]]=(j[par[1]]||0)+v;
+        et[par[0]]=(et[par[0]]||0)+v;
+        j[par[0]]=0;
+      });
+      et.temporada_fin=etiqueta;
+      if(!et.temporada_inicio) et.temporada_inicio=etiqueta;
+      if(tuvo) resumen.jugadores++;
+    });
+  });
+
+  if(opciones.vaciarCalendario){
+    ['partidos_liga','partidos_ascenso','partidos_copa'].forEach(function(k){
+      resumen.partidos+=d[k].length;
+      d[k]=[];
+    });
+    d.config.grupos_copa={};
+  }
+  var n=parseInt(d.config.temporada,10);
+  d.config.temporada=isNaN(n)?d.config.temporada:String(n+1);
+  d.config.jornada_actual='1';
+  return resumen;
 }
 
 /* --------------------------------------------------------------------------
@@ -381,18 +464,96 @@ function validarEsquema(d){
   });
   return {err:err,avi:avi};
 }
+/* FORMATOS DE COMPETICIÓN
+   Viven en config.formatos y son metadatos del gestor: describen cómo está
+   montada cada competición.
+
+   Honestidad sobre su alcance: app.js NO los lee. Las zonas de la tabla
+   (play-off, play-in, descenso, ascenso) están escritas a mano en renderClas()
+   —tres primeros, cuarto, quinto y sexto, últimos tres— y cambiarlas aquí no
+   cambia la web. Lo que sí hacen es alimentar las comprobaciones del gestor
+   (¿está el calendario completo?, ¿sobran o faltan equipos?) y, en la Fase 3,
+   los generadores de calendario y de sorteo. Cuando el formato no coincide con
+   lo que la web da por hecho, el gestor lo dice en vez de callárselo. */
+var ZONAS_APP={SUPERLIGA:{playoff:3,playin:4,partido_playin:6,descenso:3},ASCENSO:{ascenso:3}};
+function formatoDefecto(){
+  return {
+    SUPERLIGA:{vueltas:2, equipos:12, playoff:3, playin:4, partido_playin:6, descenso:3},
+    ASCENSO:  {vueltas:2, equipos:10, ascenso:3},
+    COPA:     {tipo:'grupos', equipos:16, grupos:4, clasifican_por_grupo:2, ida_vuelta:false}
+  };
+}
+
 /* Rellena lo que falte para que el resto del gestor no tenga que comprobar
    nulos en cada línea. No borra ni reordena nada. */
 function completarEsquema(d){
   if(!d.config) d.config={};
   ['ticker_superliga','ticker_ascenso','ticker_copa'].forEach(function(k){ if(!Array.isArray(d.config[k])) d.config[k]=[]; });
   if(!d.config.medios) d.config.medios={};
+  /* Aditivo: si el archivo no traía formatos ni grupos, se crean con valores
+     que describen la competición tal y como está montada hoy. */
+  var def=formatoDefecto();
+  if(!d.config.formatos) d.config.formatos={};
+  Object.keys(def).forEach(function(k){
+    if(!d.config.formatos[k]) d.config.formatos[k]={};
+    Object.keys(def[k]).forEach(function(x){
+      if(d.config.formatos[k][x]===undefined) d.config.formatos[k][x]=def[k][x];
+    });
+  });
+  if(!d.config.grupos_copa || typeof d.config.grupos_copa!=='object' || Array.isArray(d.config.grupos_copa))
+    d.config.grupos_copa={};
   CLAVES_ARRAY.forEach(function(k){ if(!Array.isArray(d[k])) d[k]=[]; });
   d.partidos_copa.forEach(function(p){
     if(p.origen_local===undefined) p.origen_local=null;
     if(p.origen_visitante===undefined) p.origen_visitante=null;
   });
   return d;
+}
+
+/* Letras de grupo según el formato: 4 grupos -> A, B, C, D. */
+function letrasGrupo(d){
+  var n=(d.config.formatos&&d.config.formatos.COPA&&d.config.formatos.COPA.grupos)||4;
+  return Array.from({length:Math.max(1,Math.min(12,n))},function(_,i){ return String.fromCharCode(65+i); });
+}
+
+/* --------------------------------------------------------------------------
+   TEMPORADAS
+   Archivar la temporada en curso mete una copia en historial_temporadas, que
+   es de donde palmares() de app.js saca los campeones. La forma de cada
+   entrada la fija app.js: necesita `equipos` (para el campeón de cada
+   división, por puntos) y `partidos_copa` (para la final de Copa).
+   -------------------------------------------------------------------------- */
+function instantaneaTemporada(d, nombre){
+  return {
+    nombre: nombre || ('Temporada '+(d.config.temporada||'?')),
+    fecha: new Date().toLocaleDateString('es-ES'),
+    /* Copia profunda: el histórico no puede compartir objetos con la
+       temporada viva, o resetear las estadísticas lo vaciaría también. */
+    equipos: JSON.parse(JSON.stringify(d.equipos)),
+    partidos_liga: JSON.parse(JSON.stringify(d.partidos_liga)),
+    partidos_ascenso: JSON.parse(JSON.stringify(d.partidos_ascenso)),
+    partidos_copa: JSON.parse(JSON.stringify(d.partidos_copa)),
+    config: JSON.parse(JSON.stringify(d.config))
+  };
+}
+/* Campeones de una entrada archivada, con el mismo criterio que palmares():
+   por puntos, no por orderStandings(). Se replica tal cual para que el gestor
+   enseñe exactamente el palmarés que enseñará la web. */
+function campeones(t){
+  function champ(div){
+    return (t.equipos||[]).filter(function(e){ return e.division===div; })
+      .sort(function(a,b){ return (b.pts||0)-(a.pts||0)||((b.gf-b.gc)-(a.gf-a.gc))||(b.gf-a.gf); })[0]||null;
+  }
+  var out=[];
+  var s=champ('SUPERLIGA'); if(s) out.push({comp:'Superliga Frontier',e:s});
+  var a=champ('ASCENSO');   if(a) out.push({comp:'Ascenso Frontier',e:a});
+  var fin=(t.partidos_copa||[]).filter(function(p){ return p.fase==='FINAL'&&isFin(p); })[0];
+  if(fin){
+    var wn=gl(fin)>gv(fin)?fin.local:(gv(fin)>gl(fin)?fin.visitante:winnerOf(fin));
+    var ce=(t.equipos||[]).find(function(e){ return e.nombre===wn; });
+    if(ce) out.push({comp:'Copa Fútbol Frontier',e:ce,marcador:fin.local+' '+gl(fin)+'-'+gv(fin)+' '+fin.visitante});
+  }
+  return out;
 }
 
 /* calcScorers necesita D para findPlayer; en validación se trabaja sobre el
@@ -473,6 +634,57 @@ function validarIntegridad(d){
     if(!afinidadLimpia(j.afinidad)) avi.push({m:'Jugador "'+j.nombre+'": afinidad "'+j.afinidad+'" no es oficial; la web la mostrará como '+afName(j.afinidad)+'.',ir:null});
   });
 
+  /* Fases de Liga y Ascenso. Un partido con `fase` es una eliminatoria: no
+     suma puntos y la web muestra la etiqueta en vez de "Jornada N". */
+  [['partidos_liga','Liga','liga'],['partidos_ascenso','Ascenso','ascenso']].forEach(function(par){
+    (d[par[0]]||[]).forEach(function(p,i){
+      if(!p.fase) return;
+      var ir={v:'partidos',comp:par[2],idx:i};
+      if(FASES_LIGA.indexOf(p.fase)<0)
+        avi.push({m:par[1]+' #'+(i+1)+': fase "'+p.fase+'" no es una de las conocidas.',ir:ir});
+      /* Sin jornada, la web NO lo enseña: initJornadas() descarta los
+         partidos sin jornada y renderMatches() filtra por ella. */
+      if(p.jornada==null||p.jornada==='')
+        err.push({m:par[1]+' #'+(i+1)+' ('+p.fase+'): sin jornada, la web no lo mostrará en Resultados. Ponle un número que continúe el calendario.',ir:ir});
+    });
+  });
+
+  /* Grupos de Copa: la asignación de config.grupos_copa tiene que apuntar a
+     equipos que existan, y nadie puede estar en dos grupos. */
+  var gc=(d.config&&d.config.grupos_copa)||{};
+  var yaEn={};
+  Object.keys(gc).forEach(function(g){
+    (gc[g]||[]).forEach(function(nom){
+      var ir={v:'copa',grupo:g};
+      if(!nombres[nom]) err.push({m:'Grupo '+g+' de Copa: el equipo "'+nom+'" no existe.',ir:ir});
+      else if(yaEn[nom]) err.push({m:'"'+nom+'" está en el grupo '+yaEn[nom]+' y en el '+g+' a la vez.',ir:ir});
+      else yaEn[nom]=g;
+    });
+  });
+
+  /* Formatos: no los lee la web, pero si describen una competición distinta
+     de la que hay montada, algo va a salir mal más adelante. */
+  var fmt=(d.config&&d.config.formatos)||{};
+  DIVISIONES.forEach(function(div){
+    var f=fmt[div]; if(!f) return;
+    var n=d.equipos.filter(function(e){ return e.division===div&&!e.archivado; }).length;
+    if(f.equipos && n!==f.equipos)
+      avi.push({m:'El formato de '+div+' dice '+f.equipos+' equipos y hay '+n+' activos.',ir:{v:'config'}});
+    /* Las zonas de la tabla están escritas a mano en app.js: si el formato
+       dice otra cosa, la web seguirá pintando las suyas. */
+    var z=ZONAS_APP[div]||{};
+    Object.keys(z).forEach(function(k){
+      if(f[k]!=null && f[k]!==z[k])
+        avi.push({m:'El formato de '+div+' pone '+k.replace(/_/g,' ')+' en '+f[k]+', pero la web tiene ese corte fijo en '+z[k]+' y no lo lee del archivo.',ir:{v:'config'}});
+    });
+  });
+  if(fmt.COPA && fmt.COPA.tipo==='grupos'){
+    var conGrupo=(d.partidos_copa||[]).filter(function(p){ return p.fase==='FASE DE GRUPOS'; });
+    var gruposUsados=Array.from(new Set(conGrupo.map(function(p){ return p.grupo; }).filter(Boolean)));
+    if(conGrupo.length && fmt.COPA.grupos && gruposUsados.length!==fmt.COPA.grupos)
+      avi.push({m:'El formato de Copa dice '+fmt.COPA.grupos+' grupos y los partidos usan '+gruposUsados.length+'.',ir:{v:'copa'}});
+  }
+
   /* Jornadas a medias: aviso, no error — es el estado normal a mitad de
      jornada. */
   [['partidos_liga','Liga','liga'],['partidos_ascenso','Ascenso','ascenso']].forEach(function(par){
@@ -504,7 +716,9 @@ SFG.core={
   norm:norm, esc:esc, gl:gl, gv:gv, isFin:isFin, abbr3:abbr3,
   afKey:afKey, afName:afName, afinidadLimpia:afinidadLimpia, AF_HEX:AF_HEX, AFINIDADES:AFINIDADES,
   POS:POS, POS_ORDER:POS_ORDER, DIVISIONES:DIVISIONES, FASES:FASES, FASES_TODAS:FASES_TODAS,
+  FASES_LIGA:FASES_LIGA, esRegular:esRegular, ZONAS_APP:ZONAS_APP, letrasGrupo:letrasGrupo,
   TIPOS_EVENTO:TIPOS_EVENTO, TIPO_LABEL:TIPO_LABEL, CAMPOS_TABLA:CAMPOS_TABLA, CLAVES:CLAVES,
+  instantaneaTemporada:instantaneaTemporada, campeones:campeones, cerrarTemporada:cerrarTemporada,
   equipo:equipo, equipoPorId:equipoPorId, pool:pool,
   orderStandings:orderStandings, clasificacion:clasificacion,
   winnerOf:winnerOf, resolveSide:resolveSide,

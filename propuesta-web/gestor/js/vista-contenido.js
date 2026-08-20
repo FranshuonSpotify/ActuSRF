@@ -154,6 +154,8 @@ function pintarConfig(el){
     '</div>'+
 
     '<div class="g-hueco"></div>'+
+    bloqueFormatos(c)+
+    '<div class="g-hueco"></div>'+
 
     '<div class="card" style="padding:var(--g5)">'+
       '<h3 style="font-size:.9375rem;margin-bottom:.35rem">Tickers</h3>'+
@@ -177,8 +179,74 @@ function pintarConfig(el){
     '</div>';
 }
 
+/* --------------------------------------------------------------------------
+   FORMATOS DE COMPETICIÓN
+
+   Qué son y qué no: describen cómo está montada cada competición y alimentan
+   las comprobaciones del gestor y, más adelante, los generadores de calendario
+   y de sorteo. NO los lee la web pública: los cortes de la tabla (play-off,
+   play-in, descenso, ascenso) están escritos a mano dentro de renderClas() de
+   app.js. Cuando lo que se pone aquí contradice a lo que la web tiene fijo, el
+   gestor lo dice en la misma línea en vez de dejar creer que ha cambiado algo.
+   -------------------------------------------------------------------------- */
+var CAMPOS_FMT = {
+  SUPERLIGA:[['vueltas','Vueltas','Cuántas veces se enfrentan dos clubes en la fase regular'],
+             ['equipos','Equipos',''],
+             ['playoff','Plazas de play-off',''],
+             ['playin','Puesto de play-in',''],
+             ['partido_playin','Último puesto que juega el partido por el play-in',''],
+             ['descenso','Plazas de descenso','']],
+  ASCENSO:  [['vueltas','Vueltas',''],['equipos','Equipos',''],['ascenso','Plazas de ascenso directo','']],
+  COPA:     [['equipos','Equipos',''],['grupos','Número de grupos','Define las letras disponibles al repartir'],
+             ['clasifican_por_grupo','Pasan por grupo','']]
+};
+function bloqueFormatos(c){
+  var fmt = c.formatos || {};
+  return '<div class="card" style="padding:var(--g5)">'+
+    '<h3 style="font-size:.9375rem;margin-bottom:.35rem">Formato de las competiciones</h3>'+
+    '<p class="ayuda" style="margin-bottom:var(--g5)">Describe cómo está montada cada competición. Lo usa el gestor para avisarte de descuadres y para repartir los grupos de Copa. '+
+      '<b>La web pública no lo lee:</b> los cortes de la tabla están fijos en su código, así que cambiarlos aquí no cambia lo que se ve.</p>'+
+
+    Object.keys(CAMPOS_FMT).map(function(comp){
+      var f = fmt[comp] || {};
+      var z = C.ZONAS_APP[comp] || {};
+      return '<div style="margin-bottom:var(--g5)">'+
+        '<div style="font-family:var(--f-mono);font-size:.625rem;letter-spacing:.12em;color:var(--ink-3);margin-bottom:var(--g3)">'+comp+'</div>'+
+        '<div class="rejilla rejilla-4">'+
+          CAMPOS_FMT[comp].map(function(campo){
+            var k = campo[0];
+            /* Si la web tiene ese corte escrito a mano y aquí dice otra cosa,
+               se marca el campo: es el punto exacto donde el gestor y la web
+               dejarían de contar lo mismo. */
+            var fijo = z[k]!=null && f[k]!=null && f[k]!==z[k];
+            return U.campo(campo[1],
+              '<input class="inp inp-mono" type="number" min="0" max="99" value="'+(f[k]!=null?f[k]:'')+'" '+
+                'data-c="config:formato" data-comp="'+comp+'" data-k="'+k+'"'+(fijo?' style="border-color:var(--gold)"':'')+'>',
+              fijo ? 'la web lo tiene fijo en '+z[k] : campo[2]);
+          }).join('')+
+          (comp==='COPA'
+            ? '<div class="campo"><label>Formato</label>'+
+                '<select class="inp" data-c="config:formatoTxt" data-comp="COPA" data-k="tipo">'+
+                  [['grupos','Grupos + eliminatoria'],['directa','Eliminatoria directa']].map(function(t){
+                    return '<option value="'+t[0]+'"'+(f.tipo===t[0]?' selected':'')+'>'+t[1]+'</option>'; }).join('')+
+                '</select></div>'+
+              '<div class="campo"><label>Ida y vuelta en grupos</label>'+
+                '<label class="sw"><input type="checkbox"'+(f.ida_vuelta?' checked':'')+' data-c="config:formatoBool" data-comp="COPA" data-k="ida_vuelta">'+
+                '<span class="pista"></span> Doble enfrentamiento</label></div>'
+            : '')+
+        '</div></div>';
+    }).join('')+
+  '</div>';
+}
+
 var AG = {
   campo: function(el){ d().config[el.dataset.k] = el.value; U.cambio(true); },
+  formato: function(el){
+    fmt(el)[el.dataset.k] = el.value===''? null : (Number(el.value)||0);
+    U.cambio(true);
+  },
+  formatoTxt: function(el){ fmt(el)[el.dataset.k] = el.value; U.cambio(); },
+  formatoBool: function(el){ fmt(el)[el.dataset.k] = el.checked; U.cambio(true); },
   medio: function(el){
     if(!d().config.medios) d().config.medios = {};
     d().config.medios[el.dataset.k] = el.value;
@@ -188,6 +256,12 @@ var AG = {
   tickerDel: function(el){ d().config[el.dataset.k].splice(Number(el.dataset.i),1); U.cambio(); },
   ticker: function(el){ d().config[el.dataset.k][Number(el.dataset.i)] = el.value; SFG.io.marcarSucio(); }
 };
+
+function fmt(el){
+  var f = d().config.formatos;
+  if(!f[el.dataset.comp]) f[el.dataset.comp] = {};
+  return f[el.dataset.comp];
+}
 
 U.registrar('noticias', {
   acciones: AN,

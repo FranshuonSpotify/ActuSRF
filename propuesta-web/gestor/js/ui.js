@@ -70,6 +70,7 @@ function contadores(){
   $('n-partidos').textContent = d.partidos_liga.length + d.partidos_ascenso.length;
   $('n-copa').textContent = d.partidos_copa.length;
   $('n-noticias').textContent = d.noticias.length;
+  $('n-temporadas').textContent = d.historial_temporadas.length || '';
   var v = C.validarIntegridad(d);
   $('n-datos').textContent = v.err.length ? v.err.length : '';
   $('n-datos').title = v.err.length ? v.err.length+' problemas críticos' : '';

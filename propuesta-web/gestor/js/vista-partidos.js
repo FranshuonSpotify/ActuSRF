@@ -85,12 +85,101 @@ function pintar(el){
       '<span class="ayuda" style="margin-left:auto">'+vis.length+' partidos'+(pend?' · '+pend+' sin resultado':'')+'</span>'+
     '</div>'+
 
-    (vis.length ? tablaPartidos(vis, st.comp) : '<div class="vacio">No hay partidos en esta vista.</div>');
+    avisoEliminatorias(todos)+
+    (vis.length ? tablaPartidos(vis, st.comp) : '<div class="vacio">No hay partidos en esta vista.</div>')+
+    '<div class="g-hueco"></div>'+
+    moverJornada();
+
+  montarCalendario();
+}
+
+/* --------------------------------------------------------------------------
+   CALENDARIO ARRASTRABLE
+   Una columna por jornada; los partidos se mueven entre ellas arrastrando.
+
+   Alternativa sin ratón: la casilla «J» de la tabla de arriba hace lo mismo
+   escribiendo el número, y con el partido enfocado las flechas izquierda y
+   derecha lo cambian de jornada. Arrastrar nunca es la única vía.
+   -------------------------------------------------------------------------- */
+function moverJornada(){
+  var js = jornadas(st.comp);
+  if(js.length<2) return '';
+  var todos = lista(st.comp);
+  return '<div class="card" style="padding:var(--g5)">'+
+    '<div style="display:flex;align-items:center;gap:var(--g3);margin-bottom:.35rem;flex-wrap:wrap">'+
+      '<h3 style="font-size:.9375rem">Calendario</h3>'+
+      '<button class="btn btn-secondary btn-sm" style="margin-left:auto" data-a="partidos:nuevaJornada">'+
+        '<i class="ph ph-plus"></i> Jornada '+(Math.max.apply(null,js.map(Number).concat(0))+1)+'</button>'+
+    '</div>'+
+    '<p class="ayuda" style="margin-bottom:var(--g4)">Arrastra un partido a otra jornada. Con el teclado: enfócalo y usa las flechas ← →, o escribe el número en la columna «J» de la tabla.</p>'+
+    '<div style="display:flex;gap:var(--g3);overflow-x:auto;padding-bottom:var(--g2)" id="cal-cols">'+
+      js.map(function(j){
+        var ps = todos.map(function(p,i){ return {p:p,i:i}; }).filter(function(o){ return o.p.jornada===j; });
+        var fin = ps.filter(function(o){ return C.isFin(o.p); }).length;
+        return '<div style="min-width:186px;flex-shrink:0">'+
+          '<div style="display:flex;align-items:center;gap:.35rem;margin-bottom:var(--g2)">'+
+            '<span style="font-family:var(--f-mono);font-size:.625rem;letter-spacing:.12em;color:var(--ink-3)">JORNADA '+esc(j)+'</span>'+
+            '<span class="pastilla'+(fin===ps.length&&ps.length?' pastilla-ok':'')+'" style="margin-left:auto">'+fin+'/'+ps.length+'</span>'+
+          '</div>'+
+          '<div class="dnd-col" data-jornada="'+esc(j)+'">'+
+            (ps.length ? ps.map(fichaPartido).join('') : '<div class="vacio">Vacía</div>')+
+          '</div></div>';
+      }).join('')+
+    '</div></div>';
+}
+function fichaPartido(o){
+  var p = o.p, elim = !C.esRegular(p);
+  return '<div class="dnd-ficha cal-p" data-i="'+o.i+'" role="button" '+
+      'aria-label="'+esc((p.local||'?')+' contra '+(p.visitante||'?')+', jornada '+(p.jornada||''))+'">'+
+    '<i class="ph ph-dots-six-vertical dnd-asa" aria-hidden="true"></i>'+
+    '<span class="nm">'+esc(C.abbr3(p.local,(C.equipo(p.local)||{}).abreviatura))+
+      ' <span style="color:var(--ink-4)">'+(C.isFin(p)?(C.gl(p)+'-'+C.gv(p)):'vs')+'</span> '+
+      esc(C.abbr3(p.visitante,(C.equipo(p.visitante)||{}).abreviatura))+'</span>'+
+    (elim ? '<span class="pastilla pastilla-ojo tras" title="'+esc(p.fase)+'">'+esc(p.fase.slice(0,3))+'</span>' : '')+
+  '</div>';
+}
+/* Se monta después de pintar. Cada repintado crea nodos nuevos, así que los
+   oyentes viejos se van con ellos y no hay que desmontar nada. */
+function montarCalendario(){
+  var cols = document.querySelectorAll('#cal-cols .dnd-col');
+  if(!cols.length) return;
+  SFG.dnd.sortable({
+    grupo:'calendario', item:'.cal-p',
+    contenedores:Array.prototype.slice.call(cols),
+    alSoltar:function(dd){
+      var p = lista(st.comp)[Number(dd.item.dataset.i)];
+      var nueva = dd.hasta.dataset.jornada;
+      if(p.jornada===nueva) return;
+      p.jornada = nueva;
+      U.aviso((p.local||'?')+' – '+(p.visitante||'?')+' pasa a la jornada '+nueva+'.', 'ok');
+      U.cambio();
+    }
+  });
+}
+
+/* Explicación de las fases, sólo cuando hay alguna: en una liga sin
+   eliminatorias todavía es ruido. */
+function avisoEliminatorias(todos){
+  var elim = todos.filter(function(p){ return !C.esRegular(p); });
+  if(!elim.length) return '';
+  var porFase = {};
+  elim.forEach(function(p){ porFase[p.fase] = (porFase[p.fase]||0)+1; });
+  return '<div class="card" style="padding:var(--g4);margin-bottom:var(--g4);border-color:rgba(255,81,0,.25)">'+
+    '<div style="display:flex;gap:var(--g3);align-items:flex-start">'+
+      '<i class="ph-bold ph-tree-structure" style="color:var(--accent);font-size:1.1rem;flex-shrink:0"></i>'+
+      '<div><b style="font-size:.8125rem">'+elim.length+' partidos de eliminatoria</b>'+
+        '<p class="ayuda" style="margin-top:.15rem">No reparten puntos: la clasificación regular los ignora. '+
+        'La web muestra la etiqueta de la fase en lugar de «Jornada N».</p>'+
+        '<div style="display:flex;gap:.35rem;flex-wrap:wrap;margin-top:.5rem">'+
+          Object.keys(porFase).map(function(f){ return '<span class="pastilla pastilla-ojo">'+esc(f)+' · '+porFase[f]+'</span>'; }).join('')+
+        '</div>'+
+      '</div>'+
+    '</div></div>';
 }
 
 function tablaPartidos(vis, comp){
   return '<div class="tabla-caja"><div class="tabla-scroll"><table class="tabla"><thead><tr>'+
-    '<th class="num">J</th><th>Fecha</th><th>Local</th><th class="num">Goles</th><th></th><th class="num">Goles</th><th>Visitante</th>'+
+    '<th class="num">J</th><th>Fase</th><th>Fecha</th><th>Local</th><th class="num">Goles</th><th></th><th class="num">Goles</th><th>Visitante</th>'+
     '<th>Estado</th><th>Eventos</th><th class="acc"></th></tr></thead><tbody>'+
     vis.map(function(o){ return filaPartido(o.p, o.i, comp); }).join('')+
   '</tbody></table></div></div>';
@@ -103,8 +192,18 @@ function filaPartido(p, i, comp){
   /* Marcador y goleadores tienen que decir lo mismo: si no, la ficha del
      partido en la web enseña un 3-1 con dos goleadores. */
   var descuadre = C.isFin(p) && goles!==marcados;
+  var elim = !C.esRegular(p);
   return '<tr'+(descuadre?' class="ojo"':'')+'>'+
-    '<td class="num"><input class="inp inp-sm inp-num" value="'+esc(p.jornada||'')+'" data-c="partidos:campo" data-i="'+i+'" data-k="jornada"></td>'+
+    '<td class="num"><input class="inp inp-sm inp-num" value="'+esc(p.jornada||'')+'" data-c="partidos:campo" data-i="'+i+'" data-k="jornada"'+
+      (elim && (p.jornada==null||p.jornada==='') ? ' style="border-color:var(--c-copa)" title="Una eliminatoria sin jornada no se ve en la web"' : '')+'></td>'+
+    /* Con fase, el partido es eliminatoria: no reparte puntos y la web pone
+       la etiqueta en el pie de la tarjeta en lugar de "Jornada N". */
+    '<td><select class="inp inp-sm" style="width:auto;min-width:104px'+(elim?';border-color:var(--accent);color:var(--accent-2)':'')+'" data-c="partidos:campo" data-i="'+i+'" data-k="fase" '+
+      'title="Vacío = jornada regular. Con fase, no suma a la clasificación.">'+
+      '<option value="">Regular</option>'+
+      C.FASES_LIGA.map(function(f){ return '<option value="'+esc(f)+'"'+(p.fase===f?' selected':'')+'>'+esc(f)+'</option>'; }).join('')+
+      (p.fase && C.FASES_LIGA.indexOf(p.fase)<0 ? '<option selected>'+esc(p.fase)+'</option>' : '')+
+    '</select></td>'+
     '<td><input class="inp inp-sm" style="width:120px" value="'+esc(p.fecha||'')+'" data-c="partidos:campo" data-i="'+i+'" data-k="fecha" placeholder="dd/mm/aaaa"></td>'+
     '<td style="min-width:180px">'+U.selectEquipos(p.local, 'class="inp inp-sm" data-c="partidos:campo" data-i="'+i+'" data-k="local"')+'</td>'+
     '<td class="num"><input class="inp inp-sm inp-num" type="number" min="0" value="'+(Number(C.gl(p))||0)+'" data-c="partidos:gol" data-i="'+i+'" data-k="goles_l"></td>'+
@@ -146,7 +245,108 @@ function pintarCopa(el){
     '</div>'+
     (ms.length ? tablaCopa(ms) : '<div class="vacio">La Copa todavía no tiene cruces.</div>')+
     '<div class="g-hueco"></div>'+
+    bloqueGrupos()+
+    '<div class="g-hueco"></div>'+
     cuadroPrevio(ms, fases);
+
+  montarGrupos();
+}
+
+/* --------------------------------------------------------------------------
+   GRUPOS DE COPA
+   El reparto vive en config.grupos_copa como {A:[nombre,…], B:[…]}. Es un
+   dato aparte de los partidos a propósito: después del sorteo hay que poder
+   mover un equipo de bombo antes de que exista un solo cruce, y si el reparto
+   sólo viviera dentro de partidos_copa[].grupo no habría dónde apuntarlo.
+   «Aplicar a los partidos» es el paso explícito que vuelca uno en el otro.
+   -------------------------------------------------------------------------- */
+function bloqueGrupos(){
+  var D = d(), letras = C.letrasGrupo(D), gc = D.config.grupos_copa || {};
+  var asignados = {};
+  Object.keys(gc).forEach(function(g){ (gc[g]||[]).forEach(function(n){ asignados[n] = g; }); });
+  var sinAsignar = D.equipos.filter(function(e){ return !e.archivado && !asignados[e.nombre]; });
+  var porGrupo = (D.config.formatos.COPA||{}).clasifican_por_grupo || 2;
+
+  /* Cuántos partidos de grupo hay ya por letra: sirve para avisar antes de
+     regenerar nada. */
+  var conPartidos = {};
+  (D.partidos_copa||[]).forEach(function(p){
+    if(p.fase==='FASE DE GRUPOS' && p.grupo) conPartidos[p.grupo] = (conPartidos[p.grupo]||0)+1;
+  });
+
+  return '<div class="card" style="padding:var(--g5)">'+
+    '<div style="display:flex;align-items:center;gap:var(--g3);margin-bottom:.35rem;flex-wrap:wrap">'+
+      '<h3 style="font-size:.9375rem">Fase de grupos</h3>'+
+      '<span class="pastilla">'+letras.length+' grupos · pasan '+porGrupo+'</span>'+
+      '<button class="btn btn-secondary btn-sm" style="margin-left:auto" data-a="copa:repartirGrupos"><i class="ph ph-shuffle"></i> Repartir</button>'+
+      '<button class="btn btn-secondary btn-sm" data-a="copa:vaciarGrupos">Vaciar</button>'+
+      '<button class="btn btn-primary btn-sm" data-a="copa:aplicarGrupos"><i class="ph-bold ph-arrow-down"></i> Aplicar a los partidos</button>'+
+    '</div>'+
+    '<p class="ayuda" style="margin-bottom:var(--g4)">Arrastra clubes entre grupos. Sin ratón: enfoca un club y usa ← → para cambiarlo de grupo, o el selector de cada ficha.</p>'+
+
+    '<div class="rejilla" style="--min:200px">'+
+      letras.map(function(g){
+        var l = gc[g] || [];
+        return '<div>'+
+          '<div style="display:flex;align-items:center;gap:.35rem;margin-bottom:var(--g2)">'+
+            '<span style="font-family:var(--f-mono);font-size:.625rem;letter-spacing:.12em;color:var(--ink-3)">GRUPO '+g+'</span>'+
+            '<span class="pastilla'+(l.length===4?' pastilla-ok':(l.length>4?' pastilla-mal':''))+'" style="margin-left:auto">'+l.length+'</span>'+
+            (conPartidos[g] ? '<span class="pastilla pastilla-ojo" title="Ya hay partidos con este grupo">'+conPartidos[g]+'P</span>' : '')+
+          '</div>'+
+          '<div class="dnd-col" data-grupo="'+g+'">'+
+            (l.length ? l.map(function(n){ return fichaClub(n, g, letras); }).join('') : '<div class="vacio">Vacío</div>')+
+          '</div></div>';
+      }).join('')+
+    '</div>'+
+
+    '<div style="margin-top:var(--g5)">'+
+      '<div style="font-family:var(--f-mono);font-size:.625rem;letter-spacing:.12em;color:var(--ink-3);margin-bottom:var(--g2)">SIN ASIGNAR · '+sinAsignar.length+'</div>'+
+      '<div class="dnd-col" data-grupo="" style="flex-direction:row;flex-wrap:wrap">'+
+        (sinAsignar.length ? sinAsignar.map(function(e){ return fichaClub(e.nombre, '', letras); }).join('')
+                           : '<div class="vacio">Todos los clubes activos están repartidos.</div>')+
+      '</div></div>'+
+  '</div>';
+}
+function fichaClub(nombre, grupo, letras){
+  var e = C.equipo(nombre);
+  return '<div class="dnd-ficha grp-c" data-nombre="'+esc(nombre)+'" role="button" '+
+      'aria-label="'+esc(nombre+(grupo?', grupo '+grupo:', sin asignar'))+'">'+
+    '<i class="ph ph-dots-six-vertical dnd-asa" aria-hidden="true"></i>'+
+    U.escudo(e)+
+    '<span class="nm">'+esc(nombre)+'</span>'+
+    '<span class="tras">'+
+      /* Selector: la misma acción sin arrastrar, para teclado y para quien
+         prefiera no arrastrar 16 fichas a mano. */
+      '<select class="inp inp-sm" style="width:auto;height:24px;font-size:.6875rem;padding-inline:.3rem" '+
+        'data-c="copa:grupoDe" data-nombre="'+esc(nombre)+'" aria-label="Grupo de '+esc(nombre)+'">'+
+        '<option value=""'+(grupo?'':' selected')+'>—</option>'+
+        letras.map(function(g){ return '<option value="'+g+'"'+(grupo===g?' selected':'')+'>'+g+'</option>'; }).join('')+
+      '</select>'+
+    '</span>'+
+  '</div>';
+}
+function montarGrupos(){
+  var cols = document.querySelectorAll('.dnd-col[data-grupo]');
+  if(!cols.length) return;
+  SFG.dnd.sortable({
+    grupo:'grupos-copa', item:'.grp-c',
+    contenedores:Array.prototype.slice.call(cols),
+    alSoltar:function(dd){ ponerEnGrupo(dd.item.dataset.nombre, dd.hasta.dataset.grupo); }
+  });
+}
+/* Un club sólo puede estar en un grupo: se quita de todos y se mete en el
+   nuevo. La validación lo comprueba igualmente, pero es mejor que el estado
+   imposible no llegue a existir. */
+function ponerEnGrupo(nombre, grupo){
+  var gc = d().config.grupos_copa;
+  Object.keys(gc).forEach(function(g){
+    gc[g] = (gc[g]||[]).filter(function(n){ return n!==nombre; });
+  });
+  if(grupo){
+    if(!gc[grupo]) gc[grupo] = [];
+    gc[grupo].push(nombre);
+  }
+  U.cambio();
 }
 
 function tablaCopa(ms){
@@ -399,6 +599,12 @@ var A = {
   jorMenos:  function(){ mueveJornada(-1); },
   jorMas:    function(){ mueveJornada(1); },
   nuevo:     function(){ nuevoPartido(st.comp); },
+  nuevaJornada: function(){
+    var js = jornadas(st.comp).map(Number).concat(0);
+    st.j = String(Math.max.apply(null, js)+1);
+    nuevoPartido(st.comp);
+    U.aviso('Jornada '+st.j+' creada con un partido vacío.', 'ok');
+  },
   borrar:    function(el){ borrarPartido(el.dataset.comp, Number(el.dataset.i)); },
   recalcular:function(){
     var n = cascada();
@@ -407,9 +613,14 @@ var A = {
   },
 
   campo: function(el){
-    lista(st.comp)[Number(el.dataset.i)][el.dataset.k] = el.value;
-    /* Cambiar de equipo cambia quién suma puntos: hay que rehacer la tabla. */
-    if(el.dataset.k==='local'||el.dataset.k==='visitante') trasResultado();
+    var p = lista(st.comp)[Number(el.dataset.i)];
+    var k = el.dataset.k;
+    p[k] = el.value;
+    if(k==='fase' && el.value && (p.jornada==null||p.jornada===''))
+      U.aviso('Ponle jornada: sin ella, la web no muestra el partido en Resultados.', 'ojo', 8000);
+    /* Cambiar de equipo cambia quién suma puntos, y marcar una fase saca el
+       partido del reparto: las dos cosas rehacen la tabla. */
+    if(k==='local'||k==='visitante'||k==='fase') trasResultado();
     else U.cambio();
   },
   gol: function(el){
@@ -486,6 +697,86 @@ var AC = {
     d().partidos_copa[Number(el.dataset.i)].estado = el.value;
     U.cambio();
   },
+  grupoDe: function(el){ ponerEnGrupo(el.dataset.nombre, el.value); },
+
+  vaciarGrupos: function(){
+    U.confirmar({titulo:'Vaciar los grupos', texto:'Se deshace el reparto. Los partidos que ya tengan grupo asignado no se tocan.', ok:'Vaciar'})
+      .then(function(si){ if(si){ d().config.grupos_copa = {}; U.cambio(); U.aviso('Reparto deshecho.','ok'); } });
+  },
+
+  repartirGrupos: function(){
+    var D = d(), letras = C.letrasGrupo(D);
+    var ya = Object.keys(D.config.grupos_copa||{}).reduce(function(a,g){ return a+(D.config.grupos_copa[g]||[]).length; }, 0);
+    U.confirmar({
+      titulo:'Repartir en '+letras.length+' grupos',
+      html: (ya ? 'Se rehará el reparto actual de '+ya+' clubes.<br><br>' : '')+
+        'Se reparten los clubes activos por serpiente según su posición en la clasificación: el 1.º al grupo A, el 2.º al B… y al llegar al final se vuelve hacia atrás. '+
+        'Así no se juntan los mejores de cada división en el mismo grupo.<br><br>'+
+        'Nada se escribe en los partidos hasta que pulses «Aplicar a los partidos».',
+      ok:'Repartir'
+    }).then(function(si){
+      if(!si) return;
+      /* Serpiente sobre la clasificación de las dos divisiones: es el reparto
+         por siembra habitual y evita que el bombo junte a los tres primeros
+         de Superliga en el mismo grupo. */
+      var orden = C.clasificacion('SUPERLIGA').concat(C.clasificacion('ASCENSO'));
+      var gc = {};
+      letras.forEach(function(g){ gc[g] = []; });
+      orden.forEach(function(e, i){
+        var vuelta = Math.floor(i/letras.length);
+        var pos = i % letras.length;
+        var g = letras[vuelta%2 ? letras.length-1-pos : pos];
+        gc[g].push(e.nombre);
+      });
+      D.config.grupos_copa = gc;
+      U.cambio();
+      U.aviso(orden.length+' clubes repartidos en '+letras.length+' grupos.', 'ok');
+    });
+  },
+
+  aplicarGrupos: function(){
+    var D = d(), gc = D.config.grupos_copa||{};
+    var letras = Object.keys(gc).filter(function(g){ return (gc[g]||[]).length>=2; });
+    if(!letras.length) return U.aviso('No hay grupos con al menos dos clubes.', 'ojo');
+    var existentes = D.partidos_copa.filter(function(p){ return p.fase==='FASE DE GRUPOS'; });
+    /* Todos contra todos dentro de cada grupo, una vuelta (o dos, según el
+       formato). Se cuenta antes para poder decir cuántos van a salir. */
+    var vueltas = (D.config.formatos.COPA||{}).ida_vuelta ? 2 : 1;
+    var n = letras.reduce(function(a,g){ var k=gc[g].length; return a + k*(k-1)/2*vueltas; }, 0);
+    U.confirmar({
+      titulo:'Generar los partidos de la fase de grupos',
+      html:'Se crearán <b>'+n+' cruces</b> ('+(vueltas===2?'ida y vuelta':'una vuelta')+') en '+letras.length+' grupos.'+
+        (existentes.length ? '<br><br><b style="color:var(--gold)">Ya hay '+existentes.length+' partidos de fase de grupos</b>, y se reemplazarán. Los resultados que tengan se perderán.' : ''),
+      ok:'Generar', peligro:!!existentes.length
+    }).then(function(si){
+      if(!si) return;
+      /* Se conservan los índices de los cruces que NO son de grupos, porque
+         origen_local/origen_visitante apuntan por posición: reordenar el
+         array rompería el cuadro. Los de grupos se quitan y se añaden al
+         final, que es donde no estorban a nadie. */
+      var quitados = [];
+      for(var i=D.partidos_copa.length-1;i>=0;i--){
+        if(D.partidos_copa[i].fase==='FASE DE GRUPOS'){ D.partidos_copa.splice(i,1); quitados.push(i); }
+      }
+      quitados.forEach(function(k){ reajustarOrigenes(k); });
+      letras.forEach(function(g){
+        var eqs = gc[g];
+        for(var v=0; v<vueltas; v++){
+          for(var a=0; a<eqs.length; a++) for(var b=a+1; b<eqs.length; b++){
+            D.partidos_copa.push({
+              fase:'FASE DE GRUPOS', grupo:g, fecha:'', estado:'PENDIENTE',
+              local: v===0?eqs[a]:eqs[b], visitante: v===0?eqs[b]:eqs[a],
+              goles_l:0, goles_v:0, detalles:' / ', origen_local:null, origen_visitante:null
+            });
+          }
+        }
+      });
+      copaFase = 'FASE DE GRUPOS';
+      U.cambio();
+      U.aviso(n+' partidos de fase de grupos generados.', 'ok');
+    });
+  },
+
   origen: function(el){
     var p = d().partidos_copa[Number(el.dataset.i)], lado = el.dataset.k;
     var k = lado==='local' ? 'origen_local' : 'origen_visitante';

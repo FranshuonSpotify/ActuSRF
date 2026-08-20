@@ -283,6 +283,122 @@ const ok = (m) => { n++; console.log('  ok  ' + m); };
   ok('tablaCalculada: invariantes correctas (' + finalizados + ' partidos, ' + des.length + ' desajustes con lo guardado)');
 }
 
+/* -- 13. Fases de Liga: una eliminatoria no reparte puntos -------------
+   Es la regla que hace que marcar un partido como PLAY OFF sea seguro. */
+{
+  const c = JSON.parse(JSON.stringify(d));
+  C.completarEsquema(c);
+  setD(c);
+  const antes = C.tablaCalculada();
+  /* Se elige uno que ganara el local, para poder comprobar que pierde los
+     tres puntos: con una derrota no habria nada que restar. */
+  const reg = c.partidos_liga.find(p => C.isFin(p) && C.gl(p) > C.gv(p));
+  const local = reg.local;
+
+  /* El mismo partido, ya finalizado, pasa a ser eliminatoria. */
+  reg.fase = 'SEMIFINALES';
+  const despues = C.tablaCalculada();
+  assert.strictEqual(despues[local].pj, antes[local].pj - 1, 'deja de contar como partido jugado');
+  assert.strictEqual(despues[local].pts, antes[local].pts - 3, 'deja de repartir los 3 puntos de la victoria');
+  assert.strictEqual(despues[local].g, antes[local].g - 1, 'deja de contar como victoria');
+  assert.strictEqual(despues[reg.visitante].p, antes[reg.visitante].p - 1, 'y como derrota del rival');
+  assert.strictEqual(C.esRegular(reg), false);
+  reg.fase = '';
+  assert.deepStrictEqual(C.tablaCalculada()[local], antes[local], 'al quitar la fase vuelve a contar');
+  setD(d);
+  ok('un partido de Liga con fase no suma a la clasificacion regular');
+}
+
+/* -- 14. Fase de Liga sin jornada: la web no lo mostraria -------------- */
+{
+  const roto = (mut) => {
+    const c = JSON.parse(JSON.stringify(d)); C.completarEsquema(c); mut(c);
+    const v = C.validarIntegridad(c);
+    return { err: v.err.map(e => e.m).join(' | '), avi: v.avi.map(e => e.m).join(' | ') };
+  };
+  assert.ok(roto(c => { c.partidos_liga[0].fase = 'FINAL'; c.partidos_liga[0].jornada = ''; }).err.includes('sin jornada'),
+    'una eliminatoria sin jornada es error: initJornadas() la descartaria');
+  assert.ok(!roto(c => { c.partidos_liga[0].fase = 'FINAL'; }).err.includes('sin jornada'),
+    'con jornada no hay error');
+  assert.ok(roto(c => { c.partidos_liga[0].fase = 'OCTAVOS DE ALGO'; }).avi.includes('no es una de las conocidas'),
+    'una fase inventada es aviso');
+  ok('validacion de fases de Liga: sin jornada bloquea, fase rara avisa');
+}
+
+/* -- 15. Grupos de Copa ------------------------------------------------ */
+{
+  const roto = (mut) => {
+    const c = JSON.parse(JSON.stringify(d)); C.completarEsquema(c); mut(c);
+    return C.validarIntegridad(c).err.map(e => e.m).join(' | ');
+  };
+  const eqA = d.equipos[0].nombre, eqB = d.equipos[1].nombre;
+  assert.ok(roto(c => { c.config.grupos_copa = { A: ['Equipo Fantasma'] }; }).includes('no existe'), 'equipo inexistente en un grupo');
+  assert.ok(roto(c => { c.config.grupos_copa = { A: [eqA], B: [eqA] }; }).includes('a la vez'), 'el mismo equipo en dos grupos');
+  assert.strictEqual(roto(c => { c.config.grupos_copa = { A: [eqA], B: [eqB] }; }), '', 'una asignacion valida no da error');
+  ok('validacion de grupos de Copa: inexistentes y duplicados');
+}
+
+/* -- 16. Formatos: describen, no mandan -------------------------------- */
+{
+  const c = JSON.parse(JSON.stringify(d));
+  C.completarEsquema(c);
+  assert.ok(c.config.formatos.SUPERLIGA && c.config.formatos.COPA, 'se crean con valores por defecto');
+  assert.deepStrictEqual(c.config.grupos_copa, {}, 'y los grupos vacios');
+  /* Idempotente: volver a completar no pisa lo que el usuario haya puesto. */
+  c.config.formatos.SUPERLIGA.vueltas = 1;
+  C.completarEsquema(c);
+  assert.strictEqual(c.config.formatos.SUPERLIGA.vueltas, 1, 'completarEsquema no pisa lo ya configurado');
+  /* Si el formato contradice lo que app.js tiene escrito a mano, se avisa. */
+  c.config.formatos.SUPERLIGA.playoff = 8;
+  const avi = C.validarIntegridad(c).avi.map(x => x.m).join(' | ');
+  assert.ok(/no lo lee del archivo/.test(avi), 'avisa de que la web no lee el formato');
+  assert.strictEqual(C.letrasGrupo(c).join(''), 'ABCD', '4 grupos -> A B C D');
+  c.config.formatos.COPA.grupos = 2;
+  assert.strictEqual(C.letrasGrupo(c).join(''), 'AB');
+  ok('formatos: por defecto, idempotentes, y avisan de lo que la web ignora');
+}
+
+/* -- 17. Cierre de temporada ------------------------------------------- */
+{
+  const c = JSON.parse(JSON.stringify(d));
+  C.completarEsquema(c); setD(c);
+
+  /* Un jugador con goles esta temporada y una etapa abierta en su club. */
+  const eq = c.equipos.find(e => (e.jugadores || []).some(j => (j.goles || 0) > 0 && (j.historial || []).length));
+  assert.ok(eq, 'hace falta un jugador con goles y con historial');
+  const j = eq.jugadores.find(x => (x.goles || 0) > 0 && (x.historial || []).length);
+  const carreraAntes = (j.goles_totales || 0) + (j.goles || 0);
+  const golesTemp = j.goles;
+
+  const archivo = C.instantaneaTemporada(c, 'Temporada de prueba');
+  c.historial_temporadas.push(archivo);
+  const res = C.cerrarTemporada(c, { etiqueta: 'Temporada de prueba', vaciarCalendario: true });
+
+  assert.strictEqual(j.goles, 0, 'la temporada se pone a cero');
+  assert.strictEqual((j.goles_totales || 0) + (j.goles || 0), carreraAntes, 'la carrera no cambia al cerrar');
+  const suma = (j.historial || []).reduce((s, h) => s + (h.goles || 0), 0);
+  assert.strictEqual(suma, j.goles_totales,
+    'goles_totales sigue siendo exactamente la suma del historial, que es lo que app.js da por hecho');
+  assert.ok(golesTemp > 0 && suma >= golesTemp, 'los goles de la temporada acabaron en el historial');
+
+  assert.ok(c.equipos.every(e => C.CAMPOS_TABLA.every(k => e[k] === 0)), 'la clasificacion queda a cero');
+  assert.strictEqual(c.partidos_liga.length, 0, 'el calendario se vacia');
+  assert.strictEqual(c.config.jornada_actual, '1');
+  assert.strictEqual(c.config.temporada, String(parseInt(d.config.temporada, 10) + 1), 'la temporada avanza');
+  assert.ok(res.jugadores > 0 && res.partidos > 0);
+
+  /* La copia archivada no comparte objetos con la temporada viva. */
+  assert.ok(archivo.equipos.some(e => C.CAMPOS_TABLA.some(k => e[k] > 0)),
+    'el archivo conserva la clasificacion aunque la viva se haya puesto a cero');
+
+  /* Y palmares() de app.js sabra leerla. */
+  const camp = C.campeones(archivo);
+  assert.ok(camp.length >= 1, 'la instantanea produce al menos un campeon');
+  assert.ok(camp[0].e && camp[0].e.nombre, 'con equipo identificado');
+  setD(d);
+  ok('cerrar temporada: carrera intacta, historial cuadrado, archivo independiente y con campeones');
+}
+
 console.log('\n' + n + ' comprobaciones OK.');
 
 /* Informe de contexto, no es una comprobación: lo que el gestor debería
