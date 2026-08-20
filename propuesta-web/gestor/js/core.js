@@ -145,16 +145,30 @@ function parseLado(raw){
     return {tipo:tipo,nombre:nombre,minuto:(q[2]||'').trim()};
   }).filter(Boolean);
 }
+/* La tanda de penaltis no es un evento: vive suelta dentro de `detalles` como
+   "PEN: 3-2" y es el ÚNICO sitio donde se guarda. winnerOf() la lee para
+   resolver una eliminatoria empatada, así que se extrae aparte y se vuelve a
+   escribir al serializar. Sin esto, editar los eventos de un cruce de Copa
+   borraría el resultado de la tanda. */
+var RE_PEN=/PEN[: ]?\s*(\d+)\s*-\s*(\d+)/i;
 /* Se parte por la PRIMERA barra, no por todas: un nombre con "/" dentro
    rompería el reparto local/visitante si partiéramos por cualquiera. */
 function parseDetalles(det){
-  var s=String(det||''), i=s.indexOf('/');
-  if(i<0) return {local:parseLado(s),visitante:[]};
-  return {local:parseLado(s.slice(0,i)),visitante:parseLado(s.slice(i+1))};
+  var s=String(det||'');
+  var mp=RE_PEN.exec(s);
+  var pen=mp?{l:parseInt(mp[1],10),v:parseInt(mp[2],10)}:null;
+  if(mp) s=s.replace(RE_PEN,'');
+  var i=s.indexOf('/');
+  if(i<0) return {local:parseLado(s),visitante:[],pen:pen};
+  return {local:parseLado(s.slice(0,i)),visitante:parseLado(s.slice(i+1)),pen:pen};
 }
 function evToStr(e){ return e.tipo+':'+e.nombre+':'+(e.minuto===''||e.minuto==null?'':e.minuto); }
 function serializarDetalles(ev){
-  return (ev.local||[]).map(evToStr).join(', ')+' / '+(ev.visitante||[]).map(evToStr).join(', ');
+  var s=(ev.local||[]).map(evToStr).join(', ')+' / '+(ev.visitante||[]).map(evToStr).join(', ');
+  /* Al final, fuera de los dos lados: ningún parser de eventos lo confunde
+     con un evento porque "PEN" no es un tipo conocido. */
+  if(ev.pen) s+=' PEN: '+ev.pen.l+'-'+ev.pen.v;
+  return s;
 }
 /* Textos derivados que la web guarda junto al partido. Sólo goles, en el
    orden local -> visitante, con el apóstrofe de minuto. */

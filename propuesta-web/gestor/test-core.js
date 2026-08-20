@@ -48,6 +48,34 @@ const ok = (m) => { n++; console.log('  ok  ' + m); };
   ok('parseDetalles/serializarDetalles: estable y sin pérdidas en ' + comprobados + ' partidos');
 }
 
+/* -- 2b. La tanda de penaltis sobrevive a una edición de eventos -------
+   Es el unico dato del partido que vive suelto dentro de `detalles`, y es lo
+   que winnerOf() necesita para resolver una eliminatoria empatada. */
+{
+  const orig = 'gol:Ana:12 / gol:Bea:80 PEN: 4-3';
+  const ev = C.parseDetalles(orig);
+  assert.deepStrictEqual(ev.pen, { l: 4, v: 3 }, 'la tanda se extrae');
+  assert.strictEqual(ev.local.length, 1, 'el PEN no se cuela como evento del local');
+  assert.strictEqual(ev.visitante.length, 1, 'ni del visitante');
+
+  /* Editar los eventos no puede tirar la tanda por el camino. */
+  ev.visitante.push({ tipo: 'amarilla', nombre: 'Cris', minuto: '85' });
+  const nuevo = C.serializarDetalles(ev);
+  assert.deepStrictEqual(C.parseDetalles(nuevo).pen, { l: 4, v: 3 }, 'la tanda se conserva tras editar');
+
+  const partido = { estado: 'FINALIZADO', local: 'A', visitante: 'B', goles_l: 1, goles_v: 1, detalles: nuevo };
+  assert.strictEqual(C.winnerOf(partido), 'A', 'winnerOf sigue resolviendo por penaltis');
+
+  /* Y el ranking de goleadores no cuenta la tanda como goles. */
+  const sc = C.calcScorers([partido]);
+  assert.strictEqual(sc.reduce((s, r) => s + r.goles, 0), 2, 'los penaltis de la tanda no son goles del partido');
+
+  /* Sin tanda no se inventa ninguna. */
+  assert.strictEqual(C.parseDetalles(' / gol:X:5').pen, null);
+  assert.ok(!/PEN/.test(C.serializarDetalles(C.parseDetalles(' / gol:X:5'))));
+  ok('penaltis: se extraen, sobreviven a la edicion, no cuentan como goles');
+}
+
 /* -- 3. Textos derivados contra producción ----------------------------
    La prueba de fuego del formato: regenerar goleadores_texto y compararlo
    con el que ya está guardado en los partidos que lo traen. Si el formato
