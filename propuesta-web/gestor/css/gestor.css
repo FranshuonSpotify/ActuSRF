@@ -1,0 +1,293 @@
+/* ==========================================================================
+   GESTOR SUPERLIGA FRONTIER — gestor.css
+
+   Se carga DESPUÉS de _fuente/styles.css, que aporta el Design System v3
+   entero: tokens de :root, tipografías, .card, .btn, .badge, .chip. Aquí sólo
+   está lo que la web pública no necesitaba y el gestor sí:
+   formularios, tablas de datos y el armazón de escritorio.
+
+   Nada de colores nuevos. Si un token no existe en styles.css, no se inventa:
+   se compone con los que hay.
+   ========================================================================== */
+
+:root{
+  --nav-w:232px;
+  --barra-h:56px;
+  /* Escala densa: un panel de gestión mete mucho más por pantalla que una
+     página de marketing. La escala de styles.css sigue mandando en tipografía;
+     esto sólo afecta a separaciones internas. */
+  --g1:4px; --g2:8px; --g3:12px; --g4:16px; --g5:24px; --g6:32px;
+}
+
+body{
+  /* La web pública centra todo en .wrap; un dashboard ocupa la ventana. */
+  min-height:100vh;
+  display:grid;
+  grid-template-columns:var(--nav-w) 1fr;
+  grid-template-rows:var(--barra-h) 1fr;
+  grid-template-areas:'marca barra' 'nav vista';
+}
+
+/* ============================ BARRA SUPERIOR ============================ */
+.g-marca{
+  grid-area:marca; display:flex; align-items:center; gap:.55rem;
+  padding-inline:var(--g5); border-bottom:1px solid var(--line);
+  border-right:1px solid var(--line); background:var(--bg-raised);
+}
+.g-marca b{ font-size:.8125rem; font-weight:600; letter-spacing:-.02em; }
+.g-marca .pip{ width:7px; height:7px; border-radius:50%; background:var(--accent); box-shadow:0 0 10px var(--accent-glow); flex-shrink:0; }
+
+.g-barra{
+  grid-area:barra; display:flex; align-items:center; gap:var(--g3);
+  padding-inline:var(--g5); border-bottom:1px solid var(--line);
+  background:rgba(0,0,0,.72); backdrop-filter:blur(14px) saturate(180%);
+  position:sticky; top:0; z-index:200;
+}
+.g-barra .sep{ flex:1; }
+
+/* Estado del archivo. Está SIEMPRE visible, no aparece y desaparece: saber si
+   hay cambios sin guardar es la información más cara de este programa. */
+.g-estado{
+  display:inline-flex; align-items:center; gap:.5rem; min-width:0;
+  font-size:.75rem; color:var(--ink-3);
+  padding:.3rem .7rem; border:1px solid var(--line); border-radius:var(--r-full);
+}
+.g-estado .punto{ width:7px; height:7px; border-radius:50%; background:var(--ink-4); flex-shrink:0; transition:background var(--t2); }
+.g-estado .nom{ font-family:var(--f-mono); font-size:.6875rem; color:var(--ink-2); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:22ch; }
+.g-estado[data-e="limpio"] .punto{ background:#46B45F; }
+.g-estado[data-e="sucio"] .punto{ background:var(--accent); box-shadow:0 0 8px var(--accent-glow); animation:pulse 2s var(--ease-io) infinite; }
+.g-estado[data-e="guardando"] .punto{ background:var(--gold); animation:pulse .9s var(--ease-io) infinite; }
+.g-estado[data-e="vacio"] .punto{ background:var(--ink-5); }
+
+/* Modo descarga: hay que moverlo a mano, y eso no puede pasar desapercibido. */
+.g-modo{ font-family:var(--f-mono); font-size:.625rem; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-4); }
+.g-modo.aviso{ color:var(--gold); }
+
+/* ============================ NAVEGACIÓN ============================ */
+.g-nav{
+  grid-area:nav; border-right:1px solid var(--line); background:var(--bg-raised);
+  padding:var(--g4) var(--g3); overflow-y:auto;
+  display:flex; flex-direction:column; gap:var(--g1);
+}
+.g-nav .grupo{
+  font-family:var(--f-mono); font-size:.625rem; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--ink-4); padding:var(--g4) var(--g3) var(--g2);
+}
+.g-nav a{
+  display:flex; align-items:center; gap:.6rem;
+  padding:.55rem var(--g3); border-radius:var(--r-sm);
+  font-size:.8125rem; color:var(--ink-3); min-height:36px;
+  transition:background var(--t1), color var(--t1);
+}
+.g-nav a:hover{ background:rgba(255,255,255,.04); color:var(--ink); }
+.g-nav a.on{ background:rgba(255,255,255,.07); color:var(--ink); font-weight:500; }
+.g-nav a i{ font-size:1rem; flex-shrink:0; opacity:.7; }
+.g-nav a.on i{ opacity:1; color:var(--accent); }
+.g-nav a .cnt{ margin-left:auto; font-family:var(--f-mono); font-size:.6875rem; color:var(--ink-4); }
+/* Contador de problemas: sólo se pinta cuando hay alguno. */
+.g-nav a .mal{ margin-left:auto; font-family:var(--f-mono); font-size:.6875rem; color:var(--c-copa); }
+
+/* ============================ VISTA ============================ */
+.g-vista{ grid-area:vista; overflow-y:auto; padding:var(--g6) var(--g5) 6rem; }
+.g-vista > .seccion{ display:none; max-width:1180px; margin-inline:auto; }
+.g-vista > .seccion.on{ display:block; }
+
+.g-cab{ display:flex; align-items:flex-end; gap:var(--g4); flex-wrap:wrap; margin-bottom:var(--g5); }
+.g-cab h1{ font-size:1.75rem; font-weight:600; letter-spacing:-.035em; }
+.g-cab p{ color:var(--ink-3); font-size:.875rem; margin-top:.25rem; }
+.g-cab .acciones{ margin-left:auto; display:flex; gap:var(--g2); flex-wrap:wrap; }
+
+/* Barra de filtros de una vista. Pegajosa: en listas de 43 equipos o 66
+   partidos, perder el buscador al bajar es perderlo del todo. */
+.g-filtros{
+  display:flex; align-items:center; gap:var(--g2); flex-wrap:wrap;
+  padding:var(--g3) 0; margin-bottom:var(--g4);
+  border-bottom:1px solid var(--line);
+  position:sticky; top:0; z-index:100;
+  background:linear-gradient(var(--bg) 70%, transparent);
+}
+
+/* ============================ FORMULARIOS ============================
+   Lo único que styles.css no traía. Mismo lenguaje: hairline de 1px, radio
+   pequeño, foco en ámbar, transición corta. */
+.campo{ display:flex; flex-direction:column; gap:.3rem; min-width:0; }
+.campo > label{
+  font-family:var(--f-mono); font-size:.625rem; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--ink-4);
+}
+.campo .ayuda{ font-size:.6875rem; color:var(--ink-4); }
+.campo .mal{ font-size:.6875rem; color:var(--c-copa); }
+
+.inp, .campo input:not([type=color]):not([type=checkbox]), .campo select, .campo textarea{
+  height:38px; padding:0 .7rem; width:100%;
+  background:var(--surface); color:var(--ink);
+  border:1px solid var(--line-2); border-radius:var(--r-sm);
+  font-size:.8125rem; font-family:inherit;
+  transition:border-color var(--t1), background var(--t1);
+}
+.campo textarea, textarea.inp{ height:auto; min-height:96px; padding:.6rem .7rem; line-height:1.5; resize:vertical; }
+.inp:hover, .campo input:hover, .campo select:hover, .campo textarea:hover{ border-color:var(--line-3); }
+.inp:focus, .campo input:focus, .campo select:focus, .campo textarea:focus{
+  outline:none; border-color:var(--accent); background:var(--surface-2);
+  box-shadow:0 0 0 3px var(--accent-glow);
+}
+.inp::placeholder, .campo input::placeholder, .campo textarea::placeholder{ color:var(--ink-5); }
+.inp:disabled, .campo input:disabled, .campo select:disabled{ opacity:.45; cursor:not-allowed; }
+.inp-mono{ font-family:var(--f-mono); font-variant-numeric:tabular-nums; }
+.inp-sm{ height:30px; font-size:.75rem; padding-inline:.5rem; }
+/* Un número no necesita 20ch de ancho y roba sitio a los nombres. */
+.inp-num{ width:64px; text-align:center; font-family:var(--f-mono); }
+
+.campo select{
+  appearance:none; cursor:pointer; padding-right:1.9rem;
+  background-image:linear-gradient(45deg,transparent 50%,var(--ink-3) 50%),linear-gradient(135deg,var(--ink-3) 50%,transparent 50%);
+  background-position:calc(100% - 15px) 16px, calc(100% - 10px) 16px;
+  background-size:5px 5px,5px 5px; background-repeat:no-repeat;
+}
+
+/* Rejillas de formulario. Se rompen a una columna solas, sin media query
+   por cada caso. */
+.rejilla{ display:grid; gap:var(--g4); grid-template-columns:repeat(auto-fit,minmax(var(--min,200px),1fr)); }
+.rejilla-2{ --min:260px; }
+.rejilla-4{ --min:132px; }
+
+/* Interruptor. Es un checkbox de verdad debajo: funciona con teclado y con
+   lectores de pantalla sin escribir una línea de ARIA. */
+.sw{ display:inline-flex; align-items:center; gap:.55rem; cursor:pointer; font-size:.8125rem; color:var(--ink-2); min-height:32px; }
+.sw input{ position:absolute; opacity:0; width:0; height:0; }
+.sw .pista{
+  width:34px; height:20px; border-radius:var(--r-full); background:var(--surface-3);
+  border:1px solid var(--line-2); position:relative; flex-shrink:0; transition:background var(--t1), border-color var(--t1);
+}
+.sw .pista::after{
+  content:''; position:absolute; top:2px; left:2px; width:14px; height:14px;
+  border-radius:50%; background:var(--ink-3); transition:transform var(--t2) var(--ease), background var(--t1);
+}
+.sw input:checked + .pista{ background:var(--accent); border-color:var(--accent); }
+.sw input:checked + .pista::after{ transform:translateX(14px); background:#fff; }
+.sw input:focus-visible + .pista{ outline:2px solid var(--accent); outline-offset:3px; }
+
+/* Selector de color de club. El picker nativo abre la paleta del sistema; al
+   lado va el hex escribible, porque los colores llegan copiados de otro sitio
+   más veces que elegidos a ojo. */
+.color-par{ display:flex; align-items:center; gap:var(--g2); }
+.color-par input[type=color]{
+  width:38px; height:38px; padding:2px; flex-shrink:0; cursor:pointer;
+  background:var(--surface); border:1px solid var(--line-2); border-radius:var(--r-sm);
+}
+.color-par input[type=color]::-webkit-color-swatch{ border:none; border-radius:5px; }
+.color-par input[type=color]::-webkit-color-swatch-wrapper{ padding:0; }
+.color-par .inp{ font-family:var(--f-mono); text-transform:uppercase; }
+/* Vista previa del degradado del club, tal y como lo pinta la web. */
+.grad-prev{ height:38px; flex:1; min-width:60px; border-radius:var(--r-sm); border:1px solid var(--line-2); }
+
+/* ============================ TABLAS ============================ */
+.tabla-caja{ border:1px solid var(--line); border-radius:var(--r-lg); overflow:hidden; background:var(--surface); }
+.tabla-scroll{ overflow-x:auto; }
+table.tabla{ width:100%; border-collapse:collapse; font-size:.8125rem; }
+table.tabla th{
+  font-family:var(--f-mono); font-size:.625rem; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--ink-4); font-weight:500; text-align:left;
+  padding:.7rem .75rem; border-bottom:1px solid var(--line);
+  background:var(--bg-raised); position:sticky; top:0; z-index:2; white-space:nowrap;
+}
+table.tabla td{ padding:.5rem .75rem; border-bottom:1px solid var(--line); vertical-align:middle; }
+table.tabla tr:last-child td{ border-bottom:none; }
+table.tabla tbody tr:hover{ background:rgba(255,255,255,.025); }
+table.tabla .num{ font-family:var(--f-mono); font-variant-numeric:tabular-nums; text-align:right; }
+table.tabla .acc{ width:1%; white-space:nowrap; text-align:right; }
+/* Fila cuya edición apunta a un dato que no cuadra. */
+table.tabla tr.ojo td{ background:rgba(255,81,0,.05); }
+table.tabla tr.apagado td{ opacity:.45; }
+
+/* Celda de equipo: escudo + nombre, sin que el escudo empuje al texto. */
+.eq-cel{ display:flex; align-items:center; gap:.5rem; min-width:0; }
+.eq-cel img{ width:22px; height:22px; object-fit:contain; flex-shrink:0; }
+.eq-cel .noimg{
+  width:22px; height:22px; border-radius:6px; flex-shrink:0;
+  display:grid; place-items:center; font-size:.5rem; font-weight:700;
+  background:var(--surface-3); color:var(--ink-3);
+}
+.eq-cel span{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
+/* ============================ PIEZAS SUELTAS ============================ */
+.pastilla{
+  display:inline-flex; align-items:center; gap:.3rem;
+  font-family:var(--f-mono); font-size:.625rem; letter-spacing:.06em;
+  padding:.2rem .45rem; border-radius:var(--r-sm);
+  background:var(--surface-3); color:var(--ink-3);
+}
+.pastilla-ok{ background:rgba(70,180,95,.13); color:#6FD98A; }
+.pastilla-mal{ background:rgba(255,59,59,.13); color:#FF7B7B; }
+.pastilla-ojo{ background:rgba(255,201,74,.13); color:var(--gold); }
+
+.vacio{ padding:3rem 1.5rem; text-align:center; color:var(--ink-4); font-size:.875rem; }
+.g-hueco{ height:var(--g5); }
+
+/* Bloqueo de edición durante el guardado: no se puede tocar nada mientras el
+   archivo se está escribiendo. */
+body.bloqueado .g-vista{ pointer-events:none; opacity:.55; filter:saturate(.6); }
+body.bloqueado .g-vista *:focus{ outline:none; }
+
+/* ============================ MODAL ============================
+   Se apoya en .ov/.ov-panel de styles.css y sólo añade el ancho y el cuerpo
+   desplazable, que allí no hacían falta. */
+.ov-panel.ancho{ width:min(94vw,860px); }
+.ov-panel.medio{ width:min(94vw,620px); }
+.ov-cuerpo{ padding:var(--g5); max-height:min(66vh,640px); overflow-y:auto; }
+.ov-pie{ display:flex; gap:var(--g2); justify-content:flex-end; padding:var(--g4) var(--g5); border-top:1px solid var(--line); background:var(--bg-raised); }
+.ov-pie .izq{ margin-right:auto; }
+
+/* ============================ AVISOS FLOTANTES ============================ */
+.g-avisos{ position:fixed; right:var(--g5); bottom:var(--g5); z-index:900; display:flex; flex-direction:column; gap:var(--g2); pointer-events:none; }
+.g-aviso{
+  pointer-events:auto; min-width:260px; max-width:400px;
+  display:flex; align-items:flex-start; gap:.6rem;
+  padding:.75rem .9rem; font-size:.8125rem;
+  background:var(--surface-2); border:1px solid var(--line-2); border-radius:var(--r);
+  box-shadow:0 20px 50px -20px rgba(0,0,0,.9);
+  animation:g-entra var(--t2) var(--ease);
+}
+.g-aviso i{ flex-shrink:0; margin-top:.1rem; }
+.g-aviso.ok i{ color:#6FD98A; }
+.g-aviso.mal i{ color:#FF7B7B; }
+.g-aviso.ojo i{ color:var(--gold); }
+.g-aviso.saliendo{ animation:g-sale var(--t2) var(--ease) forwards; }
+@keyframes g-entra{ from{ opacity:0; transform:translateY(10px); } }
+@keyframes g-sale{ to{ opacity:0; transform:translateY(6px); } }
+
+/* ============================ LISTA DE PROBLEMAS ============================ */
+.problema{
+  display:flex; align-items:flex-start; gap:.6rem; padding:.6rem .75rem;
+  border-bottom:1px solid var(--line); font-size:.8125rem; color:var(--ink-2);
+}
+.problema:last-child{ border-bottom:none; }
+.problema i{ flex-shrink:0; margin-top:.15rem; }
+.problema.err i{ color:#FF7B7B; }
+.problema.avi i{ color:var(--gold); }
+.problema .ir{ margin-left:auto; flex-shrink:0; font-size:.75rem; color:var(--ink-4); border-bottom:1px solid var(--line-2); }
+.problema .ir:hover{ color:var(--accent); border-color:var(--accent); }
+
+/* ============================ RESPONSIVO ============================
+   Se adapta, no se recorta: en pantalla estrecha la navegación pasa arriba en
+   una fila desplazable y la vista ocupa el ancho entero. */
+@media (max-width:900px){
+  body{ grid-template-columns:1fr; grid-template-rows:var(--barra-h) auto 1fr; grid-template-areas:'barra' 'nav' 'vista'; }
+  .g-marca{ display:none; }
+  .g-nav{
+    flex-direction:row; gap:var(--g1); overflow-x:auto; overflow-y:hidden;
+    border-right:none; border-bottom:1px solid var(--line); padding:var(--g2) var(--g3);
+  }
+  .g-nav .grupo{ display:none; }
+  .g-nav a{ white-space:nowrap; }
+  .g-nav a .cnt{ display:none; }
+  .g-vista{ padding:var(--g5) var(--g4) 5rem; }
+  .g-estado .nom{ display:none; }
+  .g-avisos{ left:var(--g4); right:var(--g4); bottom:var(--g4); }
+  .g-aviso{ max-width:none; }
+}
+
+@media (prefers-reduced-motion:reduce){
+  .g-aviso, .g-estado .punto{ animation:none !important; }
+  *{ transition-duration:1ms !important; }
+}
