@@ -372,6 +372,225 @@ function cerrarTemporada(d, opciones){
 }
 
 /* --------------------------------------------------------------------------
+   GENERADORES
+   Producen partidos, no los escriben: devuelven el array y quien llama decide
+   si lo aplica. Así se puede enseñar el resultado antes de tocar el archivo,
+   que es justo lo que pide «repetir el sorteo antes de confirmar».
+   -------------------------------------------------------------------------- */
+
+/* Azar reproducible. Con la misma semilla sale el mismo sorteo, que es lo que
+   permite repetirlo y luego volver a uno anterior. Math.random() no serviría:
+   no hay forma de volver a él. */
+function azar(semilla){
+  var s = semilla>>>0 || 1;
+  return function(){
+    /* xorshift32: cuatro líneas y reparte lo bastante bien para un sorteo. */
+    s ^= s<<13; s>>>=0; s ^= s>>17; s ^= s<<5; s>>>=0;
+    return s/4294967296;
+  };
+}
+function barajar(lista, rnd){
+  var a = lista.slice();
+  for(var i=a.length-1;i>0;i--){
+    var j = Math.floor(rnd()*(i+1));
+    var t = a[i]; a[i] = a[j]; a[j] = t;
+  }
+  return a;
+}
+
+/* CALENDARIO DE LIGA — todos contra todos por el método del círculo.
+   Se fija el primer equipo y los demás rotan; en cada ronda se emparejan por
+   los extremos. Con número impar entra un descanso, y quien lo tiene esa
+   jornada no juega en vez de generarse un partido fantasma. */
+function generarCalendario(nombres, opciones){
+  opciones = opciones || {};
+  var vueltas = opciones.vueltas===1 ? 1 : 2;
+  var j0 = parseInt(opciones.jornadaInicial,10) || 1;
+  var rnd = azar(opciones.semilla);
+  var eq = opciones.ordenar===false ? nombres.slice() : barajar(nombres, rnd);
+  if(eq.length<2) return [];
+
+  var descanso = null;
+  if(eq.length%2){ descanso = ' descanso'; eq.push(descanso); }
+  var n = eq.length, rondas = n-1;
+  var out = [];
+
+  for(var v=0; v<vueltas; v++){
+    for(var r=0; r<rondas; r++){
+      var jornada = String(j0 + v*rondas + r);
+      for(var i=0; i<n/2; i++){
+        var a = eq[(i===0) ? 0 : ((r+i-1)%(n-1))+1];
+        var b = eq[((n-1) - i + r - 1)%(n-1)+1];
+        if(i===0) b = eq[(r+n-2)%(n-1)+1];
+        if(a===descanso || b===descanso) continue;
+        /* Alternancia de campo: dentro de una vuelta se invierte en rondas
+           impares, y en la vuelta de vuelta se invierte todo. Sin esto, el
+           equipo fijo del círculo jugaría siempre en casa. */
+        var invertir = (r%2===1);
+        if(v%2===1) invertir = !invertir;
+        out.push(nuevoPartidoLiga(invertir?b:a, invertir?a:b, jornada));
+      }
+    }
+  }
+  return out;
+}
+function nuevoPartidoLiga(local, visitante, jornada){
+  return {jornada:jornada, fecha:'', estado:'PENDIENTE',
+          local:local, visitante:visitante, goles_l:0, goles_v:0, detalles:' / '};
+}
+
+/* Nombre de la ronda según cuántos equipos quedan en ella. */
+function nombreFase(enRonda, esPrevia){
+  if(esPrevia) return 'RONDA 1 (PREVIA)';
+  if(enRonda<=2) return 'FINAL';
+  if(enRonda<=4) return 'SEMIFINALES';
+  if(enRonda<=8) return 'CUARTOS DE FINAL';
+  return 'RONDA 2';
+}
+
+/* SORTEO DE COPA.
+   Devuelve la lista completa de cruces con `origen_local`/`origen_visitante`
+   ya encadenados por POSICIÓN dentro de esa misma lista, que es como los lee
+   la web. Por eso se construye entera de una vez y no se puede reordenar
+   después sin reajustar los índices.
+
+   `siembra` es el orden de fuerza (normalmente la clasificación): se empareja
+   el primero con el último, el segundo con el penúltimo, etc.
+   `rivalidades` son parejas que no deben cruzarse en la primera ronda. */
+function generarCopa(nombres, opciones){
+  opciones = opciones || {};
+  var rnd = azar(opciones.semilla);
+  var eq = opciones.siembra ? nombres.slice() : barajar(nombres, rnd);
+  if(eq.length<2) return {partidos:[], avisos:['Hacen falta al menos dos equipos.']};
+  var avisos = [];
+
+  if(opciones.tipo==='grupos') return generarGrupos(eq, opciones, rnd);
+
+  /* Se baja a la potencia de dos inferior con una previa: los que sobran se
+     eliminan entre sí y el resto pasa directo. */
+  var N = eq.length;
+  var P = Math.pow(2, Math.floor(Math.log2(N)));
+  var previas = N - P;
+  var partidos = [];
+  var entranEnR2 = [];          // {nombre} o {origen:índice}
+
+  if(previas>0){
+    /* Juegan la previa los peor sembrados: los mejores tienen el pase. */
+    var conPase = eq.slice(0, N - previas*2);
+    var aPrevia = eq.slice(N - previas*2);
+    emparejar(aPrevia, opciones.rivalidades, avisos).forEach(function(par){
+      partidos.push(nuevoCruce(nombreFase(0,true), par[0], par[1]));
+      entranEnR2.push({origen:partidos.length-1});
+    });
+    /* Los ganadores de la previa entran como los peor sembrados, DETRÁS de
+       los que tenían pase. Ponerlos delante los emparejaría entre sí y la
+       previa no habría servido de nada: su sentido es que se crucen con los
+       cabezas de serie. */
+    entranEnR2 = conPase.map(function(n){ return {nombre:n}; }).concat(entranEnR2);
+  } else {
+    entranEnR2 = eq.map(function(n){ return {nombre:n}; });
+  }
+
+  /* Primera ronda del cuadro: se empareja por extremos —el mejor sembrado
+     contra el peor— y ahí sí se esquivan las rivalidades, porque es la ronda
+     que de verdad se sortea. Las siguientes ya vienen encadenadas. */
+  var slots = porExtremos(entranEnR2, opciones.rivalidades, avisos);
+
+  var actual = slots, primera = true;
+  while(actual.length>1){
+    var fase = nombreFase(actual.length, false);
+    var siguiente = [];
+    for(var i=0;i<actual.length;i+=2){
+      var A = actual[i], B = actual[i+1];
+      var p = nuevoCruce(fase, A.nombre||'', B?(B.nombre||''):'');
+      if(A.origen!=null) p.origen_local = A.origen;
+      if(B && B.origen!=null) p.origen_visitante = B.origen;
+      partidos.push(p);
+      siguiente.push({origen:partidos.length-1});
+    }
+    actual = siguiente;
+    primera = false;
+  }
+  return {partidos:partidos, avisos:avisos};
+}
+
+/* Reordena una lista de participantes para que se enfrenten por extremos
+   (1º-último, 2º-penúltimo…) y para que ninguna pareja sea una rivalidad
+   declarada. Devuelve la lista ya en orden de emparejamiento. */
+function porExtremos(entradas, rivalidades, avisos){
+  var a = entradas.slice(), out = [];
+  while(a.length>1){
+    var x = a.shift();
+    var k = a.length-1;
+    if(rivalidades && rivalidades.length && x.nombre){
+      var intentos = 0;
+      while(k>=0 && a[k].nombre && esRival(x.nombre, a[k].nombre, rivalidades) && intentos<a.length){
+        k--; intentos++;
+      }
+      if(k<0){
+        k = a.length-1;
+        avisos.push('No se pudo evitar el cruce entre "'+x.nombre+'" y "'+(a[k].nombre||'un clasificado')+'" en la primera ronda.');
+      }
+    }
+    out.push(x, a.splice(k,1)[0]);
+  }
+  if(a.length) out.push(a[0]);
+  return out;
+}
+
+/* Emparejar por extremos, esquivando rivalidades declaradas. */
+function emparejar(lista, rivalidades, avisos){
+  var a = lista.slice(), pares = [];
+  while(a.length>1){
+    var x = a.shift();
+    var k = a.length-1;                       // por defecto, el del otro extremo
+    if(rivalidades && rivalidades.length){
+      var intentos = 0;
+      while(k>=0 && esRival(x, a[k], rivalidades) && intentos<a.length){ k--; intentos++; }
+      if(k<0){
+        k = a.length-1;
+        avisos.push('No se pudo evitar el cruce entre "'+x+'" y "'+a[k]+'" en la primera ronda.');
+      }
+    }
+    pares.push([x, a.splice(k,1)[0]]);
+  }
+  return pares;
+}
+function esRival(a, b, rivalidades){
+  return rivalidades.some(function(r){ return (r[0]===a&&r[1]===b)||(r[0]===b&&r[1]===a); });
+}
+function nuevoCruce(fase, local, visitante){
+  return {fase:fase, grupo:'', fecha:'', estado:'PENDIENTE',
+          local:local||'', visitante:visitante||'',
+          goles_l:0, goles_v:0, detalles:' / ', origen_local:null, origen_visitante:null};
+}
+
+/* Fase de grupos: reparto por serpiente y todos contra todos dentro de cada
+   grupo. No se encadena nada, porque quién pasa lo decide la clasificación
+   del grupo y eso no se puede expresar con `origen_*`. */
+function generarGrupos(eq, opciones, rnd){
+  var nGrupos = Math.max(1, opciones.grupos||4);
+  var letras = Array.from({length:nGrupos},function(_,i){ return String.fromCharCode(65+i); });
+  var reparto = {};
+  letras.forEach(function(g){ reparto[g] = []; });
+  eq.forEach(function(nombre, i){
+    var vuelta = Math.floor(i/nGrupos), pos = i%nGrupos;
+    reparto[letras[vuelta%2 ? nGrupos-1-pos : pos]].push(nombre);
+  });
+  var partidos = [], vueltas = opciones.ida_vuelta ? 2 : 1;
+  letras.forEach(function(g){
+    var l = reparto[g];
+    for(var v=0; v<vueltas; v++)
+      for(var a=0;a<l.length;a++) for(var b=a+1;b<l.length;b++){
+        var p = nuevoCruce('FASE DE GRUPOS', v===0?l[a]:l[b], v===0?l[b]:l[a]);
+        p.grupo = g;
+        partidos.push(p);
+      }
+  });
+  return {partidos:partidos, reparto:reparto, avisos:[]};
+}
+
+/* --------------------------------------------------------------------------
    MOVER UN EQUIPO DENTRO DEL CUADRO DE COPA
    Vive aquí y no en la vista porque tiene dos efectos que no se ven: si el
    hueco de destino estaba ocupado hay intercambio, y colocar a mano tiene que
@@ -834,6 +1053,7 @@ SFG.core={
   TIPOS_EVENTO:TIPOS_EVENTO, TIPO_LABEL:TIPO_LABEL, CAMPOS_TABLA:CAMPOS_TABLA, CLAVES:CLAVES,
   instantaneaTemporada:instantaneaTemporada, campeones:campeones, cerrarTemporada:cerrarTemporada,
   traspasar:traspasar, moverEnCuadro:moverEnCuadro,
+  generarCalendario:generarCalendario, generarCopa:generarCopa, azar:azar, barajar:barajar,
   equipo:equipo, equipoPorId:equipoPorId, pool:pool,
   orderStandings:orderStandings, clasificacion:clasificacion,
   winnerOf:winnerOf, resolveSide:resolveSide,

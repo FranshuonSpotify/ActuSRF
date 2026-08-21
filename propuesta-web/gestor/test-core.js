@@ -535,6 +535,178 @@ const ok = (m) => { n++; console.log('  ok  ' + m); };
   ok('cuadro de Copa: intercambio, ruptura de vinculacion y rechazo de cruces imposibles');
 }
 
+/* -- 20. Generador de calendario ---------------------------------------
+   Un calendario mal hecho no se ve a ojo: hay que contar. */
+{
+  const comprobar = (nombres, vueltas) => {
+    const ms = C.generarCalendario(nombres, { vueltas, semilla: 7 });
+    const N = nombres.length;
+    /* Cada pareja se enfrenta exactamente `vueltas` veces. */
+    const pares = {};
+    ms.forEach(p => {
+      const k = [p.local, p.visitante].sort().join('|');
+      pares[k] = (pares[k] || 0) + 1;
+      assert.notStrictEqual(p.local, p.visitante, 'nadie juega contra si mismo');
+      assert.ok(nombres.includes(p.local) && nombres.includes(p.visitante), 'sin equipos inventados');
+    });
+    assert.strictEqual(Object.keys(pares).length, N * (N - 1) / 2, 'faltan o sobran emparejamientos');
+    Object.keys(pares).forEach(k => assert.strictEqual(pares[k], vueltas, 'la pareja ' + k + ' se repite mal'));
+    assert.strictEqual(ms.length, (N * (N - 1) / 2) * vueltas, 'numero total de partidos');
+
+    /* Nadie juega dos veces en la misma jornada. */
+    const porJor = {};
+    ms.forEach(p => {
+      porJor[p.jornada] = porJor[p.jornada] || [];
+      porJor[p.jornada].push(p.local, p.visitante);
+    });
+    Object.keys(porJor).forEach(j => {
+      assert.strictEqual(new Set(porJor[j]).size, porJor[j].length, 'jornada ' + j + ': alguien juega dos veces');
+    });
+    const jornadas = Object.keys(porJor).length;
+    assert.strictEqual(jornadas, (N % 2 ? N : N - 1) * vueltas, 'numero de jornadas');
+
+    /* Reparto de campo: con ida y vuelta tiene que quedar equilibrado. */
+    const casa = {};
+    nombres.forEach(x => { casa[x] = 0; });
+    ms.forEach(p => { casa[p.local]++; });
+    const partidosPorEquipo = (N - 1) * vueltas;
+    nombres.forEach(x => {
+      const fuera = partidosPorEquipo - casa[x];
+      assert.ok(Math.abs(casa[x] - fuera) <= (vueltas === 2 ? 1 : N),
+        x + ' juega ' + casa[x] + ' en casa y ' + fuera + ' fuera');
+    });
+    return { ms, jornadas };
+  };
+
+  const par = comprobar(['A', 'B', 'C', 'D', 'E', 'F'], 2);
+  assert.strictEqual(par.jornadas, 10);
+  comprobar(['A', 'B', 'C', 'D', 'E'], 2);          // impar, con descanso
+  comprobar(['A', 'B', 'C', 'D'], 1);
+  comprobar(['A', 'B'], 2);
+
+  /* Sobre los equipos reales de una division. */
+  const reales = d.equipos.filter(e => e.division === 'SUPERLIGA' && !e.archivado).map(e => e.nombre);
+  const r = comprobar(reales, 2);
+  /* La misma semilla da el mismo calendario; otra da uno distinto. */
+  const a = C.generarCalendario(reales, { vueltas: 2, semilla: 42 });
+  const b = C.generarCalendario(reales, { vueltas: 2, semilla: 42 });
+  const c = C.generarCalendario(reales, { vueltas: 2, semilla: 43 });
+  assert.strictEqual(JSON.stringify(a), JSON.stringify(b), 'misma semilla, mismo sorteo');
+  assert.notStrictEqual(JSON.stringify(a), JSON.stringify(c), 'otra semilla, otro sorteo');
+  ok('generarCalendario: ' + reales.length + ' equipos, ' + r.ms.length + ' partidos en ' + r.jornadas + ' jornadas, sin repetidos ni solapes');
+}
+
+/* -- 21. Sorteo de Copa: el encadenado tiene que resolver ---------------
+   Lo que importa no es que salgan cruces, sino que origen_local y
+   origen_visitante apunten a donde deben. Se comprueba simulando la
+   competicion entera con resolveSide(), que es como la lee la web. */
+{
+  const simular = (nombres, opciones) => {
+    const { partidos, avisos } = C.generarCopa(nombres, Object.assign({ semilla: 11 }, opciones || {}));
+    const c = { config: { temporada: '3' }, equipos: nombres.map((x, i) => ({ id: 'e' + i, nombre: x, division: 'SUPERLIGA' })), partidos_copa: partidos };
+    C.completarEsquema(c); setD(c);
+    assert.deepStrictEqual(C.validarIntegridad(c).err.map(e => e.m), [], 'el sorteo no puede nacer con errores');
+
+    /* Todo indice de origen apunta hacia atras: si apuntara hacia delante, la
+       cascada de la web no podria resolverse en un solo recorrido. */
+    partidos.forEach((p, i) => {
+      ['origen_local', 'origen_visitante'].forEach(k => {
+        if (p[k] != null) assert.ok(p[k] < i, 'el cruce ' + i + ' se alimenta de uno posterior (' + p[k] + ')');
+      });
+    });
+
+    /* Se juega entera: gana siempre el local, y al final debe quedar un unico
+       campeon y ningun hueco sin resolver. */
+    partidos.forEach(p => {
+      const L = C.resolveSide(p, 'local'), V = C.resolveSide(p, 'visitante');
+      assert.ok(!L.pend || L.origen != null, 'un lado pendiente sin origen');
+      if (L.origen != null) p.local = L.n;
+      if (V.origen != null) p.visitante = V.n;
+      assert.ok(p.local, 'todo cruce acaba con local');
+      assert.ok(p.visitante, 'y con visitante: ' + JSON.stringify(p));
+      assert.notStrictEqual(p.local, p.visitante, 'nadie se enfrenta a si mismo');
+      p.estado = 'FINALIZADO'; p.goles_l = 1; p.goles_v = 0;
+    });
+    const final = partidos.filter(p => p.fase === 'FINAL');
+    assert.strictEqual(final.length, 1, 'una sola final');
+    const campeon = C.winnerOf(final[0]);
+    assert.ok(nombres.includes(campeon), 'el campeon es uno de los inscritos');
+
+    /* Cada equipo entra en el cuadro exactamente una vez. */
+    const entradas = [];
+    partidos.forEach(p => {
+      if (p.origen_local == null) entradas.push(p.local);
+      if (p.origen_visitante == null) entradas.push(p.visitante);
+    });
+    setD(d);
+    return { partidos, avisos, campeon, entradas };
+  };
+
+  /* Potencia de dos exacta: sin previa. */
+  let r = simular(['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']);
+  assert.strictEqual(r.partidos.filter(p => p.fase === 'RONDA 1 (PREVIA)').length, 0, '8 equipos no necesitan previa');
+  assert.strictEqual(r.partidos.length, 7, '8 equipos = 7 cruces');
+  assert.deepStrictEqual(r.partidos.map(p => p.fase).filter((v, i, a) => a.indexOf(v) === i),
+    ['CUARTOS DE FINAL', 'SEMIFINALES', 'FINAL']);
+
+  /* Numero que no es potencia de dos: previa para los que sobran. */
+  r = simular(['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K']);
+  assert.strictEqual(r.partidos.filter(p => p.fase === 'RONDA 1 (PREVIA)').length, 3, '11 equipos: 3 previas para bajar a 8');
+  assert.strictEqual(r.partidos.length, 10, '11 equipos = 10 cruces');
+
+  /* Los 16 del formato de la liga. */
+  r = simular('ABCDEFGHIJKLMNOP'.split(''));
+  assert.strictEqual(r.partidos.length, 15);
+  assert.ok(r.partidos.some(p => p.fase === 'RONDA 2'));
+
+  /* Dos equipos: solo final. */
+  r = simular(['A', 'B']);
+  assert.strictEqual(r.partidos.length, 1);
+  assert.strictEqual(r.partidos[0].fase, 'FINAL');
+
+  /* Rivalidades: no deben cruzarse en la primera ronda que se juegue, sea la
+     previa o la primera del cuadro. Se comprueban las dos situaciones. */
+  const enfrenta = (ms, x, y) => ms.some(p => (p.local === x && p.visitante === y) || (p.local === y && p.visitante === x));
+
+  /* Caso 1: los rivales son los peor sembrados y caen en la previa. */
+  const r1 = C.generarCopa(['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K'],
+    { semilla: 5, siembra: true, rivalidades: [['J', 'K']] }).partidos;
+  assert.ok(!enfrenta(r1.filter(p => p.fase === 'RONDA 1 (PREVIA)'), 'J', 'K'),
+    'la rivalidad se esquiva en la previa');
+
+  /* Caso 2 —el que fallaba—: los rivales estan bien sembrados, se libran de
+     la previa y se cruzarian en la primera ronda del cuadro. */
+  const r2 = C.generarCopa(['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L',
+                            'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T'],
+    { semilla: 99, siembra: true, rivalidades: [['A', 'T']] }).partidos;
+  const primeraDelCuadro = r2.filter(p => p.fase === 'RONDA 2');
+  assert.ok(!enfrenta(primeraDelCuadro, 'A', 'T'), 'la rivalidad se esquiva tambien en la primera ronda del cuadro');
+  assert.ok(!enfrenta(r2.filter(p => p.fase === 'RONDA 1 (PREVIA)'), 'A', 'T'));
+
+  /* Los ganadores de la previa NO pueden emparejarse entre si: el sentido de
+     la previa es que se crucen con los cabezas de serie. */
+  {
+    const ms = C.generarCopa('ABCDEFGHIJKLMNOPQRST'.split(''), { semilla: 4, siembra: true }).partidos;
+    const nPrevias = ms.filter(p => p.fase === 'RONDA 1 (PREVIA)').length;
+    assert.strictEqual(nPrevias, 4, '20 equipos: 4 previas para bajar a 16');
+    const r2ms = ms.filter(p => p.fase === 'RONDA 2');
+    const ambosDePrevia = r2ms.filter(p => p.origen_local != null && p.origen_visitante != null);
+    assert.strictEqual(ambosDePrevia.length, 0,
+      'ningun cruce del cuadro puede alimentarse de dos previas: los ganadores deben ir contra sembrados');
+    const conUnaPrevia = r2ms.filter(p => p.origen_local != null || p.origen_visitante != null);
+    assert.strictEqual(conUnaPrevia.length, nPrevias, 'cada ganador de previa cae en un cruce distinto');
+  }
+
+  /* Fase de grupos. */
+  const g = C.generarCopa('ABCDEFGHIJKLMNOP'.split(''), { tipo: 'grupos', grupos: 4, semilla: 3 });
+  assert.strictEqual(g.partidos.length, 4 * (4 * 3 / 2), '4 grupos de 4 a una vuelta = 24 partidos');
+  assert.ok(g.partidos.every(p => p.fase === 'FASE DE GRUPOS' && p.grupo), 'todos con fase y grupo');
+  Object.keys(g.reparto).forEach(k => assert.strictEqual(g.reparto[k].length, 4, 'grupo ' + k + ' con 4 equipos'));
+  const repartidos = Object.keys(g.reparto).reduce((a, k) => a.concat(g.reparto[k]), []);
+  assert.strictEqual(new Set(repartidos).size, 16, 'nadie repetido entre grupos');
+  ok('generarCopa: encadenado hacia atras, se juega entera y sale un unico campeon');
+}
+
 console.log('\n' + n + ' comprobaciones OK.');
 
 /* Informe de contexto, no es una comprobación: lo que el gestor debería

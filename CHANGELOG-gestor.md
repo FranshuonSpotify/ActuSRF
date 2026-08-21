@@ -447,3 +447,137 @@ está completo y lo que queda son los bloques de extras.
 | **5.2.5 Visualización avanzada** (7 gráficos: evolución de posición, radar de jugador, árbol de traspasos, heatmap, modo TV, cuadro «cine», mapa de afinidades) | Bloque de extras, y el más grande de los que quedan. Necesita decidir si se dibuja a mano en SVG o se acepta una librería |
 | **5.2.4 parcial**: atajos de teclado con panel de ayuda, tamaño de fuente ajustable, modo alto contraste | Extras de UX. El soporte táctil y la alternativa por teclado a cada arrastre —lo no negociable— sí están |
 | **5.2.3 parcial**: kanban de jornada (#8), clasificación forzada por arrastre (#1), reordenar goleadores destacados (#5), maquetación de noticia por bloques (#7) | #1 rompe a propósito el cálculo automático; conviene hablarlo antes. #7 exige un esquema de bloques que `app.js` no sabe renderizar hoy |
+
+---
+
+## Fase 3 — Sorteos, generadores y pestañas nuevas
+
+**Estado: núcleo (§5.3.1 y §5.3.2) completado.** Criterio de salida verificado.
+El resto se declara aplazado más abajo, como pide `CLAUDE.md` §6.10.
+
+### Generadores (§5.3.1)
+
+Viven en `core.js` y **devuelven** los partidos, no los escriben. Por eso
+«repetir el sorteo antes de confirmar» es sólo cambiar la semilla y volver a
+pintar: en ningún momento se ha tocado el archivo.
+
+El azar es **reproducible** (xorshift32 con semilla). `Math.random()` no
+serviría: no hay forma de volver a un sorteo anterior.
+
+**Calendario de liga.** Todos contra todos por el método del círculo, con
+alternancia de campo. Comprobado por conteo, que es la única forma de ver que
+un calendario está bien: cada pareja se enfrenta exactamente las vueltas
+pedidas, nadie juega dos veces la misma jornada, el número de jornadas es el
+esperado y el reparto casa/fuera queda equilibrado. Se prueba con número par,
+impar (que introduce descanso), una vuelta, dos, y con los equipos reales.
+
+**Sorteo de Copa.** Devuelve el cuadro entero con `origen_local` y
+`origen_visitante` ya encadenados **por posición dentro de la propia lista**,
+que es como los lee la web. La comprobación no mira que salgan cruces, sino
+que la competición **se pueda jugar entera**: se simula ganando siempre el
+local y se exige que no quede ningún hueco sin resolver, que nadie se enfrente
+a sí mismo y que salga un único campeón. Además, todo índice de origen apunta
+hacia atrás: si apuntara hacia delante, la cascada de la web no podría
+resolverse en un solo recorrido.
+
+> **Dos fallos reales que encontró la verificación en el navegador**, no los
+> tests, y que se han corregido:
+> 1. **La rivalidad sólo se esquivaba en la ronda previa.** Con 20 equipos,
+>    Alpino y Academia Plenilunio están bien sembrados, se libran de la previa
+>    y se cruzaban igualmente en la primera ronda del cuadro. Ahora el
+>    emparejamiento por extremos de la primera ronda también las esquiva.
+> 2. **Los ganadores de la previa se emparejaban entre sí.** Entraban al cuadro
+>    por delante de los que tenían pase, así que jugaban unos contra otros y la
+>    previa no servía de nada: su sentido es que se crucen con los cabezas de
+>    serie. Ahora entran por detrás, como peor sembrados.
+>
+> Los dos casos están cubiertos por comprobaciones nuevas para que no vuelvan.
+
+**Play-off de la Superliga.** Genera los cruces con la misma estructura que
+`renderPlayoff()` dibuja: 5.º–6.º, ganador contra el 4.º, y las semifinales del
+1.º y del 2.º–3.º. Se crean a partir de la jornada siguiente a la última del
+calendario, porque sin jornada la web no los mostraría en Resultados.
+
+**Ayudas de jornada.** Partido de la semana, MVP ponderado (3 por gol, 2 por
+asistencia), nombre temático según la afinidad que más goles marcó, y derbis
+por ciudad compartida. Son sugerencias para copiar: **no se guarda nada**.
+Sobre los derbis se dice la verdad: la web sólo etiqueta como derbi lo que
+tiene escrito en su lista `RIVALIDADES`, que hoy es una sola pareja.
+
+### Pestañas nuevas (§5.3.2)
+
+Cuatro de las nueve estaban ya cubiertas: **Traspasos** y **Palmarés** (dentro
+de Temporadas) se hicieron antes, y **Patrocinadores/Medios** vive en
+Configuración.
+
+**Sanciones.** Se calculan desde los eventos de los partidos, no desde un campo
+nuevo, para que no exista una segunda verdad que mantener a mano. Las reglas
+(amarillas por ciclo, partidos por ciclo, partidos por roja) se guardan en
+`config.formatos.SANCIONES` en vez de inventar otra clave de primer nivel.
+
+> Hoy la pantalla sale vacía y lo explica: **no hay ni una tarjeta registrada
+> en todo el archivo**. Se llenará según se usen los tipos «Amarilla» y «Roja»
+> del editor de eventos.
+
+**Papelera.** El esquema no tiene borrado lógico, así que lo único recuperable
+son los clubes archivados y los jugadores sin club. Se juntan aquí para no
+buscarlos por tres pantallas, y se recuerda que para deshacer un borrado ya
+guardado están las copias de seguridad de Datos.
+
+### Redes sociales (§5.3.3, parcial)
+
+El lienzo, el marco, las pastillas y el ajuste de texto están **portados de
+`_fuente/app.js`**, que ya trae un generador de tarjetas funcionando.
+Reimplementarlos habría producido dos estéticas distintas para lo mismo.
+
+Tres plantillas (resultado, clasificación, MVP) en tres formatos (16:9, 1:1,
+9:16). Se hereda también el apaño del proxy de imágenes: el CDN de los retratos
+no manda `Access-Control-Allow-Origin`, así que cargarlos con `crossOrigin`
+falla y sin él contaminan el lienzo. Si el proxy tampoco puede, la exportación
+lo dice y sugiere incrustar la imagen arrastrándola, en vez de dejar un error
+mudo.
+
+### Simulación de jornada (§5.3.5, parcial)
+
+Resultados hipotéticos sobre los partidos pendientes, con la clasificación
+resultante y las flechas de puesto al lado. Se calcula sobre **una copia** del
+archivo: la clasificación real no se toca hasta pulsar «Aplicar». Al aplicar se
+avisa de que los goleadores **no** se rellenan, porque la web los enlaza por
+nombre y no se pueden inventar.
+
+### Verificación del criterio de salida de la Fase 3
+
+Sobre `datos_oficiales.json` real, 0 errores de JavaScript, 0 críticos de
+integridad y 0 desajustes de clasificación al terminar. Las 15 secciones pintan.
+
+| Criterio | Resultado |
+|---|---|
+| Cuadro de Copa por sorteo respetando rivalidades | 20 inscritos, 19 cruces, 4 previas · rivalidad esquivada en previa **y** en primera ronda · cada ganador de previa contra un sembrado |
+| Generar calendario de una división | 129 partidos en la previa, archivo intacto hasta aplicar |
+| Exportar plantilla de resultado para redes | PNG 1200×675 dibujado, listo para descargar |
+| Simular una jornada sin comprometerla | 6 partidos simulables, tabla resultante de 11 filas, clasificación real intacta |
+| El detector señala un error introducido a propósito | 0 críticos → 1: «Liga #1: el equipo local "Equipo Que No Existe" no existe» |
+
+`node propuesta-web/gestor/test-core.js` — **22 comprobaciones**.
+
+### Fase 3: lo que queda, y por qué
+
+`CLAUDE.md` §5.3 son ocho bloques con unas sesenta funcionalidades. Es
+inabarcable de una vez y lo digo explícitamente, como pide §6.10. Se ha
+entregado el núcleo (§5.3.1 y §5.3.2) más las dos piezas que exige el criterio
+de salida. Queda:
+
+| Bloque | Qué falta | Por qué se aplaza |
+|---|---|---|
+| **§5.3.2** | Árbitros/Staff, Calendario editorial, Auditoría, Comparador de temporadas | Las tres primeras necesitan claves nuevas en el esquema que **la web no leería**: conviene decidir antes si merecen entrar en el archivo o vivir aparte. El comparador es acumulativo: hoy sólo hay una temporada archivada |
+| **§5.3.3** | Previa del partido, cartel de sorteo, ficha de fichaje, hilo de jornada, banco de plantillas, cumpleaños | El motor de canvas ya está montado y probado: añadir plantillas es repetir el patrón. El de cumpleaños además exige una fecha de nacimiento que el esquema no tiene |
+| **§5.3.4** | Narrativa y gamificación (storylines, logros, línea de tiempo, apodos, «¿y si…?», frase del partido) | Bloque entero de extras. El «¿y si…?» se apoyaría en la simulación que ya existe |
+| **§5.3.5** | Alerta de descuadre entre goles de ficha y goles de `detalles` | Se detecta ya de otra forma (la pastilla ámbar de goleadores/marcador en Partidos), pero falta el informe global |
+| **§5.3.6** | Diff entre snapshots, changelog en lenguaje natural, roles, modo solo lectura, notas internas, checklist | El historial de guardados y la restauración **sí** están, desde la Fase 1 |
+| **§5.3.7** | Redactor asistido, sugeridor de titulares | El corrector de nombres parecidos existía en el prototipo y se puede portar |
+| **§5.3.8** | Widgets configurables, favoritos, vista compacta, multi-idioma, modo temporada nueva guiado | El modo «temporada nueva» está cubierto en la práctica por **Temporadas → Cerrar temporada** |
+
+**Qué propongo entregar primero si seguimos:** el informe de descuadres de
+§5.3.5 y las plantillas de redes que faltan de §5.3.3 —las dos se apoyan en
+motores ya construidos y probados—, y después el comparador de temporadas, que
+gana valor en cuanto haya una segunda temporada archivada.

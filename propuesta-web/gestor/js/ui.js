@@ -72,6 +72,7 @@ function contadores(){
   $('n-noticias').textContent = d.noticias.length;
   $('n-temporadas').textContent = d.historial_temporadas.length || '';
   $('n-traspasos').textContent = d.agentes_libres.length || '';
+  $('n-papelera').textContent = d.equipos.filter(function(e){ return e.archivado; }).length || '';
   var v = C.validarIntegridad(d);
   $('n-datos').textContent = v.err.length ? v.err.length : '';
   $('n-datos').title = v.err.length ? v.err.length+' problemas críticos' : '';

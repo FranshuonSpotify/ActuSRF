@@ -65,6 +65,7 @@ function pintar(el){
 
   el.innerHTML =
     U.cabecera('Partidos', 'Calendario y resultados de Liga y Ascenso',
+      '<button class="btn btn-secondary btn-sm" data-a="partidos:simular"><i class="ph ph-flask"></i> Simular jornada</button>'+
       '<button class="btn btn-secondary btn-sm" data-a="partidos:recalcular"><i class="ph ph-calculator"></i> Recalcular clasificación</button>'+
       '<button class="btn btn-primary btn-sm" data-a="partidos:nuevo"><i class="ph-bold ph-plus"></i> Añadir partido</button>')+
 
@@ -636,8 +637,135 @@ function reajustarOrigenes(k){
   });
 }
 
+/* --------------------------------------------------------------------------
+   SIMULACIÓN DE JORNADA
+   Resultados hipotéticos sobre los partidos pendientes, para ver a dónde
+   llevaría la tabla. NO se toca el archivo: la simulación se calcula sobre una
+   copia y sólo «Aplicar» la vuelca sobre los partidos de verdad.
+   -------------------------------------------------------------------------- */
+var sim = null;      // {jornada, comp, res:{idx:{l,v}}}
+
+function abrirSimulacion(){
+  var pend = lista(st.comp).map(function(p,i){ return {p:p,i:i}; })
+    .filter(function(o){ return !C.isFin(o.p) && C.esRegular(o.p) && (st.j==null || o.p.jornada===st.j); });
+  if(!pend.length) return U.aviso('No hay partidos pendientes en esta vista para simular.', 'ojo');
+
+  sim = {comp:st.comp, res:{}};
+  pend.forEach(function(o){ sim.res[o.i] = {l:0, v:0}; });
+  U.modal({
+    titulo:'Simular '+(st.j?('jornada '+st.j):'los partidos pendientes'),
+    ancho:true,
+    cuerpo:cuerpoSim(pend),
+    pie:[
+      {txt:'Al azar', cls:'btn-secondary', izq:true, fn:function(){ azarSim(pend); }},
+      {txt:'Descartar', fn:function(){ sim = null; U.cerrarModal(); }},
+      {txt:'Aplicar resultados', cls:'btn-primary', fn:function(){ aplicarSim(pend); }}
+    ],
+    alCerrar:function(){ sim = null; }
+  });
+}
+function cuerpoSim(pend){
+  /* Clasificación resultante: se clona el archivo, se aplican los resultados
+     de mentira a la copia y se recalcula con la misma fórmula de siempre. */
+  var copia = JSON.parse(JSON.stringify(d()));
+  var listaCopia = sim.comp==='ascenso' ? copia.partidos_ascenso : copia.partidos_liga;
+  pend.forEach(function(o){
+    var r = sim.res[o.i];
+    listaCopia[o.i].estado = 'FINALIZADO';
+    listaCopia[o.i].goles_l = r.l;
+    listaCopia[o.i].goles_v = r.v;
+  });
+  var previo = SFG.d();
+  SFG.setD(copia);
+  var div = sim.comp==='ascenso' ? 'ASCENSO' : 'SUPERLIGA';
+  var calc = C.tablaCalculada();
+  copia.equipos.forEach(function(e){
+    var c = calc[e.nombre]; if(c) C.CAMPOS_TABLA.forEach(function(k){ e[k] = c[k]; });
+  });
+  var despues = C.clasificacion(div).map(function(e){ return e.nombre; });
+  SFG.setD(previo);
+  var antes = C.clasificacion(div).map(function(e){ return e.nombre; });
+
+  return '<p class="ayuda" style="margin-bottom:var(--g4)">Nada de esto se guarda hasta que pulses «Aplicar resultados».</p>'+
+    '<div class="rejilla" style="--min:280px;align-items:start">'+
+      '<div>'+
+        '<div style="font-family:var(--f-mono);font-size:.625rem;letter-spacing:.12em;color:var(--ink-3);margin-bottom:var(--g2)">RESULTADOS HIPOTÉTICOS</div>'+
+        pend.map(function(o){
+          var r = sim.res[o.i];
+          return '<div style="display:flex;align-items:center;gap:.35rem;margin-bottom:.35rem">'+
+            '<span style="flex:1;text-align:right;font-size:.75rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(o.p.local||'?')+'</span>'+
+            '<input class="inp inp-sm inp-num" type="number" min="0" max="20" value="'+r.l+'" data-c="partidos:simGol" data-i="'+o.i+'" data-k="l" aria-label="Goles de '+esc(o.p.local||'')+'">'+
+            '<span style="color:var(--ink-5)">–</span>'+
+            '<input class="inp inp-sm inp-num" type="number" min="0" max="20" value="'+r.v+'" data-c="partidos:simGol" data-i="'+o.i+'" data-k="v" aria-label="Goles de '+esc(o.p.visitante||'')+'">'+
+            '<span style="flex:1;font-size:.75rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(o.p.visitante||'?')+'</span>'+
+          '</div>';
+        }).join('')+
+      '</div>'+
+      '<div>'+
+        '<div style="font-family:var(--f-mono);font-size:.625rem;letter-spacing:.12em;color:var(--ink-3);margin-bottom:var(--g2)">CÓMO QUEDARÍA '+div+'</div>'+
+        '<div class="tabla-caja"><table class="tabla"><tbody>'+
+          despues.map(function(nombre, i){
+            var e = C.equipo(nombre);
+            var antesPos = antes.indexOf(nombre);
+            var mov = antesPos<0 ? 0 : antesPos - i;
+            return '<tr><td class="num" style="width:1%;color:var(--ink-3)">'+(i+1)+'</td>'+
+              '<td>'+U.celdaEquipo(e)+'</td>'+
+              '<td class="num" style="width:1%">'+
+                (mov>0 ? '<span style="color:#6FD98A">▲'+mov+'</span>'
+                       : mov<0 ? '<span style="color:#FF7B7B">▼'+(-mov)+'</span>'
+                       : '<span style="color:var(--ink-5)">·</span>')+
+              '</td></tr>';
+          }).join('')+
+        '</tbody></table></div>'+
+      '</div>'+
+    '</div>';
+}
+function repintarSim(pend){
+  document.getElementById('ov-cuerpo').innerHTML = cuerpoSim(pend);
+}
+function azarSim(pend){
+  /* Marcadores plausibles: la mayoría de partidos de esta liga acaban con
+     pocos goles, así que se tira hacia abajo en vez de uniforme. */
+  pend.forEach(function(o){
+    sim.res[o.i] = {l:Math.floor(Math.pow(Math.random(),1.7)*5), v:Math.floor(Math.pow(Math.random(),1.7)*5)};
+  });
+  repintarSim(pend);
+}
+function aplicarSim(pend){
+  var n = pend.length;
+  U.cerrarModal();
+  U.confirmar({
+    titulo:'Aplicar la simulación',
+    html:'Se escribirán <b>'+n+' resultados</b> en los partidos, que pasarán a FINALIZADO, y se recalculará la clasificación.<br><br>'+
+      'Los goleadores <b>no</b> se rellenan: hay que meterlos a mano en el editor de eventos, porque la web los enlaza por nombre.',
+    ok:'Aplicar', peligro:true
+  }).then(function(si){
+    if(!si){ sim = null; return; }
+    var ls = lista(sim.comp);
+    pend.forEach(function(o){
+      var r = sim.res[o.i];
+      ls[o.i].estado = 'FINALIZADO';
+      ls[o.i].goles_l = r.l;
+      ls[o.i].goles_v = r.v;
+      if(ls[o.i].golesl!=null) ls[o.i].golesl = r.l;
+      if(ls[o.i].golesv!=null) ls[o.i].golesv = r.v;
+    });
+    sim = null;
+    trasResultado();
+    U.aviso(n+' resultados aplicados. Recuerda cargar los goleadores.', 'ok', 8000);
+  });
+}
+
 var A = {
   comp:      function(el){ st.comp = el.dataset.v; st.j = null; U.refrescar(); },
+  simular:   function(){ abrirSimulacion(); },
+  simGol:    function(el){
+    if(!sim) return;
+    sim.res[el.dataset.i][el.dataset.k] = Math.max(0, Number(el.value)||0);
+    var pend = lista(sim.comp).map(function(p,i){ return {p:p,i:i}; })
+      .filter(function(o){ return sim.res[o.i]!==undefined; });
+    repintarSim(pend);
+  },
   jor:       function(el){ st.j = el.value || null; U.refrescar(); },
   jorMenos:  function(){ mueveJornada(-1); },
   jorMas:    function(){ mueveJornada(1); },
