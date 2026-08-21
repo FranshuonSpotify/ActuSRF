@@ -36,6 +36,8 @@
     <span class="mono" style="font-size:.625rem;color:var(--ink-4);margin-left:.35rem">Ctrl K</span>
   </button>
 
+  <button class="btn-icon" data-a="prefs:ayuda" aria-label="Atajos y accesibilidad" title="Atajos y accesibilidad (?)"><i class="ph ph-question"></i></button>
+
   <span class="g-estado" id="estado" data-e="vacio" aria-live="polite">
     <span class="punto" aria-hidden="true"></span>
     <span id="estado-txt">Sin datos</span>
@@ -52,6 +54,7 @@
   <a href="#copa"     data-s="copa"><i class="ph ph-trophy"></i> Copa <span class="cnt" id="n-copa"></span></a>
   <a href="#traspasos" data-s="traspasos"><i class="ph ph-arrows-left-right"></i> Traspasos <span class="cnt" id="n-traspasos"></span></a>
   <a href="#estadisticas" data-s="estadisticas"><i class="ph ph-chart-bar"></i> Estadísticas</a>
+  <a href="#graficos" data-s="graficos"><i class="ph ph-chart-line-up"></i> Gráficos</a>
   <span class="grupo">Contenido</span>
   <a href="#noticias" data-s="noticias"><i class="ph ph-newspaper"></i> Noticias <span class="cnt" id="n-noticias"></span></a>
   <a href="#config"   data-s="config"><i class="ph ph-sliders"></i> Configuración</a>
@@ -85,6 +88,7 @@
   <section class="seccion" id="s-copa"></section>
   <section class="seccion" id="s-traspasos"></section>
   <section class="seccion" id="s-estadisticas"></section>
+  <section class="seccion" id="s-graficos"></section>
   <section class="seccion" id="s-noticias"></section>
   <section class="seccion" id="s-config"></section>
   <section class="seccion" id="s-temporadas"></section>
@@ -115,6 +119,9 @@
   </div>
 </div>
 
+<!-- Modo presentacion y cuadro en grande: overlay unico, a pantalla completa. -->
+<div id="tv" tabindex="-1" role="region" aria-label="Modo presentacion"></div>
+
 <div class="g-avisos" id="avisos" aria-live="polite" aria-atomic="false"></div>
 
 <script src="js/core.js"></script>
@@ -125,8 +132,11 @@
 <script src="js/vista-partidos.js"></script>
 <script src="js/vista-traspasos.js"></script>
 <script src="js/vista-estadisticas.js"></script>
+<script src="js/vista-graficos.js"></script>
 <script src="js/vista-contenido.js"></script>
 <script src="js/vista-temporadas.js"></script>
 <script src="js/vista-datos.js"></script>
+<script src="js/presentacion.js"></script>
+<script src="js/preferencias.js"></script>
 </body>
 </html>
