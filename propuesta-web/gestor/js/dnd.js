@@ -241,14 +241,18 @@ function procesar(file, opciones, cb){
     if(!opciones.recortar) return cb(lector.result, file);
     var img = new Image();
     img.onload = function(){
-      /* Recorte cuadrado centrado, y tope de lado para que una foto de 4000px
-         no meta 8 MB de base64 dentro del JSON. */
+      /* Recorte cuadrado centrado y tope de lado. El tamaño importa de verdad:
+         esto acaba dentro de datos_oficiales.json, que la web se descarga
+         entera en cada visita. Una foto sin tocar son megas; a 256px en WebP
+         son unas decenas de KB. Se cae a PNG si el navegador no da WebP. */
       var lado = Math.min(img.width, img.height);
-      var salida = Math.min(lado, opciones.max || 512);
+      var salida = Math.min(lado, opciones.max || 256);
       var cv = document.createElement('canvas');
       cv.width = cv.height = salida;
       cv.getContext('2d').drawImage(img, (img.width-lado)/2, (img.height-lado)/2, lado, lado, 0, 0, salida, salida);
-      cb(cv.toDataURL('image/png'), file);
+      var url = cv.toDataURL('image/webp', 0.85);
+      if(url.indexOf('data:image/webp')!==0) url = cv.toDataURL('image/png');
+      cb(url, file);
     };
     img.onerror = function(){ cb(lector.result, file); };
     img.src = lector.result;

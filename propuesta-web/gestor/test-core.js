@@ -399,6 +399,142 @@ const ok = (m) => { n++; console.log('  ok  ' + m); };
   ok('cerrar temporada: carrera intacta, historial cuadrado, archivo independiente y con campeones');
 }
 
+/* -- 18. Traspasos ------------------------------------------------------
+   Es la operación que más fácil desajusta el archivo: toca plantilla,
+   historial y estadísticas a la vez. */
+{
+  const c = JSON.parse(JSON.stringify(d));
+  C.completarEsquema(c); setD(c);
+
+  const origen = c.equipos.find(e => !e.archivado && (e.jugadores || []).some(j => (j.goles || 0) > 0));
+  const destino = c.equipos.find(e => !e.archivado && e.id !== origen.id);
+  const j = origen.jugadores.find(x => (x.goles || 0) > 0);
+  const nombre = j.nombre;
+  const carreraAntes = (j.goles_totales || 0) + (j.goles || 0);
+  const golesTemp = j.goles;
+  const nOrigen = origen.jugadores.length, nDestino = destino.jugadores.length;
+
+  C.traspasar(c, j, origen, destino);
+
+  assert.strictEqual(origen.jugadores.length, nOrigen - 1, 'sale de la plantilla de origen');
+  assert.strictEqual(destino.jugadores.length, nDestino + 1, 'entra en la de destino');
+  assert.ok(destino.jugadores.includes(j));
+  assert.strictEqual(j.titular, false, 'llega al banquillo, no al once');
+  assert.strictEqual((j.goles_totales || 0) + (j.goles || 0), carreraAntes, 'la carrera no cambia con el traspaso');
+  assert.strictEqual(j.goles, 0, 'la temporada empieza de cero en el club nuevo');
+  assert.strictEqual((j.historial || []).reduce((s, h) => s + (h.goles || 0), 0), j.goles_totales,
+    'goles_totales sigue siendo la suma del historial');
+
+  const etapas = j.historial.filter(h => h.abierto);
+  assert.strictEqual(etapas.length, 1, 'solo una etapa abierta a la vez');
+  assert.strictEqual(etapas[0].equipo_id, destino.id, 'y es la del club nuevo');
+  const cerrada = j.historial.filter(h => h.equipo_id === origen.id).pop();
+  assert.strictEqual(cerrada.abierto, false, 'la etapa de origen queda cerrada');
+  assert.ok(cerrada.goles >= golesTemp, 'los goles de la temporada se quedaron en el club donde se marcaron');
+
+  /* El ranking de goleadores de la web no depende de este campo: se calcula
+     desde los eventos de los partidos. Poner j.goles a cero no puede moverlo. */
+  const antesRanking = C.calcScorers(c.partidos_liga.filter(C.isFin)).reduce((s, r) => s + r.goles, 0);
+  assert.strictEqual(antesRanking, 65, 'el ranking sigue saliendo de los partidos, no de la ficha');
+
+  /* A agente libre y de vuelta. */
+  const nLibres = c.agentes_libres.length;
+  C.traspasar(c, j, destino, null);
+  assert.strictEqual(c.agentes_libres.length, nLibres + 1, 'pasa a agentes libres');
+  assert.ok(!destino.jugadores.includes(j), 'y sale del club');
+  assert.ok(j.historial.every(h => !h.abierto), 'sin club, ninguna etapa queda abierta');
+  assert.ok(j.fecha_agente_libre, 'se apunta la fecha, como el resto de agentes libres');
+
+  C.traspasar(c, j, null, origen);
+  assert.strictEqual(c.agentes_libres.length, nLibres, 'vuelve a un club y sale de agentes libres');
+  assert.ok(origen.jugadores.includes(j));
+  assert.strictEqual((j.goles_totales || 0) + (j.goles || 0), carreraAntes, 'tres traspasos despues, la carrera sigue intacta');
+  assert.strictEqual((j.historial || []).reduce((s, h) => s + (h.goles || 0), 0), j.goles_totales,
+    'y el historial sigue cuadrando');
+
+  assert.deepStrictEqual(C.validarIntegridad(c).err.map(x => x.m), [], 'el traspaso no rompe la integridad');
+  assert.strictEqual(nombre, j.nombre, 'el jugador es el mismo objeto, no una copia');
+  setD(d);
+  ok('traspasos: club a club, a agente libre y de vuelta, con la carrera y el historial cuadrados');
+}
+
+/* -- 19. Mover equipos dentro del cuadro de Copa -----------------------
+   Es lo que hace el arrastre del cuadro. Se prueba aquí porque el efecto
+   importante no se ve: intercambio, ruptura de la vinculacion y rechazo de
+   los movimientos que dejarian un cruce imposible. */
+{
+  const base = () => {
+    const c = { config: { temporada: '3' }, equipos: [], partidos_copa: [
+      { fase: 'RONDA 1 (PREVIA)', local: 'A', visitante: 'B', goles_l: 2, goles_v: 0, estado: 'FINALIZADO', detalles: ' / ', origen_local: null, origen_visitante: null },
+      { fase: 'RONDA 2', local: 'C', visitante: '', goles_l: 0, goles_v: 0, estado: 'PENDIENTE', detalles: ' / ', origen_local: null, origen_visitante: null },
+      { fase: 'RONDA 2', local: '', visitante: 'D', goles_l: 0, goles_v: 0, estado: 'PENDIENTE', detalles: ' / ', origen_local: 0, origen_visitante: null }
+    ] };
+    return c;
+  };
+
+  /* Hueco vacio: se mueve sin mas. */
+  let c = base();
+  let r = C.moverEnCuadro(c, { idx: 1, lado: 'local' }, { idx: 1, lado: 'visitante' });
+  assert.deepStrictEqual(r, { movido: 'C', ocupante: '' });
+  assert.strictEqual(c.partidos_copa[1].local, '');
+  assert.strictEqual(c.partidos_copa[1].visitante, 'C');
+
+  /* Hueco ocupado: intercambio en los dos sentidos. */
+  c = base();
+  r = C.moverEnCuadro(c, { idx: 0, lado: 'local' }, { idx: 1, lado: 'local' });
+  assert.deepStrictEqual(r, { movido: 'A', ocupante: 'C' });
+  assert.strictEqual(c.partidos_copa[1].local, 'A', 'el movido ocupa el destino');
+  assert.strictEqual(c.partidos_copa[0].local, 'C', 'y el ocupante se va al origen');
+  assert.strictEqual(c.partidos_copa[0].visitante, 'B', 'el otro lado no se toca');
+
+  /* Colocar a mano rompe la vinculacion: si no, la web seguiria pintando el
+     ganador de la ronda previa y el cambio seria invisible. */
+  c = base();
+  r = C.moverEnCuadro(c, { idx: 2, lado: 'visitante' }, { idx: 1, lado: 'visitante' });
+  assert.ok(r, 'mover el lado NO vinculado del cruce 2 es valido');
+  assert.strictEqual(c.partidos_copa[2].origen_visitante, null);
+  assert.strictEqual(c.partidos_copa[1].origen_visitante, null);
+
+  /* Un hueco vinculado no contiene un equipo, contiene una regla. */
+  c = base();
+  assert.strictEqual(C.moverEnCuadro(c, { idx: 2, lado: 'local' }, { idx: 1, lado: 'visitante' }), null,
+    'no se puede coger de un hueco vinculado');
+  assert.strictEqual(C.moverEnCuadro(c, { idx: 0, lado: 'local' }, { idx: 2, lado: 'local' }), null,
+    'ni soltar encima de uno');
+  assert.strictEqual(c.partidos_copa[2].origen_local, 0, 'y la vinculacion sigue intacta');
+
+  /* Nadie juega contra si mismo. */
+  c = base();
+  c.partidos_copa[1].visitante = 'A';
+  assert.strictEqual(C.moverEnCuadro(c, { idx: 0, lado: 'local' }, { idx: 1, lado: 'local' }), null,
+    'el movimiento que enfrentaria a A consigo mismo se rechaza entero');
+  assert.strictEqual(c.partidos_copa[0].local, 'A', 'y no deja el cuadro a medias');
+  assert.strictEqual(c.partidos_copa[1].local, 'C');
+
+  /* Casos que no son movimiento. */
+  c = base();
+  assert.strictEqual(C.moverEnCuadro(c, { idx: 1, lado: 'local' }, { idx: 1, lado: 'local' }), null, 'al mismo sitio');
+  assert.strictEqual(C.moverEnCuadro(c, { idx: 1, lado: 'visitante' }, { idx: 0, lado: 'local' }), null, 'desde un hueco vacio');
+  assert.strictEqual(C.moverEnCuadro(c, { idx: 9, lado: 'local' }, { idx: 0, lado: 'local' }), null, 'cruce inexistente');
+
+  /* Sobre los datos reales, un intercambio no rompe la integridad. */
+  const real = JSON.parse(JSON.stringify(d));
+  C.completarEsquema(real); setD(real);
+  const libres = [];
+  real.partidos_copa.forEach((p, i) => {
+    ['local', 'visitante'].forEach(l => {
+      const k = l === 'local' ? 'origen_local' : 'origen_visitante';
+      if (p[l] && (p[k] == null || p[k] === '')) libres.push({ idx: i, lado: l });
+    });
+  });
+  assert.ok(libres.length >= 2, 'el cuadro real tiene huecos no vinculados con equipo');
+  const antes = C.validarIntegridad(real).err.length;
+  assert.ok(C.moverEnCuadro(real, libres[0], libres[1]), 'el intercambio se aplica');
+  assert.strictEqual(C.validarIntegridad(real).err.length, antes, 'y no introduce errores');
+  setD(d);
+  ok('cuadro de Copa: intercambio, ruptura de vinculacion y rechazo de cruces imposibles');
+}
+
 console.log('\n' + n + ' comprobaciones OK.');
 
 /* Informe de contexto, no es una comprobación: lo que el gestor debería

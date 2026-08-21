@@ -18,14 +18,37 @@ function d(){ return SFG.d(); }
 function pintarNoticias(el){
   var ns = d().noticias;
   el.innerHTML =
-    U.cabecera('Noticias', ns.length+' publicadas',
+    U.cabecera('Noticias', ns.length+' publicadas · la primera es la que abre la portada',
       '<button class="btn btn-primary btn-sm" data-a="noticias:nueva"><i class="ph-bold ph-plus"></i> Nueva noticia</button>')+
+    /* El orden del array ES el orden de la web: renderNews() recorre
+       bd.noticias tal cual. No hace falta ningún campo "fijada": subir una
+       noticia al puesto 1 es fijarla. */
+    '<p class="ayuda" style="margin-bottom:var(--g4)">Arrastra para reordenar; el orden es el que verá la web. Sin ratón: enfoca una tarjeta y usa las flechas, o el botón de fijar arriba.</p>'+
     (ns.length
-      ? '<div class="rejilla" style="--min:300px">'+ns.map(tarjeta).join('')+'</div>'
+      ? '<div class="rejilla" style="--min:300px" id="not-lista">'+ns.map(tarjeta).join('')+'</div>'
       : '<div class="vacio">Todavía no hay noticias.</div>');
+
+  var cont = document.getElementById('not-lista');
+  if(cont) SFG.dnd.sortable({
+    grupo:'noticias', item:'.not-c', contenedores:[cont],
+    alSoltar:function(dd){
+      var ns = d().noticias;
+      var n = ns.splice(Number(dd.item.dataset.i), 1)[0];
+      ns.splice(dd.indice, 0, n);
+      U.cambio();
+      U.aviso('«'+(n.titulo||'sin título')+'» ahora es la '+(dd.indice+1)+'.ª.', 'ok');
+    }
+  });
 }
 function tarjeta(n, i){
-  return '<article class="card" style="overflow:hidden">'+
+  return '<article class="card not-c" style="overflow:hidden" data-i="'+i+'" role="button" tabindex="0" '+
+      'aria-label="'+esc((n.titulo||'sin título')+', posición '+(i+1))+'">'+
+    '<div style="display:flex;align-items:center;gap:.35rem;padding:.35rem .5rem;border-bottom:1px solid var(--line);background:var(--bg-raised)">'+
+      '<i class="ph ph-dots-six-vertical dnd-asa" aria-hidden="true"></i>'+
+      '<span class="mono" style="font-size:.625rem;color:'+(i===0?'var(--accent)':'var(--ink-4)')+'">'+
+        (i===0?'PORTADA':'#'+(i+1))+'</span>'+
+      (i>0 ? '<button class="ir" style="margin-left:auto" data-a="noticias:fijar" data-i="'+i+'">Fijar arriba</button>' : '')+
+    '</div>'+
     (/^https?:/.test(n.imagen||'')
       ? '<img src="'+esc(n.imagen)+'" alt="" referrerpolicy="no-referrer" style="width:100%;height:132px;object-fit:cover" loading="lazy">'
       : '<div style="height:132px;display:grid;place-items:center;color:var(--ink-5);background:var(--surface-2)"><i class="ph ph-image" style="font-size:1.5rem"></i></div>')+
@@ -80,11 +103,7 @@ function formNoticia(n){
     U.campo('Cuerpo', '<textarea class="inp" data-c="noticias:campo" data-k="cuerpo" style="min-height:200px">'+esc(n.cuerpo||'')+'</textarea>')+
     '<div class="g-hueco"></div>'+
     '<div class="rejilla rejilla-2">'+
-      U.campo('Imagen (URL)',
-        '<input class="inp" value="'+esc(n.imagen||'')+'" data-c="noticias:campo" data-k="imagen" placeholder="https://…">'+
-        (/^https?:/.test(n.imagen||'')
-          ? '<img src="'+esc(n.imagen)+'" alt="" referrerpolicy="no-referrer" style="margin-top:.5rem;width:100%;max-height:180px;object-fit:cover;border-radius:var(--r-sm);border:1px solid var(--line)">'
-          : ''))+
+      U.campoImagen('Imagen', n.imagen||'', 'noticias:imagen')+
       U.campo('Vídeo (URL)', '<input class="inp" value="'+esc(n.video||'')+'" data-c="noticias:campo" data-k="video" placeholder="opcional">')+
     '</div>';
 }
@@ -105,6 +124,12 @@ var AN = {
     editar(0);
   },
   editar: function(el){ editar(Number(el.dataset.i)); },
+  fijar: function(el){
+    var ns = d().noticias, n = ns.splice(Number(el.dataset.i), 1)[0];
+    ns.unshift(n);
+    U.cambio();
+    U.aviso('«'+(n.titulo||'sin título')+'» abre la portada.', 'ok');
+  },
   borrar: function(el){
     var i = Number(el.dataset.i), n = d().noticias[i];
     U.confirmar({titulo:'Eliminar noticia', texto:'«'+(n.titulo||'sin título')+'» dejará de aparecer en la web.', ok:'Eliminar', peligro:true})
@@ -118,6 +143,7 @@ var AN = {
       if(p && /^#[0-9a-f]{6}$/i.test(el.value)) p.value = el.value;
     }
   },
+  imagen: function(el){ d().noticias[abierta].imagen = el.value; SFG.io.marcarSucio(); },
   color: function(el){
     d().noticias[abierta].color = el.value;
     var t = document.querySelector('[data-c="noticias:campo"][data-k="color"]');

@@ -71,6 +71,7 @@ function contadores(){
   $('n-copa').textContent = d.partidos_copa.length;
   $('n-noticias').textContent = d.noticias.length;
   $('n-temporadas').textContent = d.historial_temporadas.length || '';
+  $('n-traspasos').textContent = d.agentes_libres.length || '';
   var v = C.validarIntegridad(d);
   $('n-datos').textContent = v.err.length ? v.err.length : '';
   $('n-datos').title = v.err.length ? v.err.length+' problemas críticos' : '';
@@ -439,6 +440,67 @@ function selectEquipos(valor, attrs){
     ? '<option value="'+esc(valor)+'" selected>'+esc(valor)+' (no existe)</option>' : '';
   return '<select '+(attrs||'')+'><option value="">—</option>'+desconocido+ops(act,'')+(arc.length?'<optgroup label="Archivados">'+ops(arc,'')+'</optgroup>':'')+'</select>';
 }
+/* --------------------------------------------------------------------------
+   CAMPOS DE IMAGEN CON SOLTAR
+   Un campo de URL que además acepta que se le suelte un archivo encima. La
+   imagen se recorta cuadrada y se incrusta como data URI, porque sin servidor
+   no hay dónde subirla.
+
+   Se avisa del peso a propósito: esto entra dentro de datos_oficiales.json,
+   que la web descarga entera en cada visita. Un enlace externo pesa cien
+   bytes; una foto incrustada, decenas de miles.
+   -------------------------------------------------------------------------- */
+function campoImagen(label, valor, ref, ayuda){
+  var esDato = /^data:/.test(valor||'');
+  var previa = (valor && (esDato || /^https?:/.test(valor)))
+    ? '<img src="'+esc(valor)+'" alt="" referrerpolicy="no-referrer" style="width:44px;height:44px;object-fit:cover;border-radius:var(--r-sm);border:1px solid var(--line);flex-shrink:0">'
+    : '<span style="width:44px;height:44px;display:grid;place-items:center;border:1px dashed var(--line-2);border-radius:var(--r-sm);color:var(--ink-4);flex-shrink:0"><i class="ph ph-image"></i></span>';
+  return '<div class="campo"><label>'+esc(label)+'</label>'+
+    '<div class="color-par zona-img" data-img="'+esc(ref)+'">'+
+      previa+
+      '<input class="inp" value="'+esc(valor||'')+'" data-c="'+esc(ref)+'" placeholder="https://… o suelta una imagen aquí">'+
+    '</div>'+
+    '<span class="ayuda">'+(esDato
+      ? '<b style="color:var(--gold)">Imagen incrustada</b> · '+Math.round((valor.length*3/4)/1024)+' KB dentro del archivo'
+      : (ayuda||'Arrastra un archivo encima para incrustarlo, o pega una URL.'))+'</span>'+
+  '</div>';
+}
+/* Un solo juego de oyentes para todos los campos de imagen que existan o
+   lleguen a existir, en vez de recablear en cada repintado. */
+['dragenter','dragover'].forEach(function(t){
+  document.addEventListener(t, function(ev){
+    var z = ev.target.closest && ev.target.closest('[data-img]');
+    if(!z) return;
+    ev.preventDefault();
+    z.classList.add('dnd-encima');
+  });
+});
+document.addEventListener('dragleave', function(ev){
+  var z = ev.target.closest && ev.target.closest('[data-img]');
+  if(z && !z.contains(ev.relatedTarget)) z.classList.remove('dnd-encima');
+});
+document.addEventListener('drop', function(ev){
+  var z = ev.target.closest && ev.target.closest('[data-img]');
+  if(!z) return;
+  ev.preventDefault();
+  z.classList.remove('dnd-encima');
+  var f = ev.dataTransfer.files[0];
+  if(!f) return;
+  if(!/^image\//.test(f.type)) return aviso('Eso no es una imagen.', 'ojo');
+  SFG.dnd.procesarImagen(f, {recortar:true, max:256}, function(url){
+    var kb = Math.round((url.length*3/4)/1024);
+    var partes = String(z.dataset.img).split(':');
+    var fn = (acciones[partes[0]]||{})[partes[1]];
+    if(!fn) return;
+    /* Se reutiliza el mismo manejador que el campo de texto: para el modelo de
+       datos, soltar una imagen es escribir un valor en ese campo. */
+    var falso = {value:url, dataset:Object.assign({}, z.querySelector('input').dataset)};
+    fn(falso);
+    aviso('Imagen incrustada, '+kb+' KB. Con muchas, el archivo que descarga la web crece deprisa.', kb>120?'ojo':'ok', 8000);
+    refrescar();
+  });
+});
+
 function campo(label, control, ayuda){
   return '<div class="campo"><label>'+esc(label)+'</label>'+control+(ayuda?'<span class="ayuda">'+esc(ayuda)+'</span>':'')+'</div>';
 }
@@ -451,7 +513,7 @@ SFG.ui = {
   registrar:registrar, irA:irA, refrescar:refrescar, cambio:cambio, contadores:contadores,
   aviso:aviso, modal:modal, cerrarModal:cerrarModal, confirmar:confirmar,
   acciones:acciones, esc:esc,
-  escudo:escudo, celdaEquipo:celdaEquipo, selectEquipos:selectEquipos, campo:campo, cabecera:cabecera,
+  escudo:escudo, celdaEquipo:celdaEquipo, selectEquipos:selectEquipos, campo:campo, campoImagen:campoImagen, cabecera:cabecera,
   guardar:guardar
 };
 

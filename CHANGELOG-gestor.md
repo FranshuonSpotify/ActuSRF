@@ -253,3 +253,197 @@ mirarlo con los ojos.
 `propuesta-web/_fuente/app.js`, `styles.css`, `shell.html`, `index.html`,
 `dict.js`, `i18n.js`, `faq-dict.js` y `datos_oficiales.json` de
 `propuesta-web/`. El gestor no ha necesitado modificar la web pública.
+
+---
+
+## Adiciones fuera de plan (pedidas por Alejandro)
+
+Cuatro funcionalidades pedidas junto con la Fase 2. Dos amplían el esquema, de
+forma **aditiva y retrocompatible**: la web pública sigue leyendo el archivo
+sin tocar una línea de `app.js`.
+
+### 1. Fases de competición en partidos de Liga y Ascenso
+
+Se reutiliza el campo **`fase`**, que ya existía en `partidos_copa`, en vez de
+inventar uno nuevo. El motivo es concreto: `app.js` ya lo lee en dos sitios
+—el pie de la tarjeta de partido y la insignia de su ficha— con la regla
+`p.fase ? p.fase : 'Jornada N'`. Así la web muestra **PLAY IN** o **FINAL**
+sin modificarla. Un campo nuevo habría obligado a tocarla.
+
+Vocabulario: `PARTIDO POR EL PLAY IN`, `PLAY IN`, `SEMIFINALES`, `FINAL`,
+`DESEMPATE`. Salen de `renderPlayoff()` de `app.js`, que es quien define el
+cuadro de la Superliga; inventar otros habría creado dos vocabularios.
+
+**Regla asociada: un partido con `fase` no reparte puntos.** Si los repartiera,
+el campeón del play-off adelantaría en la tabla al primero de la fase regular.
+`tablaCalculada()` los excluye y la vista lo explica en pantalla.
+
+**Una eliminatoria sin jornada bloquea el guardado.** `initJornadas()` de
+`app.js` descarta los partidos sin jornada y `renderMatches()` filtra por ella:
+sin número, el partido existiría en el archivo pero no se vería en Resultados.
+
+> **Límite conocido, no tapado:** `renderPlayoff()` construye su cuadro
+> derivándolo de la clasificación (1.º a 6.º), **no** de los partidos de
+> play-off. Marcar un partido como PLAY OFF hace que la web muestre la etiqueta
+> en Resultados, pero el widget del cuadro de play-off seguirá diciendo «Por
+> definir». Cambiar eso exige modificar `app.js`.
+
+### 2. Formatos de competición (`config.formatos`)
+
+Describen cómo está montada cada competición: vueltas, número de equipos,
+plazas de play-off/descenso/ascenso, y para la Copa el tipo, número de grupos y
+cuántos clasifican.
+
+**Honestidad sobre su alcance:** `app.js` **no los lee**. Los cortes de la tabla
+están escritos a mano en `renderClas()` (`pos<=3` play-off, `pos===4` play-in,
+`pos<=6` partido por el play-in, últimos tres descenso). Cambiar el formato
+aquí no cambia la web. Lo que sí hacen es alimentar las comprobaciones del
+gestor y el reparto de grupos, y en la Fase 3 los generadores. **Cuando el
+formato contradice lo que la web tiene fijo, el campo se marca en ámbar y se
+avisa**, en vez de dejar creer que ha cambiado algo.
+
+Valores por defecto 12/10 equipos: es lo que dice la propia copy de la web
+(«1ª División · 12 equipos»). Hoy hay 11 y 9 activos, así que el aviso salta —
+y es información útil, no ruido.
+
+### 3. Grupos de Copa con arrastre (`config.grupos_copa`)
+
+El reparto vive **aparte de los partidos**, a propósito: tras el sorteo hay que
+poder mover un equipo de bombo antes de que exista un solo cruce, y si sólo
+viviera dentro de `partidos_copa[].grupo` no habría dónde apuntarlo.
+«Aplicar a los partidos» es el paso explícito que vuelca uno en el otro.
+
+- Reparto automático **por serpiente** sobre la clasificación, para que el bombo
+  no junte a los mejores de cada división en el mismo grupo.
+- Al regenerar los partidos de grupos **se reajustan los `origen_*` del cuadro**,
+  que apuntan por posición en el array: quitar cruces del medio los desplazaría.
+- Alternativa sin ratón: un selector de grupo en cada ficha, y flechas con el
+  club enfocado.
+
+### 4. Archivo de temporadas
+
+`historial_temporadas` es la única de las cuatro claves «no documentadas» que la
+web **sí** lee: `palmares()` saca de ahí los campeones.
+
+- **Archivar**: copia la temporada al palmarés sin tocar nada más.
+- **Cerrar**: archiva, vuelca las estadísticas de cada jugador a su historial,
+  pone la clasificación a cero, vacía el calendario y avanza de temporada.
+
+Lo delicado del volcado: `app.js` calcula la carrera como
+`goles_totales + goles`, y da por hecho que `goles_totales` es **exactamente**
+la suma del historial. Al cerrar hay que sumar los goles de la temporada a
+**las dos cosas** —al total y a la etapa abierta— y sólo entonces poner la
+temporada a cero. Sumar a una sola desajustaría la carrera; no poner a cero la
+contaría dos veces. Hay comprobación de que la carrera no cambia al cerrar.
+
+---
+
+## Fase 2 — Interacciones avanzadas
+
+**Estado: núcleo completado.** Criterio de salida verificado (ver más abajo).
+
+### Arrastrar y soltar: por qué no la API nativa ni SortableJS
+
+`dnd.js` está escrito sobre **eventos de puntero**, no sobre la API nativa de
+HTML5 (`draggable` + `dragstart`), porque ésta **no dispara nada en táctil** y
+`CLAUDE.md` §5.2.4 pide soporte táctil completo para tablet. Los eventos de
+puntero son uno solo para ratón, dedo y lápiz.
+
+Tampoco SortableJS: haría falta por CDN —y el resto del sitio no depende de
+ninguno— y aun así habría que escribir aparte toda la alternativa por teclado,
+que es la parte que no puede faltar.
+
+**Arrastrar nunca es la única vía** (SC 2.5.7). Cada pantalla ofrece además:
+
+| Pantalla | Alternativa sin ratón |
+|---|---|
+| Alineación | Flechas con el jugador enfocado |
+| Calendario | Casilla «J» de la tabla, y flechas |
+| Grupos de Copa | Selector de grupo en cada ficha, y flechas |
+| Noticias | Botón «Fijar arriba», y flechas |
+| Cuadro de Copa | Los desplegables de la tabla de cruces |
+
+### Alineación: el orden horizontal no se puede arrastrar, y se dice
+
+La web coloca a cada jugador dentro de su línea **ordenando por dorsal**
+(`sortSquad()` de `app.js`), no por su orden en el array. Comprobado sobre los
+datos reales: el orden del array y el que pinta la web no coinciden.
+
+Arrastrar de lado no cambiaría nada en la web. En vez de fingir que sí, la
+interfaz lo explica y ofrece el botón que sí lo consigue: **renumerar la
+línea**, repartiendo entre los mismos jugadores los dorsales que esa línea ya
+tenía, sin inventar números ni pisar el de nadie de fuera.
+
+De paso se detecta un descuadre real del archivo: **Monte Olimpo declara
+formación 3-5-2 pero alinea 3 DEF, 2 MED y 5 DEL**. La ficha lo marca y ofrece
+corregir la formación declarada.
+
+### Traspasos
+
+La mecánica vive en `core.traspasar()`, no en la vista: es la operación que más
+fácil desajusta el archivo (toca plantilla, historial y estadísticas a la vez) y
+tiene que poder comprobarse fuera del navegador.
+
+Al traspasar, los goles y tarjetas de la temporada **se quedan apuntados en el
+club donde se hicieron** y el jugador empieza de cero en el nuevo. Su cifra de
+carrera no cambia. **El ranking de goleadores de la web tampoco se mueve**: ése
+sale de los eventos de los partidos, no de la ficha.
+
+Tres columnas y no dos, porque `agentes_libres` es un dato real (133 jugadores)
+y sin él un traspaso sólo podría ser un intercambio directo.
+
+### Cuadro de Copa arrastrable
+
+También en `core.moverEnCuadro()`, por lo mismo: tiene dos efectos que no se
+ven. Si el hueco de destino estaba ocupado hay **intercambio**, y colocar a mano
+**rompe la vinculación** con la ronda previa (si no, la web seguiría pintando el
+ganador de aquélla y el cambio sería invisible). Un hueco vinculado no contiene
+un equipo, contiene una regla: ni se coge de él ni se suelta encima. Y se
+rechaza entero cualquier movimiento que enfrentaría a un equipo consigo mismo,
+en vez de dejar el cuadro a medias.
+
+### Carga de imágenes por arrastre
+
+Recorte cuadrado centrado, tope de 256px y **WebP con calidad 0,85**, con
+recambio a PNG si el navegador no da WebP. El tamaño importa de verdad: esto
+acaba dentro de `datos_oficiales.json`, que la web descarga entera en cada
+visita. La interfaz **muestra los KB resultantes** y avisa cuando pasan de 120.
+
+### Estadísticas (5.2.6)
+
+Nueve bloques, todos con datos reales del archivo. Dos salen vacíos y explican
+por qué:
+
+> **Hallazgo:** `asistencias`, `amarillas` y `rojas` están **a cero en todo el
+> archivo** — ni un jugador con valor, ni un solo evento que no sea `gol` en
+> ningún `detalles`. Los rankings existen y se llenarán según se usen, porque el
+> editor de eventos ya permite registrar asistencias y tarjetas; el estado vacío
+> lo dice en lugar de aparentar que no hay datos por un fallo.
+
+### Verificación del criterio de salida de la Fase 2
+
+Ejecutado sobre `datos_oficiales.json` real, 0 errores de JavaScript,
+0 problemas críticos de integridad y 0 desajustes de clasificación al terminar:
+
+| Criterio | Resultado |
+|---|---|
+| Reorganizar alineación | Gus Gamer: DEF a MED |
+| Mover partido de jornada | Alpino – Zanark Domain: jornada 1 a 2 |
+| Reordenar cruce de Copa | Royal Academy intercambia con Instituto Otaku |
+| Gestionar un traspaso | Pocus Sesame: Academia Plenilunio a Monte Olimpo, carrera intacta, 1 etapa abierta |
+| Cuadro de mando con datos reales | 16 bloques · Zanark Domain 8 victorias seguidas · 220 goles, 2,65 por partido · local 42% / visitante 46% |
+
+`node propuesta-web/gestor/test-core.js` — **20 comprobaciones**, incluidas las
+nuevas de fases de Liga, grupos, formatos, cierre de temporada, traspasos y
+cuadro de Copa.
+
+### Aplazado de la Fase 2, con motivo
+
+Se recorta por el final, como indica `CLAUDE.md` §6.4: el núcleo (5.2.1–5.2.3)
+está completo y lo que queda son los bloques de extras.
+
+| Funcionalidad | Motivo |
+|---|---|
+| **5.2.5 Visualización avanzada** (7 gráficos: evolución de posición, radar de jugador, árbol de traspasos, heatmap, modo TV, cuadro «cine», mapa de afinidades) | Bloque de extras, y el más grande de los que quedan. Necesita decidir si se dibuja a mano en SVG o se acepta una librería |
+| **5.2.4 parcial**: atajos de teclado con panel de ayuda, tamaño de fuente ajustable, modo alto contraste | Extras de UX. El soporte táctil y la alternativa por teclado a cada arrastre —lo no negociable— sí están |
+| **5.2.3 parcial**: kanban de jornada (#8), clasificación forzada por arrastre (#1), reordenar goleadores destacados (#5), maquetación de noticia por bloques (#7) | #1 rompe a propósito el cálculo automático; conviene hablarlo antes. #7 exige un esquema de bloques que `app.js` no sabe renderizar hoy |

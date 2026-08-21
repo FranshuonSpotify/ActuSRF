@@ -250,6 +250,7 @@ function pintarCopa(el){
     cuadroPrevio(ms, fases);
 
   montarGrupos();
+  montarCuadro();
 }
 
 /* --------------------------------------------------------------------------
@@ -409,33 +410,75 @@ function etiquetaCruce(q){
   return a+'/'+b;
 }
 
-/* Vista previa del cuadro tal y como lo pintará la web, resolviendo la
-   cascada. Sirve para comprobar de un vistazo que las vinculaciones tienen
-   sentido antes de guardar. */
+/* Cuadro tal y como lo pintará la web, resolviendo la cascada, y además
+   editable: se pueden mover equipos de un cruce a otro arrastrando.
+
+   Un hueco vinculado al ganador de una ronda previa no se puede arrastrar:
+   ahí no hay un equipo, hay una regla. Para poner uno a mano primero hay que
+   quitar la vinculación, y el propio hueco lo dice. */
 function cuadroPrevio(ms, fases){
   if(!fases.length) return '';
+  var eliminatorias = fases.filter(function(f){ return f!=='FASE DE GRUPOS'; });
+  if(!eliminatorias.length) return '';
   return '<div class="card" style="padding:var(--g5)">'+
-    '<h3 style="font-size:.9375rem;margin-bottom:var(--g4)">Cómo lo verá la web</h3>'+
-    '<div style="display:flex;gap:var(--g5);overflow-x:auto;padding-bottom:var(--g2)">'+
-    fases.filter(function(f){ return f!=='FASE DE GRUPOS'; }).map(function(f){
+    '<h3 style="font-size:.9375rem;margin-bottom:.35rem">Cuadro</h3>'+
+    '<p class="ayuda" style="margin-bottom:var(--g4)">Así lo verá la web. Arrastra un equipo a otro hueco para cambiar el cruce; si el hueco está ocupado, se intercambian. '+
+      'Sin ratón: usa los desplegables de la tabla de arriba.</p>'+
+    '<div style="display:flex;gap:var(--g5);overflow-x:auto;padding-bottom:var(--g2)" id="br-cuadro">'+
+    eliminatorias.map(function(f){
       var cruces = ms.map(function(p,i){ return {p:p,i:i}; }).filter(function(o){ return o.p.fase===f; });
-      return '<div style="min-width:200px">'+
-        '<div style="font-family:var(--f-mono);font-size:.625rem;letter-spacing:.12em;color:var(--ink-4);margin-bottom:var(--g2)">'+esc(f)+'</div>'+
+      return '<div style="min-width:216px">'+
+        '<div style="font-family:var(--f-mono);font-size:.625rem;letter-spacing:.12em;color:var(--ink-3);margin-bottom:var(--g2)">'+esc(f)+'</div>'+
         cruces.map(function(o){
-          var L = C.resolveSide(o.p,'local'), V = C.resolveSide(o.p,'visitante');
           var w = C.winnerOf(o.p), fin = C.isFin(o.p);
-          function fila(r, gol, nombre){
-            var gana = fin && w===nombre;
-            return '<div style="display:flex;gap:.4rem;align-items:center;padding:.35rem .5rem;font-size:.75rem;'+
-              (r.pend?'color:var(--ink-4)':(fin&&!gana?'color:var(--ink-4)':'color:var(--ink)'))+
-              (gana?';font-weight:600':'')+'">'+
-              '<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(r.n||'—')+'</span>'+
-              (fin?'<span class="mono">'+gol+'</span>':'')+'</div>';
-          }
           return '<div class="card" style="margin-bottom:var(--g2);padding:.2rem">'+
-            fila(L, C.gl(o.p), o.p.local)+fila(V, C.gv(o.p), o.p.visitante)+'</div>';
+            hueco(o, 'local', C.gl(o.p), w, fin)+
+            hueco(o, 'visitante', C.gv(o.p), w, fin)+
+          '</div>';
         }).join('')+'</div>';
     }).join('')+'</div></div>';
+}
+function hueco(o, lado, gol, w, fin){
+  var r = C.resolveSide(o.p, lado);
+  var vinculado = r.origen!=null;
+  var gana = fin && w===o.p[lado];
+  return '<div class="br-slot'+(vinculado?' fijo':'')+'" data-slot="'+o.i+'" data-lado="'+lado+'"'+
+      (vinculado?' title="Viene del ganador del cruce #'+r.origen+'. Quita la vinculación para poner un equipo a mano."':'')+'>'+
+    (vinculado
+      ? '<span class="br-vinc"><i class="ph ph-arrow-elbow-down-right"></i>'+esc(r.n||'—')+'</span>'
+      : (o.p[lado]
+          ? '<div class="br-eq'+(gana?' gana':(fin?' pierde':''))+'" data-nombre="'+esc(o.p[lado])+'" role="button" tabindex="0" '+
+              'aria-label="'+esc(o.p[lado]+', '+lado)+'">'+
+              U.escudo(C.equipo(o.p[lado]))+
+              '<span class="nm">'+esc(o.p[lado])+'</span>'+
+              (fin?'<span class="mono" style="margin-left:auto">'+gol+'</span>':'')+
+            '</div>'
+          : '<span class="br-vacio">vacío</span>'))+
+  '</div>';
+}
+function montarCuadro(){
+  var slots = document.querySelectorAll('#br-cuadro .br-slot:not(.fijo)');
+  if(!slots.length) return;
+  SFG.dnd.sortable({
+    grupo:'cuadro', item:'.br-eq',
+    contenedores:Array.prototype.slice.call(slots),
+    /* Un hueco sólo admite un equipo, y nunca uno vinculado a otra ronda. */
+    puedeSoltar:function(item, slot){ return !slot.classList.contains('fijo'); },
+    alSoltar:function(dd){
+      /* El movimiento lo resuelve core: hay intercambio si el destino estaba
+         ocupado, y hay casos que hay que rechazar (un equipo contra si mismo).
+         La vista solo informa del resultado. */
+      var r = C.moverEnCuadro(d(),
+        {idx:Number(dd.desde.dataset.slot), lado:dd.desde.dataset.lado},
+        {idx:Number(dd.hasta.dataset.slot), lado:dd.hasta.dataset.lado});
+      if(!r){
+        U.aviso('Ese movimiento dejaria el cruce invalido.', 'ojo');
+        return U.refrescar();
+      }
+      U.cambio();
+      U.aviso(r.ocupante ? r.movido+' y '+r.ocupante+' intercambian cruce.' : r.movido+' se mueve de cruce.', 'ok');
+    }
+  });
 }
 
 /* --------------------------------------------------------------------------

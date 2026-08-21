@@ -103,9 +103,139 @@ function pintarFicha(el, e){
 
     fichaDatos(e)+
     '<div class="g-hueco"></div>'+
+    alineacion(e)+
+    '<div class="g-hueco"></div>'+
     fichaEstadisticas(e, calc, desc)+
     '<div class="g-hueco"></div>'+
     plantilla(e);
+
+  montarAlineacion();
+}
+
+/* --------------------------------------------------------------------------
+   ALINEACIÓN
+   Arrastrar entre franjas cambia la posición; arrastrar al banquillo quita el
+   titular. Son los dos únicos movimientos que corresponden a un dato real.
+
+   El orden HORIZONTAL no se puede arrastrar, y no es una limitación que se
+   pueda tapar: la web coloca a cada jugador dentro de su línea ordenando por
+   DORSAL (sortSquad() de app.js), no por su orden en el array. Reordenar
+   arrastrando no cambiaría nada en la web, así que en vez de fingir que sí,
+   se dice y se ofrece el botón que sí lo consigue: renumerar la línea.
+   -------------------------------------------------------------------------- */
+var LINEAS = ['DEL','MED','DEF','POR'];
+function ordenWeb(js){
+  return js.slice().sort(function(a,b){
+    var da=parseInt(a.dorsal), db=parseInt(b.dorsal);
+    if(isNaN(da)) da=999; if(isNaN(db)) db=999;
+    return da-db || String(a.nombre).localeCompare(String(b.nombre),'es');
+  });
+}
+function alineacion(e){
+  var js = e.jugadores || [];
+  var tit = js.filter(function(j){ return j.titular; });
+  var sup = js.filter(function(j){ return !j.titular; });
+  var porLinea = {};
+  LINEAS.forEach(function(p){ porLinea[p] = ordenWeb(tit.filter(function(j){ return j.posicion===p; })); });
+  var otros = tit.filter(function(j){ return LINEAS.indexOf(j.posicion)<0; });
+
+  /* Formación real frente a la declarada: DEF-MED-DEL, sin contar al portero,
+     que es el orden en que se escriben las formaciones. */
+  var real = [porLinea.DEF.length, porLinea.MED.length, porLinea.DEL.length].join('-');
+  var descuadre = e.formacion && e.formacion!==real;
+
+  return '<div class="card" style="padding:var(--g5)">'+
+    '<div style="display:flex;align-items:center;gap:var(--g3);margin-bottom:var(--g4);flex-wrap:wrap">'+
+      '<h3 style="font-size:.9375rem">Alineación</h3>'+
+      '<span class="pastilla'+(tit.length===11?' pastilla-ok':' pastilla-mal')+'">'+tit.length+' titulares</span>'+
+      '<span class="pastilla'+(descuadre?' pastilla-ojo':'')+'" title="Defensas-Medios-Delanteros">'+real+'</span>'+
+      (descuadre ? '<span class="ayuda">declarada <b>'+esc(e.formacion)+'</b> '+
+        '<button class="ir" data-a="equipos:usarFormacionReal">usar '+real+'</button></span>' : '')+
+    '</div>'+
+
+    '<div class="alin">'+
+      '<div class="alin-campo"><div class="pitch">'+
+        '<div class="pitch-lines"></div>'+
+        '<span class="pitch-box pb-top"></span><span class="pitch-box pb-top-s"></span>'+
+        '<span class="pitch-box pb-bot"></span><span class="pitch-box pb-bot-s"></span>'+
+        '<div class="pitch-circle"></div>'+
+        LINEAS.map(function(p){
+          return '<div class="alin-linea" data-pos="'+p+'">'+
+            '<span class="alin-et">'+p+' · '+porLinea[p].length+'</span>'+
+            porLinea[p].map(ficha).join('')+
+          '</div>';
+        }).join('')+
+      '</div>'+
+      (otros.length ? '<p class="mal" style="margin-top:var(--g3);font-size:.75rem">'+otros.length+
+        ' titulares sin posición reconocida no se pintan en el campo.</p>' : '')+
+      '</div>'+
+
+      '<div>'+
+        '<div style="font-family:var(--f-mono);font-size:.625rem;letter-spacing:.12em;color:var(--ink-3);margin-bottom:var(--g2)">'+
+          'BANQUILLO · '+sup.length+'</div>'+
+        '<div class="dnd-col alin-banq" data-pos="BANQ">'+
+          (sup.length ? ordenWeb(sup).map(fichaBanco).join('') : '<div class="vacio">Nadie en el banquillo.</div>')+
+        '</div>'+
+        '<p class="ayuda" style="margin-top:var(--g3)">Arrastra entre líneas para cambiar la posición, o al banquillo para quitar el titular. '+
+          'Sin ratón: enfoca a un jugador y usa ← → para moverlo de línea.</p>'+
+        '<div style="margin-top:var(--g4);padding-top:var(--g4);border-top:1px solid var(--line)">'+
+          '<p class="ayuda" style="margin-bottom:var(--g3)">Dentro de cada línea, la web coloca a los jugadores <b>por dorsal</b>, de menor a mayor. '+
+            'Arrastrar de lado no cambiaría nada; para cambiar el orden hay que renumerar.</p>'+
+          '<div style="display:flex;gap:.35rem;flex-wrap:wrap">'+
+            LINEAS.filter(function(p){ return porLinea[p].length>1; }).map(function(p){
+              return '<button class="btn btn-secondary btn-sm" data-a="equipos:renumerar" data-pos="'+p+'">Renumerar '+p+'</button>';
+            }).join('')+
+          '</div></div>'+
+      '</div>'+
+    '</div></div>';
+}
+function ficha(j){
+  var i = club().jugadores.indexOf(j);
+  return '<div class="alin-j dnd-item p-'+String(j.posicion||'').toLowerCase()+'" data-i="'+i+'" role="button" tabindex="0" '+
+      'aria-label="'+esc((j.nombre||'sin nombre')+', '+(j.posicion||'')+', dorsal '+(j.dorsal||'sin dorsal'))+'">'+
+    '<span class="tok">'+(/^https?:/.test(j.foto||'')
+      ? '<img src="'+esc(j.foto)+'" alt="" loading="lazy" referrerpolicy="no-referrer">'
+      : esc(((j.nombre||'?').trim()[0]||'?').toUpperCase()))+'</span>'+
+    '<span class="nm"><span class="dor">'+esc(j.dorsal||'')+'</span> '+esc(apellido(j.nombre))+'</span>'+
+  '</div>';
+}
+function fichaBanco(j){
+  var i = club().jugadores.indexOf(j);
+  return '<div class="dnd-ficha alin-j-b" data-i="'+i+'" role="button" tabindex="0" '+
+      'aria-label="'+esc((j.nombre||'sin nombre')+', suplente')+'">'+
+    '<i class="ph ph-dots-six-vertical dnd-asa" aria-hidden="true"></i>'+
+    '<span class="mono" style="color:var(--ink-4);min-width:18px">'+esc(j.dorsal||'')+'</span>'+
+    '<span class="chip chip-'+String(j.posicion||'').toLowerCase()+'">'+esc(j.posicion||'—')+'</span>'+
+    '<span class="nm">'+esc(j.nombre||'Sin nombre')+'</span>'+
+  '</div>';
+}
+function apellido(n){
+  var w = String(n||'').trim().split(/\s+/);
+  return w.length>1 ? w[w.length-1] : (w[0]||'');
+}
+function montarAlineacion(){
+  var cols = document.querySelectorAll('.alin-linea, .alin-banq');
+  if(!cols.length) return;
+  SFG.dnd.sortable({
+    grupo:'alineacion', item:'.alin-j, .alin-j-b',
+    contenedores:Array.prototype.slice.call(cols),
+    alSoltar:function(dd){
+      var j = club().jugadores[Number(dd.item.dataset.i)];
+      var pos = dd.hasta.dataset.pos;
+      if(pos==='BANQ'){
+        if(!j.titular) return;
+        j.titular = false;
+        U.aviso(j.nombre+' pasa al banquillo.', 'ok');
+      } else {
+        var eraSuplente = !j.titular, cambioPos = j.posicion!==pos;
+        if(!eraSuplente && !cambioPos) return;   // misma línea: sin efecto real
+        j.titular = true;
+        j.posicion = pos;
+        U.aviso(j.nombre+(eraSuplente?' entra al once como ':' pasa a ')+pos+'.', 'ok');
+      }
+      U.cambio();
+    }
+  });
 }
 
 function fichaDatos(e){
@@ -130,9 +260,7 @@ function fichaDatos(e){
     '</div>'+
     '<div class="g-hueco"></div>'+
     '<div class="rejilla rejilla-2">'+
-      U.campo('Escudo (URL)',
-        '<div class="color-par"><input class="inp" value="'+v('escudo')+'" data-c="equipos:campo" data-k="escudo" placeholder="https://…">'+
-        '<span class="eq-cel" style="flex-shrink:0">'+U.escudo(e)+'</span></div>')+
+      U.campoImagen('Escudo', e.escudo||'', 'equipos:campoEscudo')+
       U.campo('Colores del club',
         '<div class="color-par">'+
           '<input type="color" value="'+esc(hex(c1))+'" data-c="equipos:color" data-k="color1" aria-label="Color primario">'+
@@ -270,8 +398,7 @@ function formJugador(j){
     '<div class="g-hueco"></div>'+
     '<label class="sw"><input type="checkbox"'+(j.titular?' checked':'')+' data-c="equipos:jBool" data-k="titular"><span class="pista"></span> Titular</label>'+
     '<div class="g-hueco"></div>'+
-    U.campo('Foto (URL)', '<div class="color-par"><input class="inp" value="'+v('foto')+'" data-c="equipos:jCampo" data-k="foto" placeholder="https://…">'+
-      (/^https?:/.test(j.foto||'') ? '<img src="'+esc(j.foto)+'" alt="" style="width:38px;height:38px;border-radius:var(--r-sm);object-fit:cover;flex-shrink:0" referrerpolicy="no-referrer">' : '')+'</div>')+
+    U.campoImagen('Foto', j.foto||'', 'equipos:jFoto')+
 
     '<div class="g-hueco"></div>'+
     '<h4 style="font-size:.8125rem;color:var(--ink-2);margin-bottom:var(--g3)">Temporada en curso</h4>'+
@@ -567,6 +694,8 @@ var A = {
   },
 
   /* --- ficha --- */
+  /* campoImagen no lleva data-k: el destino va en el nombre de la accion. */
+  campoEscudo: function(el){ club().escudo = el.value; U.cambio(); },
   campo: function(el){
     var e = club(), k = el.dataset.k, val = el.value;
     if(k==='nombre'){
@@ -606,6 +735,56 @@ var A = {
     editarJugador(jugadorAbierto);
   },
   importar: function(){ abrirImportador(); },
+
+  usarFormacionReal: function(){
+    var e = club(), tit = (e.jugadores||[]).filter(function(j){ return j.titular; });
+    e.formacion = ['DEF','MED','DEL'].map(function(p){
+      return tit.filter(function(j){ return j.posicion===p; }).length;
+    }).join('-');
+    U.cambio();
+    U.aviso('Formación declarada actualizada a '+e.formacion+'.', 'ok');
+  },
+
+  /* Renumerar una línea es la ÚNICA forma de cambiar el orden horizontal que
+     pinta la web, porque ordena por dorsal. Se reparten los dorsales que ya
+     tenía esa línea entre los mismos jugadores, así que no se inventa ningún
+     número ni se pisa el de nadie de fuera. */
+  renumerar: function(el){
+    var e = club(), pos = el.dataset.pos;
+    var linea = (e.jugadores||[]).filter(function(j){ return j.titular && j.posicion===pos; });
+    var dorsales = linea.map(function(j){ return j.dorsal; })
+      .sort(function(a,b){ return (parseInt(a)||999)-(parseInt(b)||999); });
+    U.modal({
+      titulo:'Orden de la línea '+pos,
+      ancho:true,
+      cuerpo:'<p class="ayuda" style="margin-bottom:var(--g4)">Arrastra para fijar el orden de izquierda a derecha. '+
+        'Al aceptar, los dorsales <span class="mono">'+dorsales.join(', ')+'</span> se reparten en ese mismo orden. '+
+        'Sin ratón: enfoca a un jugador y usa ↑ ↓.</p>'+
+        '<div class="dnd-col" id="renum">'+
+          ordenWeb(linea).map(function(j){
+            return '<div class="dnd-ficha renum-j" data-n="'+esc(j.nombre)+'" role="button" tabindex="0">'+
+              '<i class="ph ph-dots-six-vertical dnd-asa" aria-hidden="true"></i>'+
+              '<span class="mono" style="color:var(--ink-4);min-width:18px">'+esc(j.dorsal||'')+'</span>'+
+              '<span class="nm">'+esc(j.nombre)+'</span></div>';
+          }).join('')+
+        '</div>',
+      pie:[
+        {txt:'Cancelar', fn:U.cerrarModal},
+        {txt:'Aplicar dorsales', cls:'btn-primary', fn:function(){
+          var orden = Array.prototype.map.call(document.querySelectorAll('#renum .renum-j'), function(x){ return x.dataset.n; });
+          orden.forEach(function(nombre, k){
+            var j = linea.find(function(x){ return x.nombre===nombre; });
+            if(j) j.dorsal = String(dorsales[k]);
+          });
+          U.cerrarModal(); U.cambio();
+          U.aviso('Dorsales de la línea '+pos+' reasignados.', 'ok');
+        }}
+      ],
+      tras: function(){
+        SFG.dnd.sortable({grupo:'renum', item:'.renum-j', contenedores:[document.getElementById('renum')]});
+      }
+    });
+  },
   jCampo: function(el){
     var j = club().jugadores[jugadorAbierto];
     if(el.dataset.k==='nombre'){
@@ -618,6 +797,7 @@ var A = {
     j[el.dataset.k] = el.value;
     SFG.io.marcarSucio();
   },
+  jFoto: function(el){ club().jugadores[jugadorAbierto].foto = el.value; SFG.io.marcarSucio(); repintarModal(); },
   jNum: function(el){ club().jugadores[jugadorAbierto][el.dataset.k] = Number(el.value)||0; SFG.io.marcarSucio(); },
   jBool: function(el){ club().jugadores[jugadorAbierto][el.dataset.k] = el.checked; SFG.io.marcarSucio(); },
 

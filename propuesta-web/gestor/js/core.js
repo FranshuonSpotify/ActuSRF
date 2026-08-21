@@ -372,6 +372,120 @@ function cerrarTemporada(d, opciones){
 }
 
 /* --------------------------------------------------------------------------
+   MOVER UN EQUIPO DENTRO DEL CUADRO DE COPA
+   Vive aquí y no en la vista porque tiene dos efectos que no se ven: si el
+   hueco de destino estaba ocupado hay intercambio, y colocar a mano tiene que
+   romper la vinculación con la ronda previa. Si no se rompiera, la web
+   seguiría pintando el ganador de aquélla y el cambio sería invisible.
+
+   Devuelve null si el movimiento no procede, para que la vista no tenga que
+   repetir las comprobaciones.
+   -------------------------------------------------------------------------- */
+function moverEnCuadro(d, origen, destino){
+  var po=d.partidos_copa[origen.idx], pd=d.partidos_copa[destino.idx];
+  if(!po||!pd) return null;
+  if(po===pd && origen.lado===destino.lado) return null;
+  var ko=origen.lado==='local'?'origen_local':'origen_visitante';
+  var kd=destino.lado==='local'?'origen_local':'origen_visitante';
+  /* Un hueco vinculado no contiene un equipo, contiene una regla: ni se coge
+     de él ni se suelta encima. */
+  if(po[ko]!=null&&po[ko]!=='') return null;
+  if(pd[kd]!=null&&pd[kd]!=='') return null;
+
+  var movido=po[origen.lado]||'';
+  if(!movido) return null;
+  var ocupante=pd[destino.lado]||'';
+  /* Un equipo no puede jugar contra sí mismo: el intercambio que lo produjera
+     se rechaza entero en vez de dejar el cuadro en un estado imposible. */
+  var futuroDestino=destino.lado==='local'?[movido,pd.visitante]:[pd.local,movido];
+  var futuroOrigen=origen.lado==='local'?[ocupante,po.visitante]:[po.local,ocupante];
+  if(po===pd){
+    futuroOrigen=futuroDestino=destino.lado==='local'?[movido,ocupante]:[ocupante,movido];
+  }
+  if(futuroDestino[0]&&futuroDestino[0]===futuroDestino[1]) return null;
+  if(futuroOrigen[0]&&futuroOrigen[0]===futuroOrigen[1]) return null;
+
+  pd[destino.lado]=movido;
+  po[origen.lado]=ocupante;      // vacío si el destino estaba libre
+  po[ko]=null; pd[kd]=null;
+  return {movido:movido, ocupante:ocupante};
+}
+
+/* --------------------------------------------------------------------------
+   TRASPASOS
+   Mover a un jugador de club es lo que más fácil desajusta el archivo, porque
+   toca tres cosas a la vez: la plantilla, el historial y las estadísticas.
+
+   El orden importa:
+   1. Se cierra la etapa abierta en el club de origen y se le vuelcan los
+      goles de la temporada, que son suyos, no del club nuevo.
+   2. Se suman esos mismos goles a goles_totales, para que siga cumpliéndose
+      que goles_totales es la suma del historial (app.js lo da por hecho).
+   3. Se ponen a cero las estadísticas de temporada: en el club nuevo empieza
+      de cero. Esto NO altera el ranking de goleadores de la web, que se
+      calcula desde los eventos de los partidos, no desde este campo.
+   4. Se abre la etapa nueva en el destino.
+
+   `null` como destino significa quedarse sin club: agente libre.
+   -------------------------------------------------------------------------- */
+function traspasar(d, jugador, origen, destino, opciones){
+  opciones = opciones || {};
+  var etiqueta = opciones.temporada || ('Temporada '+(d.config.temporada||'?'));
+  var hoy = new Date().toLocaleDateString('es-ES');
+  if(!jugador.historial) jugador.historial = [];
+
+  /* 1-3. Cerrar la etapa de origen. */
+  if(origen){
+    var et = null;
+    for(var i=jugador.historial.length-1;i>=0;i--){
+      var h = jugador.historial[i];
+      if(h.abierto && (h.equipo_id===origen.id || h.equipo===origen.nombre)){ et = h; break; }
+    }
+    if(!et){
+      et = {equipo:origen.nombre, equipo_id:origen.id, division:origen.division,
+            temporada:etiqueta, temporada_inicio:etiqueta, temporada_fin:etiqueta, fecha:hoy,
+            goles:0, asistencias:0, amarillas:0, rojas:0, pj:0, abierto:true};
+      jugador.historial.push(et);
+    }
+    STATS_TEMP.forEach(function(par){
+      var v = jugador[par[0]]||0;
+      if(!v) return;
+      et[par[0]] = (et[par[0]]||0)+v;
+      jugador[par[1]] = (jugador[par[1]]||0)+v;
+      jugador[par[0]] = 0;
+    });
+    et.temporada_fin = etiqueta;
+    et.abierto = false;
+    /* Fuera de la plantilla de origen. */
+    origen.jugadores = (origen.jugadores||[]).filter(function(x){ return x!==jugador; });
+  } else {
+    d.agentes_libres = (d.agentes_libres||[]).filter(function(x){ return x!==jugador; });
+  }
+
+  /* 4. Abrir la etapa nueva. */
+  if(destino){
+    jugador.historial.push({
+      equipo:destino.nombre, equipo_id:destino.id, division:destino.division,
+      temporada:etiqueta, temporada_inicio:etiqueta, temporada_fin:etiqueta, fecha:hoy,
+      goles:0, asistencias:0, amarillas:0, rojas:0, pj:0, abierto:true
+    });
+    /* Llega al banquillo: meterlo de titular sin mirar descuadraría el once. */
+    jugador.titular = false;
+    if(!destino.jugadores) destino.jugadores = [];
+    destino.jugadores.push(jugador);
+  } else {
+    /* Sin club, la última etapa queda cerrada: no hay nada donde seguir
+       acumulando hasta que alguien lo fiche. */
+    if(jugador.historial.length) jugador.historial[jugador.historial.length-1].abierto = false;
+    jugador.titular = false;
+    jugador.fecha_agente_libre = hoy;
+    if(!d.agentes_libres) d.agentes_libres = [];
+    d.agentes_libres.push(jugador);
+  }
+  return jugador;
+}
+
+/* --------------------------------------------------------------------------
    7. NORMALIZACIÓN
    Se ejecuta antes de cada guardado. Nunca destruye un dato: cuando dos
    campos dicen lo mismo se propaga el que exista, y si los dos existen y
@@ -719,6 +833,7 @@ SFG.core={
   FASES_LIGA:FASES_LIGA, esRegular:esRegular, ZONAS_APP:ZONAS_APP, letrasGrupo:letrasGrupo,
   TIPOS_EVENTO:TIPOS_EVENTO, TIPO_LABEL:TIPO_LABEL, CAMPOS_TABLA:CAMPOS_TABLA, CLAVES:CLAVES,
   instantaneaTemporada:instantaneaTemporada, campeones:campeones, cerrarTemporada:cerrarTemporada,
+  traspasar:traspasar, moverEnCuadro:moverEnCuadro,
   equipo:equipo, equipoPorId:equipoPorId, pool:pool,
   orderStandings:orderStandings, clasificacion:clasificacion,
   winnerOf:winnerOf, resolveSide:resolveSide,
