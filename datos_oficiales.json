@@ -8,7 +8,30 @@
         "ticker_copa": [],
         "medios": {
             "twitter": "https://x.com/supligafrontier"
-        }
+        },
+        "formatos": {
+            "SUPERLIGA": {
+                "vueltas": 2,
+                "equipos": 12,
+                "playoff": 3,
+                "playin": 4,
+                "partido_playin": 6,
+                "descenso": 3
+            },
+            "ASCENSO": {
+                "vueltas": 2,
+                "equipos": 10,
+                "ascenso": 3
+            },
+            "COPA": {
+                "tipo": "grupos",
+                "equipos": 16,
+                "grupos": 4,
+                "clasifican_por_grupo": 2,
+                "ida_vuelta": false
+            }
+        },
+        "grupos_copa": {}
     },
     "equipos": [
         {
@@ -18671,7 +18694,8 @@
             "golesv": 0,
             "goleadores_texto": "",
             "goleadores_local_texto": "",
-            "goleadores_visitante_texto": ""
+            "goleadores_visitante_texto": "",
+            "no_jugado": true
         },
         {
             "jornada": "2",
@@ -18686,7 +18710,8 @@
             "golesv": 3,
             "goleadores_texto": "",
             "goleadores_local_texto": "",
-            "goleadores_visitante_texto": ""
+            "goleadores_visitante_texto": "",
+            "no_jugado": true
         },
         {
             "jornada": "2",
@@ -18741,7 +18766,8 @@
             "golesv": 3,
             "goleadores_texto": "",
             "goleadores_local_texto": "",
-            "goleadores_visitante_texto": ""
+            "goleadores_visitante_texto": "",
+            "no_jugado": true
         },
         {
             "jornada": "2",
@@ -18811,7 +18837,8 @@
             "golesv": 0,
             "goleadores_texto": "",
             "goleadores_local_texto": "",
-            "goleadores_visitante_texto": ""
+            "goleadores_visitante_texto": "",
+            "no_jugado": true
         },
         {
             "jornada": "3",
@@ -18871,7 +18898,8 @@
             "golesv": 3,
             "goleadores_texto": "",
             "goleadores_local_texto": "",
-            "goleadores_visitante_texto": ""
+            "goleadores_visitante_texto": "",
+            "no_jugado": true
         },
         {
             "jornada": "4",
@@ -18931,7 +18959,8 @@
             "golesv": 3,
             "goleadores_texto": "",
             "goleadores_local_texto": "",
-            "goleadores_visitante_texto": ""
+            "goleadores_visitante_texto": "",
+            "no_jugado": true
         },
         {
             "jornada": "5",
@@ -18996,7 +19025,8 @@
             "golesv": 3,
             "goleadores_texto": "",
             "goleadores_local_texto": "",
-            "goleadores_visitante_texto": ""
+            "goleadores_visitante_texto": "",
+            "no_jugado": true
         },
         {
             "jornada": "6",
@@ -19081,7 +19111,8 @@
             "golesv": 0,
             "goleadores_texto": "",
             "goleadores_local_texto": "",
-            "goleadores_visitante_texto": ""
+            "goleadores_visitante_texto": "",
+            "no_jugado": true
         },
         {
             "jornada": "7",
@@ -19176,7 +19207,8 @@
             "goles_l": "3",
             "visitante": "Los Arions",
             "goles_v": 0,
-            "detalles": ""
+            "detalles": "",
+            "no_jugado": true
         },
         {
             "jornada": "8",
@@ -19261,7 +19293,8 @@
             "golesv": 3,
             "goleadores_texto": "",
             "goleadores_local_texto": "",
-            "goleadores_visitante_texto": ""
+            "goleadores_visitante_texto": "",
+            "no_jugado": true
         },
         {
             "jornada": "9",
@@ -19336,7 +19369,8 @@
             "goles_l": "3",
             "visitante": "Los Arions",
             "goles_v": 0,
-            "detalles": ""
+            "detalles": "",
+            "no_jugado": true
         },
         {
             "jornada": "10",
@@ -19426,7 +19460,8 @@
             "golesv": 3,
             "goleadores_texto": "",
             "goleadores_local_texto": "",
-            "goleadores_visitante_texto": ""
+            "goleadores_visitante_texto": "",
+            "no_jugado": true
         },
         {
             "fase": "RONDA 1 (PREVIA)",
@@ -19439,7 +19474,8 @@
             "goles_v": 0,
             "detalles": "",
             "origen_local": null,
-            "origen_visitante": null
+            "origen_visitante": null,
+            "no_jugado": true
         },
         {
             "fase": "RONDA 2",
@@ -19457,7 +19493,8 @@
             "golesv": 3,
             "goleadores_texto": "",
             "goleadores_local_texto": "",
-            "goleadores_visitante_texto": ""
+            "goleadores_visitante_texto": "",
+            "no_jugado": true
         },
         {
             "fase": "RONDA 2",
@@ -19506,7 +19543,8 @@
             "golesv": 3,
             "goleadores_texto": "",
             "goleadores_local_texto": "",
-            "goleadores_visitante_texto": ""
+            "goleadores_visitante_texto": "",
+            "no_jugado": true
         }
     ],
     "partidos_ascenso": [
@@ -19538,7 +19576,8 @@
             "goles_v": 0,
             "goleadores_texto": "",
             "goleadores_local_texto": "",
-            "goleadores_visitante_texto": ""
+            "goleadores_visitante_texto": "",
+            "no_jugado": true
         },
         {
             "jornada": "1",
@@ -19553,7 +19592,8 @@
             "goles_v": 0,
             "goleadores_texto": "",
             "goleadores_local_texto": "",
-            "goleadores_visitante_texto": ""
+            "goleadores_visitante_texto": "",
+            "no_jugado": true
         },
         {
             "jornada": "1",
@@ -19613,7 +19653,8 @@
             "goles_v": 3,
             "goleadores_texto": "",
             "goleadores_local_texto": "",
-            "goleadores_visitante_texto": ""
+            "goleadores_visitante_texto": "",
+            "no_jugado": true
         },
         {
             "jornada": "2",
@@ -19673,7 +19714,8 @@
             "goles_v": 0,
             "goleadores_texto": "",
             "goleadores_local_texto": "",
-            "goleadores_visitante_texto": ""
+            "goleadores_visitante_texto": "",
+            "no_jugado": true
         },
         {
             "jornada": "3",
@@ -19733,7 +19775,8 @@
             "goles_v": 0,
             "goleadores_texto": "",
             "goleadores_local_texto": "",
-            "goleadores_visitante_texto": ""
+            "goleadores_visitante_texto": "",
+            "no_jugado": true
         },
         {
             "jornada": "4",
@@ -19808,7 +19851,8 @@
             "goles_v": 3,
             "goleadores_texto": "",
             "goleadores_local_texto": "",
-            "goleadores_visitante_texto": ""
+            "goleadores_visitante_texto": "",
+            "no_jugado": true
         },
         {
             "jornada": "5",
@@ -19868,7 +19912,8 @@
             "goles_v": 3,
             "goleadores_texto": "",
             "goleadores_local_texto": "",
-            "goleadores_visitante_texto": ""
+            "goleadores_visitante_texto": "",
+            "no_jugado": true
         },
         {
             "jornada": "5",
@@ -19883,7 +19928,8 @@
             "goles_v": 0,
             "goleadores_texto": "",
             "goleadores_local_texto": "",
-            "goleadores_visitante_texto": ""
+            "goleadores_visitante_texto": "",
+            "no_jugado": true
         },
         {
             "jornada": "6",
@@ -19943,7 +19989,8 @@
             "goles_v": 0,
             "goleadores_texto": "",
             "goleadores_local_texto": "",
-            "goleadores_visitante_texto": ""
+            "goleadores_visitante_texto": "",
+            "no_jugado": true
         },
         {
             "jornada": "6",
@@ -19958,7 +20005,8 @@
             "goles_v": 0,
             "goleadores_texto": "",
             "goleadores_local_texto": "",
-            "goleadores_visitante_texto": ""
+            "goleadores_visitante_texto": "",
+            "no_jugado": true
         },
         {
             "jornada": "7",
@@ -20003,7 +20051,8 @@
             "goles_v": 3,
             "goleadores_texto": "",
             "goleadores_local_texto": "",
-            "goleadores_visitante_texto": ""
+            "goleadores_visitante_texto": "",
+            "no_jugado": true
         },
         {
             "jornada": "7",
@@ -20013,7 +20062,8 @@
             "golesl": 0,
             "visitante": "Instituto Occult",
             "golesv": 3,
-            "detalles": ""
+            "detalles": "",
+            "no_jugado": true
         },
         {
             "jornada": "7",
@@ -20073,7 +20123,8 @@
             "goles_v": 0,
             "goleadores_texto": "",
             "goleadores_local_texto": "",
-            "goleadores_visitante_texto": ""
+            "goleadores_visitante_texto": "",
+            "no_jugado": true
         },
         {
             "jornada": "8",
@@ -20083,7 +20134,8 @@
             "golesl": 3,
             "visitante": "Raimon",
             "golesv": 0,
-            "detalles": ""
+            "detalles": "",
+            "no_jugado": true
         },
         {
             "jornada": "8",
@@ -20128,7 +20180,8 @@
             "goles_v": 3,
             "goleadores_texto": "",
             "goleadores_local_texto": "",
-            "goleadores_visitante_texto": ""
+            "goleadores_visitante_texto": "",
+            "no_jugado": true
         },
         {
             "jornada": "9",
@@ -20138,7 +20191,8 @@
             "golesl": 0,
             "visitante": "Instituto Farm",
             "golesv": 3,
-            "detalles": ""
+            "detalles": "",
+            "no_jugado": true
         },
         {
             "jornada": "9",
