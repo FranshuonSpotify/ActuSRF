@@ -707,6 +707,57 @@ const ok = (m) => { n++; console.log('  ok  ' + m); };
   ok('generarCopa: encadenado hacia atras, se juega entera y sale un unico campeon');
 }
 
+/* -- 22. Estadisticas de jugador desde los eventos ---------------------
+   Esta comprobacion existe por un fallo real: la version anterior indexaba
+   por la cadena "club<separador>nombre" y el separador era un byte NUL en vez
+   de un espacio. Quien consultaba con un espacio recibia cero para TODOS los
+   jugadores, sin ningun error: parecia que el archivo tenia 53 descuadres
+   cuando en realidad solo tenia uno. Ahora se indexa por el objeto. */
+{
+  const c = JSON.parse(JSON.stringify(d));
+  C.completarEsquema(c); setD(c);
+
+  const mapa = C.statsJugadoresCalculadas();
+  assert.ok(mapa instanceof Map, 'se indexa por objeto, no por una cadena con separador');
+
+  /* Contraste contra calcScorers, que es la cuenta que hace la web: el maximo
+     goleador tiene que salir con los mismos goles por las dos vias. */
+  const top = C.calcScorers([...c.partidos_liga, ...c.partidos_ascenso, ...c.partidos_copa].filter(C.isFin))[0];
+  assert.ok(top && top.j, 'hace falta un goleador con ficha');
+  assert.strictEqual(C.eventosDe(mapa, top.j).goles, top.goles,
+    'los goles de ' + top.nombre + ' no coinciden entre statsJugadoresCalculadas y calcScorers');
+
+  /* El total tiene que cuadrar con los goles anotados en los detalles. */
+  let suma = 0;
+  mapa.forEach(x => { suma += x.goles; });
+  const enDetalles = [...c.partidos_liga, ...c.partidos_ascenso, ...c.partidos_copa]
+    .filter(C.isFin)
+    .reduce((a, p) => {
+      const ev = C.parseDetalles(p.detalles);
+      return a + ev.local.filter(e => e.tipo === 'gol').length + ev.visitante.filter(e => e.tipo === 'gol').length;
+    }, 0);
+  assert.strictEqual(suma, enDetalles, 'se pierden o duplican goles al atribuirlos a jugadores');
+  assert.ok(suma > 0, 'el archivo real tiene goles con goleador anotado');
+
+  /* Un jugador que no aparece en ningun evento devuelve ceros, no undefined:
+     quien consulte no tiene que defenderse de un hueco. */
+  const sinEventos = { nombre: 'Nadie De Nadie', goles: 0 };
+  assert.deepStrictEqual(C.eventosDe(mapa, sinEventos),
+    { goles: 0, asistencias: 0, amarillas: 0, rojas: 0 });
+
+  /* Y el codigo fuente no puede volver a colar un byte de control donde va un
+     separador legible. */
+  const fuente = fs.readFileSync(path.join(__dirname, 'js', 'core.js'), 'utf8');
+  const control = fuente.split('').filter(ch => {
+    const k = ch.charCodeAt(0);
+    return k < 32 && ch !== '\n' && ch !== '\r' && ch !== '\t';
+  });
+  assert.strictEqual(control.length, 0, 'core.js tiene ' + control.length + ' caracteres de control invisibles');
+
+  setD(d);
+  ok('statsJugadoresCalculadas: indexado por objeto, cuadra con calcScorers (' + suma + ' goles atribuidos)');
+}
+
 console.log('\n' + n + ' comprobaciones OK.');
 
 /* Informe de contexto, no es una comprobación: lo que el gestor debería

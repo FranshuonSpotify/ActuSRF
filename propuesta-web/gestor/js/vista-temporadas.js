@@ -31,7 +31,146 @@ function pintar(el){
     '<h3 style="font-size:.9375rem;margin-bottom:var(--g4)">Archivo</h3>'+
     (ts.length
       ? '<div class="rejilla" style="--min:300px">'+ts.map(tarjeta).join('')+'</div>'
-      : '<div class="vacio">Ninguna temporada archivada todavía. El palmarés de la web sale de aquí.</div>');
+      : '<div class="vacio">Ninguna temporada archivada todavía. El palmarés de la web sale de aquí.</div>')+
+
+    '<div class="g-hueco"></div>'+comparador(D);
+}
+
+/* --------------------------------------------------------------------------
+   COMPARADOR DE TEMPORADAS
+   La temporada en curso entra como una más, para no tener que archivarla sólo
+   para poder compararla. Cada instantánea guarda los equipos con su
+   clasificación de entonces, así que la comparación es directa.
+   -------------------------------------------------------------------------- */
+var cmp = {a:0, b:-1, que:'equipos'};      // -1 = temporada en curso
+
+function instantaneas(D){
+  return (D.historial_temporadas||[]).map(function(t,i){ return {i:i, nombre:t.nombre||('Temporada #'+(i+1)), t:t}; })
+    .concat([{i:-1, nombre:'Temporada '+(D.config.temporada||'?')+' (en curso)', t:C.instantaneaTemporada(D)}]);
+}
+function comparador(D){
+  var ins = instantaneas(D);
+  if(ins.length<2) return '<div class="card" style="padding:var(--g5)">'+
+    '<h3 style="font-size:.9375rem;margin-bottom:.35rem">Comparador de temporadas</h3>'+
+    '<p class="ayuda">Hace falta al menos una temporada archivada para comparar con la actual. '+
+    'Archiva la temporada en curso y podrás enfrentarlas.</p></div>';
+
+  var A = ins.find(function(x){ return x.i===cmp.a; }) || ins[0];
+  var B = ins.find(function(x){ return x.i===cmp.b; }) || ins[ins.length-1];
+
+  return '<div class="card" style="padding:var(--g5)">'+
+    '<div style="display:flex;align-items:center;gap:var(--g3);margin-bottom:var(--g4);flex-wrap:wrap">'+
+      '<h3 style="font-size:.9375rem">Comparador de temporadas</h3>'+
+      '<div style="display:flex;gap:.25rem;margin-left:auto">'+
+        [['equipos','Clubes'],['jugadores','Jugadores']].map(function(q){
+          return '<button class="btn btn-sm '+(cmp.que===q[0]?'btn-primary':'btn-secondary')+
+            '" data-a="temporadas:cmpQue" data-v="'+q[0]+'">'+q[1]+'</button>';
+        }).join('')+
+      '</div></div>'+
+    '<div class="rejilla rejilla-2" style="margin-bottom:var(--g5)">'+
+      U.campo('Temporada A', selTemp(ins, cmp.a, 'a'))+
+      U.campo('Temporada B', selTemp(ins, cmp.b, 'b'))+
+    '</div>'+
+    avisoDesigual(A, B)+
+    (cmp.que==='equipos' ? compararEquipos(A,B) : compararJugadores(A,B))+
+  '</div>';
+}
+/* Comparar una temporada cerrada con otra a medias es la forma más fácil de
+   leer mal esta tabla: la de en curso siempre parecerá peor. Se dice antes de
+   que alguien saque conclusiones. */
+function avisoDesigual(A, B){
+  function jugados(t){
+    var l = (t.equipos||[]).map(function(e){ return e.pj||0; }).filter(Boolean);
+    return l.length ? Math.round(l.reduce(function(a,b){ return a+b; },0)/l.length) : 0;
+  }
+  var ja = jugados(A.t), jb = jugados(B.t);
+  if(!ja || !jb || Math.abs(ja-jb) < 3) return '';
+  var corta = ja<jb ? A : B;
+  return '<p class="mal" style="margin-bottom:var(--g4);font-size:.8125rem">'+
+    '<i class="ph-bold ph-warning"></i> Los clubes llevan '+ja+' partidos de media en «'+esc(A.nombre)+
+    '» y '+jb+' en «'+esc(B.nombre)+'». «'+esc(corta.nombre)+'» va por detrás, así que sus cifras '+
+    'saldrán más bajas por haber jugado menos, no por jugar peor. Mira la columna PJ.</p>';
+}
+
+function selTemp(ins, valor, lado){
+  return '<select class="inp" data-c="temporadas:cmpSel" data-lado="'+lado+'">'+
+    ins.map(function(x){ return '<option value="'+x.i+'"'+(x.i===valor?' selected':'')+'>'+esc(x.nombre)+'</option>'; }).join('')+
+  '</select>';
+}
+
+function compararEquipos(A, B){
+  /* Se cruzan por NOMBRE y no por id: un club renombrado entre temporadas
+     tiene el mismo id pero la gente lo busca por como se llamaba. Se avisa
+     de los que sólo aparecen en una de las dos. */
+  var mapa = {};
+  function meter(lado, lista){
+    (lista||[]).forEach(function(e){
+      var k = e.nombre;
+      (mapa[k] = mapa[k] || {nombre:k, id:e.id})[lado] = e;
+    });
+  }
+  meter('a', A.t.equipos); meter('b', B.t.equipos);
+  var filas = Object.keys(mapa).map(function(k){ return mapa[k]; })
+    .filter(function(x){ return x.a || x.b; })
+    .sort(function(x,y){
+      var px = x.b?(x.b.pts||0):-1, py = y.b?(y.b.pts||0):-1;
+      return py-px || x.nombre.localeCompare(y.nombre,'es');
+    });
+  var soloA = filas.filter(function(x){ return x.a && !x.b; });
+  var soloB = filas.filter(function(x){ return x.b && !x.a; });
+  var ambas = filas.filter(function(x){ return x.a && x.b; });
+
+  return (ambas.length
+    ? '<div class="tabla-scroll"><table class="tabla"><thead><tr>'+
+        '<th>Club</th><th class="num">Pts A</th><th class="num">Pts B</th><th class="num">Δ</th>'+
+        '<th class="num">GF A</th><th class="num">GF B</th><th class="num">PJ A</th><th class="num">PJ B</th>'+
+      '</tr></thead><tbody>'+ambas.map(function(x){
+        var dif = (x.b.pts||0)-(x.a.pts||0);
+        return '<tr><td>'+U.celdaEquipo(C.equipoPorId(x.id)||x.b, x.nombre)+'</td>'+
+          '<td class="num">'+(x.a.pts||0)+'</td><td class="num">'+(x.b.pts||0)+'</td>'+
+          '<td class="num" style="font-weight:600;color:'+(dif>0?'#6FD98A':(dif<0?'#FF7B7B':'var(--ink-4)'))+'">'+
+            (dif>0?'+':'')+dif+'</td>'+
+          '<td class="num" style="color:var(--ink-3)">'+(x.a.gf||0)+'</td><td class="num" style="color:var(--ink-3)">'+(x.b.gf||0)+'</td>'+
+          '<td class="num" style="color:var(--ink-3)">'+(x.a.pj||0)+'</td><td class="num" style="color:var(--ink-3)">'+(x.b.pj||0)+'</td></tr>';
+      }).join('')+'</tbody></table></div>'
+    : '<p class="ayuda">Ningún club aparece en las dos temporadas.</p>')+
+    avisoSolo(soloA, A.nombre)+avisoSolo(soloB, B.nombre);
+}
+function avisoSolo(lista, nombre){
+  if(!lista.length) return '';
+  return '<p class="ayuda" style="margin-top:var(--g3)"><i class="ph ph-info"></i> Sólo en '+esc(nombre)+': '+
+    lista.slice(0,10).map(function(x){ return esc(x.nombre); }).join(', ')+
+    (lista.length>10 ? ' y '+(lista.length-10)+' más' : '')+'.</p>';
+}
+
+function compararJugadores(A, B){
+  function recoger(t){
+    var m = {};
+    (t.equipos||[]).forEach(function(e){
+      (e.jugadores||[]).forEach(function(j){ m[j.nombre] = {j:j, club:e.nombre}; });
+    });
+    return m;
+  }
+  var ma = recoger(A.t), mb = recoger(B.t);
+  var filas = Object.keys(mb).filter(function(k){ return ma[k]; }).map(function(k){
+    return {nombre:k, a:ma[k], b:mb[k], dif:(mb[k].j.goles||0)-(ma[k].j.goles||0)};
+  }).filter(function(x){ return (x.a.j.goles||0) || (x.b.j.goles||0); })
+    .sort(function(x,y){ return Math.abs(y.dif)-Math.abs(x.dif) || y.b.j.goles-x.b.j.goles; });
+
+  if(!filas.length) return '<p class="ayuda">Ningún jugador con goles aparece en las dos temporadas.</p>';
+  return '<div class="tabla-scroll"><table class="tabla"><thead><tr>'+
+      '<th>Jugador</th><th>Club A</th><th>Club B</th><th class="num">Goles A</th><th class="num">Goles B</th><th class="num">Δ</th>'+
+    '</tr></thead><tbody>'+filas.slice(0,30).map(function(x){
+      var cambio = x.a.club!==x.b.club;
+      return '<tr><td>'+esc(x.nombre)+'</td>'+
+        '<td style="color:var(--ink-3);font-size:.75rem">'+esc(x.a.club)+'</td>'+
+        '<td style="font-size:.75rem'+(cambio?';color:var(--accent)':';color:var(--ink-3)')+'">'+esc(x.b.club)+
+          (cambio?' <span class="pastilla pastilla-ojo">cambió</span>':'')+'</td>'+
+        '<td class="num">'+(x.a.j.goles||0)+'</td><td class="num">'+(x.b.j.goles||0)+'</td>'+
+        '<td class="num" style="font-weight:600;color:'+(x.dif>0?'#6FD98A':(x.dif<0?'#FF7B7B':'var(--ink-4)'))+'">'+
+          (x.dif>0?'+':'')+x.dif+'</td></tr>';
+    }).join('')+'</tbody></table></div>'+
+    (filas.length>30 ? '<p class="ayuda" style="margin-top:var(--g3)">y '+(filas.length-30)+' jugadores más.</p>' : '');
 }
 
 /* Qué se llevaría el archivo si se cerrara ahora. Se enseña antes porque
@@ -97,6 +236,9 @@ function tarjeta(t, i){
    ACCIONES
    -------------------------------------------------------------------------- */
 var A = {
+  cmpQue: function(el){ cmp.que = el.dataset.v; U.refrescar(); },
+  cmpSel: function(el){ cmp[el.dataset.lado] = Number(el.value); U.refrescar(); },
+
   archivar: function(){
     pedirNombre('Archivar la temporada en curso',
       'Se guarda una copia en el palmarés. <b>La temporada sigue como está</b>: no se resetea nada ni se vacía el calendario.',

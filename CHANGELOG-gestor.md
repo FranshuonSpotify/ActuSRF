@@ -581,3 +581,104 @@ de salida. Queda:
 §5.3.5 y las plantillas de redes que faltan de §5.3.3 —las dos se apoyan en
 motores ya construidos y probados—, y después el comparador de temporadas, que
 gana valor en cuanto haya una segunda temporada archivada.
+
+---
+
+## Fase 3 — segunda tanda
+
+Las tres piezas propuestas al cerrar la tanda anterior.
+
+### Un fallo mío que apareció al empezar
+
+Al medir los descuadres para construir el informe, el archivo parecía tener
+**53 jugadores con los goles de ficha descuadrados**. No era cierto: era un
+fallo de `core.js`.
+
+`statsJugadoresCalculadas()` indexaba por la cadena `club<separador>nombre`, y
+el separador que quedó escrito **era un byte NUL en vez de un espacio**. Quien
+consultara con un espacio recibía cero para todos los jugadores, **sin ningún
+error**: la función parecía funcionar y devolvía silencio.
+
+Arreglado de raíz, no cambiando el separador: ahora se indexa **por el objeto
+del jugador** con un `Map`, así que no hay ninguna clave de texto que acertar.
+Se añade `eventosDe(mapa, jugador)`, que devuelve ceros para quien no aparece
+en ningún evento en vez de `undefined`.
+
+La función no se usaba en ninguna pantalla todavía, así que el fallo nunca
+llegó a verse; habría llegado justo con este informe. Queda cubierto por una
+comprobación que contrasta sus totales contra `calcScorers()` —la cuenta que
+hace la web— y que además **rechaza cualquier carácter de control invisible en
+`core.js`**, que es lo que lo causó.
+
+**La cifra real, con la función arreglada: 53 fichas coinciden exactamente y
+sólo hay 1 descuadre** (Mike, del Royal Academy: la ficha dice 0 goles y los
+partidos le dan 1).
+
+### Informe de goleadores frente a partidos (§5.3.5)
+
+En **Datos**. Separa dos cosas que se confunden:
+
+- **Cobertura**: cuántos goles del marcador tienen goleador anotado.
+- **Descuadre**: cuándo la ficha de un jugador y los eventos dicen cosas
+  distintas.
+
+> **Hallazgo sobre el archivo real: sólo el 57% de los goles tiene goleador
+> anotado.** 126 de 220. Y **31 partidos finalizados con goles no tienen ni un
+> solo evento**: un 3-0 que no dice quién marcó. La web los muestra bien en el
+> marcador, pero su cronología sale vacía y esos 94 goles no cuentan para el
+> ranking de goleadores.
+
+El botón que iguala las fichas a los eventos existe, pero **avisa de que ahora
+sería contraproducente**: con 94 goles sin anotar, aplicarlo dejaría a esos
+jugadores con menos goles de los que marcaron. Tiene sentido cuando los eventos
+estén completos, no antes. Y sólo toca `goles`: asistencias y tarjetas se dejan
+como están, porque no tienen ni un evento en todo el archivo y ponerlas a cero
+borraría datos que podrían estar bien puestos a mano.
+
+### Plantillas de redes que faltaban (§5.3.3)
+
+De tres a **seis**, todas sobre el motor de canvas ya probado: resultado,
+**previa del partido** (forma reciente en cinco puntos y cara a cara),
+clasificación, **cartel de sorteo de Copa**, MVP y **ficha de fichaje**.
+
+Más el **hilo de jornada en texto**, redactado desde los resultados: marcadores
+con sus goleadores, pendientes, máximo goleador de la jornada y líder. No
+inventa nada que no esté en el archivo. El botón de copiar usa `execCommand`
+con `navigator.clipboard` de respaldo, porque el primero sigue funcionando
+abriendo el gestor por `file://`, que aquí es un caso real.
+
+No se hace la plantilla de cumpleaños: **el esquema no tiene fecha de
+nacimiento** y no voy a inventar un campo que la web no leería.
+
+### Comparador de temporadas (§5.3.2)
+
+En **Temporadas**. La temporada en curso entra como una opción más, para no
+tener que archivarla sólo para compararla.
+
+Compara **clubes** (puntos, goles y partidos, con el delta en verde o rojo) o
+**jugadores** (goles por temporada, marcando a quien cambió de club). Se cruza
+por nombre y no por id, porque un club renombrado se busca por como se llamaba;
+los que sólo aparecen en una de las dos se listan aparte.
+
+**Aviso automático cuando las temporadas no son comparables:** con Temporada 1
+cerrada (12 partidos de media) contra la 3 en curso (7), la segunda saldrá peor
+en todo por haber jugado menos. La interfaz lo dice antes de que alguien saque
+conclusiones, y la tabla muestra la columna PJ de las dos.
+
+### Verificación
+
+`node propuesta-web/gestor/test-core.js` — **23 comprobaciones**. Las 15
+secciones pintan, 0 errores de JavaScript, 0 críticos de integridad. Las seis
+plantillas de redes dibujan sobre el lienzo y el comparador produce 34 filas de
+clubes y 30 de jugadores sobre los datos reales.
+
+### Qué queda de la Fase 3 tras esta tanda
+
+| Bloque | Qué falta |
+|---|---|
+| **§5.3.2** | Árbitros/Staff, Calendario editorial, Auditoría — las tres piden claves nuevas que la web no leería; conviene decidir antes si entran en el archivo o viven aparte |
+| **§5.3.3** | Banco de plantillas favoritas; cumpleaños (bloqueado por el esquema) |
+| **§5.3.4** | Narrativa y gamificación, entero |
+| **§5.3.6** | Diff entre snapshots, changelog en lenguaje natural, roles, modo solo lectura, notas internas, checklist |
+| **§5.3.7** | Redactor asistido y sugeridor de titulares; el corrector de nombres parecidos se puede portar del prototipo |
+| **§5.3.8** | Widgets configurables, favoritos, vista compacta, multi-idioma |

@@ -281,7 +281,16 @@ function desajustesTabla(){
 /* Estadísticas de jugador recalculadas desde los eventos de todos los
    partidos finalizados, incluida la Copa. */
 function statsJugadoresCalculadas(){
-  var t={};
+  /* Se indexa por el OBJETO del jugador, no por una cadena "club|nombre".
+     Una clave de texto obliga a que quien consulta conozca el separador
+     exacto, y basta con equivocarse en él para que todo devuelva cero sin
+     dar ningún error. Un Map no tiene ese problema. */
+  var m=new Map();
+  function fila(j,eq){
+    var c=m.get(j);
+    if(!c){ c={jugador:j, equipo:eq, goles:0, asistencias:0, amarillas:0, rojas:0}; m.set(j,c); }
+    return c;
+  }
   ['partidos_liga','partidos_ascenso','partidos_copa'].forEach(function(k){
     (D[k]||[]).forEach(function(p){
       if(!isFin(p)) return;
@@ -295,8 +304,7 @@ function statsJugadoresCalculadas(){
           var duenyo=eq;
           if(!j){ var f=findPlayer(e.nombre); if(f){ j=f.j; duenyo=f.e; } }
           if(!j||!duenyo) return;
-          var clave=duenyo.nombre+' '+j.nombre;
-          var c=t[clave]||(t[clave]={goles:0,asistencias:0,amarillas:0,rojas:0,ref:j,equipo:duenyo});
+          var c=fila(j,duenyo);
           if(e.tipo==='gol') c.goles++;
           else if(e.tipo==='asistencia') c.asistencias++;
           else if(e.tipo==='amarilla') c.amarillas++;
@@ -305,8 +313,12 @@ function statsJugadoresCalculadas(){
       });
     });
   });
-  return t;
+  return m;
 }
+/* Lo que dicen los eventos de UN jugador concreto. Devuelve ceros si no
+   aparece en ninguno, que es distinto de que no exista. */
+var SIN_EVENTOS={goles:0,asistencias:0,amarillas:0,rojas:0};
+function eventosDe(mapa,j){ return mapa.get(j)||SIN_EVENTOS; }
 
 /* Cierra la temporada en curso sobre los datos vivos.
    No archiva: eso lo hace instantaneaTemporada() antes, y por separado, para
@@ -411,7 +423,7 @@ function generarCalendario(nombres, opciones){
   if(eq.length<2) return [];
 
   var descanso = null;
-  if(eq.length%2){ descanso = ' descanso'; eq.push(descanso); }
+  if(eq.length%2){ descanso = '--descanso--'; eq.push(descanso); }
   var n = eq.length, rondas = n-1;
   var out = [];
 
@@ -1060,6 +1072,7 @@ SFG.core={
   parseDetalles:parseDetalles, serializarDetalles:serializarDetalles, textosDerivados:textosDerivados,
   findPlayer:findPlayer, calcScorers:calcScorers,
   tablaCalculada:tablaCalculada, desajustesTabla:desajustesTabla, statsJugadoresCalculadas:statsJugadoresCalculadas,
+  eventosDe:eventosDe,
   normalizar:normalizar, validarEsquema:validarEsquema, completarEsquema:completarEsquema, validarIntegridad:validarIntegridad
 };
 

@@ -168,6 +168,9 @@ function pintarDatos(el){
     '</div>'+
 
     '<div class="g-hueco"></div>'+
+    bloqueGoleadores()+
+
+    '<div class="g-hueco"></div>'+
     bloqueEnlaces()+
 
     '<div class="g-hueco"></div>'+
@@ -202,6 +205,112 @@ function bloqueErrores(errs){
       '<button class="btn btn-primary btn-sm" style="margin-left:auto" data-a="datos:reintentar">Reintentar</button>'+
       '<button class="btn btn-secondary btn-sm" data-a="datos:olvidar">Descartar</button>'+
     '</div></div>';
+}
+
+/* --------------------------------------------------------------------------
+   GOLEADORES FRENTE A EVENTOS
+   Dos cosas distintas que la gente confunde:
+
+   - COBERTURA: cuántos de los goles del marcador tienen goleador anotado en
+     `detalles`. Un partido puede estar 3-0 y no decir quién marcó; la web lo
+     enseña igual, pero su cronología sale vacía y esos goles no cuentan para
+     el ranking de goleadores.
+   - DESCUADRE: cuando el campo `goles` de la ficha de un jugador no coincide
+     con los goles que le atribuyen los eventos. Ahí hay dos números que
+     deberían decir lo mismo y no lo dicen.
+   -------------------------------------------------------------------------- */
+function analisisGoleadores(){
+  var D = d();
+  var fin = D.partidos_liga.concat(D.partidos_ascenso, D.partidos_copa).filter(C.isFin);
+  var golesMarcador = 0, golesAnotados = 0;
+  var vacios = [], descuadrados = [];
+
+  [['liga','partidos_liga'],['ascenso','partidos_ascenso'],['copa','partidos_copa']].forEach(function(par){
+    D[par[1]].forEach(function(p, i){
+      if(!C.isFin(p)) return;
+      var m = (Number(C.gl(p))||0) + (Number(C.gv(p))||0);
+      var ev = C.parseDetalles(p.detalles);
+      var g = ev.local.filter(esGol).length + ev.visitante.filter(esGol).length;
+      golesMarcador += m; golesAnotados += g;
+      if(m>0 && ev.local.length+ev.visitante.length===0) vacios.push({p:p, comp:par[0], idx:i, m:m});
+      else if(m!==g) descuadrados.push({p:p, comp:par[0], idx:i, m:m, g:g});
+    });
+  });
+
+  /* Ficha del jugador frente a lo que dicen los eventos. */
+  var mapa = C.statsJugadoresCalculadas();
+  var fichas = [];
+  D.equipos.forEach(function(e){
+    (e.jugadores||[]).forEach(function(j){
+      var c = C.eventosDe(mapa, j);
+      if((j.goles||0)!==c.goles) fichas.push({j:j, e:e, ficha:j.goles||0, eventos:c.goles});
+    });
+  });
+
+  return {fin:fin.length, golesMarcador:golesMarcador, golesAnotados:golesAnotados,
+          vacios:vacios, descuadrados:descuadrados, fichas:fichas};
+}
+function esGol(e){ return e.tipo==='gol'; }
+
+function bloqueGoleadores(){
+  var a = analisisGoleadores();
+  var pct = a.golesMarcador ? Math.round(a.golesAnotados/a.golesMarcador*100) : 100;
+
+  return '<div class="card" style="padding:var(--g5)">'+
+    '<div style="display:flex;align-items:center;gap:var(--g3);margin-bottom:var(--g4);flex-wrap:wrap">'+
+      '<h3 style="font-size:.9375rem">Goleadores frente a los partidos</h3>'+
+      '<span class="pastilla '+(pct===100?'pastilla-ok':(pct>=70?'pastilla-ojo':'pastilla-mal'))+'">'+pct+'% anotados</span>'+
+      (a.fichas.length ? '<span class="pastilla pastilla-mal">'+a.fichas.length+' fichas descuadradas</span>' : '')+
+    '</div>'+
+
+    /* Barra de cobertura: se ve de un vistazo cuánto falta por documentar. */
+    '<div style="margin-bottom:var(--g4)">'+
+      '<div style="display:flex;font-size:.75rem;margin-bottom:.25rem">'+
+        '<span>'+a.golesAnotados+' goles con goleador</span>'+
+        '<span class="ayuda" style="margin-left:auto">'+(a.golesMarcador-a.golesAnotados)+' sin anotar de '+a.golesMarcador+'</span></div>'+
+      '<div style="height:8px;border-radius:4px;background:var(--surface-3);overflow:hidden">'+
+        '<div style="height:100%;width:'+pct+'%;background:var(--accent)"></div></div>'+
+      '<p class="ayuda" style="margin-top:var(--g2)">Un gol sin goleador anotado no aparece en la cronología del partido ni suma en el ranking de la web. '+
+        'El marcador sí se muestra bien.</p>'+
+    '</div>'+
+
+    (a.fichas.length
+      ? '<div style="font-family:var(--f-mono);font-size:.625rem;letter-spacing:.12em;color:var(--ink-3);margin:var(--g4) 0 var(--g2)">'+
+          'FICHA CONTRA EVENTOS</div>'+
+        '<div class="tabla-caja" style="margin-bottom:var(--g3)">'+a.fichas.slice(0,20).map(function(f){
+          return '<div class="problema err"><i class="ph-bold ph-warning-octagon"></i>'+
+            '<span>'+esc(f.j.nombre)+' · '+esc(f.e.nombre)+': la ficha dice <b class="mono">'+f.ficha+
+            '</b> y los partidos le dan <b class="mono">'+f.eventos+'</b></span>'+
+            '<button class="ir" data-a="datos:ir" data-v="equipos" data-p=\''+esc(JSON.stringify({id:f.e.id, jugador:f.j.nombre}))+'\'>Abrir</button></div>';
+        }).join('')+'</div>'+
+        '<button class="btn btn-accent btn-sm" data-a="datos:aplicarFichas">Poner las '+a.fichas.length+' fichas al valor de los partidos</button>'
+      : '<p class="ayuda"><i class="ph ph-check-circle" style="color:#6FD98A"></i> Las fichas de jugador cuadran con los goles que les dan los partidos.</p>')+
+
+    (a.vacios.length
+      ? '<div style="font-family:var(--f-mono);font-size:.625rem;letter-spacing:.12em;color:var(--ink-3);margin:var(--g5) 0 var(--g2)">'+
+          'PARTIDOS CON GOLES Y SIN NINGÚN EVENTO · '+a.vacios.length+'</div>'+
+        '<div class="tabla-caja">'+a.vacios.slice(0,15).map(function(x){
+          return '<div class="problema avi"><i class="ph-bold ph-warning"></i>'+
+            '<span>'+esc(x.p.local||'?')+' <b class="mono">'+C.gl(x.p)+'–'+C.gv(x.p)+'</b> '+esc(x.p.visitante||'?')+
+            ' · '+x.m+' goles sin goleador</span>'+
+            '<button class="ir" data-a="datos:ir" data-v="'+(x.comp==='copa'?'copa':'partidos')+
+              '" data-p=\''+esc(JSON.stringify({comp:x.comp, idx:x.idx}))+'\'>Abrir</button></div>';
+        }).join('')+'</div>'+
+        (a.vacios.length>15 ? '<p class="ayuda" style="margin-top:var(--g2)">y '+(a.vacios.length-15)+' más.</p>' : '')
+      : '')+
+
+    (a.descuadrados.length
+      ? '<div style="font-family:var(--f-mono);font-size:.625rem;letter-spacing:.12em;color:var(--ink-3);margin:var(--g5) 0 var(--g2)">'+
+          'MARCADOR CONTRA GOLEADORES · '+a.descuadrados.length+'</div>'+
+        '<div class="tabla-caja">'+a.descuadrados.slice(0,15).map(function(x){
+          return '<div class="problema avi"><i class="ph-bold ph-warning"></i>'+
+            '<span>'+esc(x.p.local||'?')+' – '+esc(x.p.visitante||'?')+': marcador de <b class="mono">'+x.m+
+            '</b> goles y <b class="mono">'+x.g+'</b> goleadores</span>'+
+            '<button class="ir" data-a="datos:ir" data-v="'+(x.comp==='copa'?'copa':'partidos')+
+              '" data-p=\''+esc(JSON.stringify({comp:x.comp, idx:x.idx}))+'\'>Abrir</button></div>';
+        }).join('')+'</div>'
+      : '')+
+  '</div>';
 }
 
 /* --------------------------------------------------------------------------
@@ -306,6 +415,27 @@ var A = {
     });
   },
   comprobarImgs: function(){ comprobarImagenes(); },
+  aplicarFichas: function(){
+    var a = analisisGoleadores();
+    /* Sólo se toca `goles`: asistencias y tarjetas no tienen ni un evento en
+       el archivo, así que ponerlas a cero desde los eventos borraría datos que
+       podrían estar bien puestos a mano. */
+    U.confirmar({
+      titulo:'Poner las fichas al valor de los partidos',
+      html:'Se cambiará el campo <span class="mono">goles</span> de <b>'+a.fichas.length+' jugadores</b> '+
+        'para que coincida con los goles que les atribuyen los eventos de los partidos.<br><br>'+
+        'Ojo: hay <b>'+(a.golesMarcador-a.golesAnotados)+' goles sin goleador anotado</b>. Si aplicas esto ahora, '+
+        'esos jugadores se quedarán con menos goles de los que marcaron de verdad. '+
+        'Tiene sentido cuando los eventos están completos, no antes.<br><br>'+
+        'Sólo se toca <span class="mono">goles</span>: asistencias y tarjetas se dejan como están.',
+      ok:'Aplicar', peligro:true
+    }).then(function(si){
+      if(!si) return;
+      a.fichas.forEach(function(f){ f.j.goles = f.eventos; });
+      U.cambio();
+      U.aviso(a.fichas.length+' fichas puestas al valor de los partidos.', 'ok');
+    });
+  },
   reintentar: function(){ U.guardar(); },
   olvidar: function(){ SFG.io.limpiarErrores(); U.refrescar(); }
 };
