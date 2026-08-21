@@ -776,12 +776,27 @@ const ok = (m) => { n++; console.log('  ok  ' + m); };
   assert.deepStrictEqual(r.huerfanos, [], 'ningun evento del archivo real apunta a la nada');
   assert.deepStrictEqual(r.difusos, [], 'ningun evento depende de coincidencia difusa');
   assert.deepStrictEqual(r.ambiguos, [], 'ningun nombre lo llevan dos jugadores');
-  assert.strictEqual(r.otroClub.length, 1, 'un unico gol atribuido a un jugador de otro club');
-  assert.strictEqual(r.otroClub[0].nombre, 'Mike');
-  assert.strictEqual(r.otroClub[0].anotadoPor, 'Raimon');
-  assert.strictEqual(r.otroClub[0].clubReal, 'Royal Academy');
-  assert.strictEqual(r.otroClub[0].plantillaVacia, true,
-    'la causa es que Raimon esta archivado y sin plantilla, no una errata');
+  /* El caso de Mike NO es un fallo: marco para Raimon y despues ficho por el
+     Royal Academy en la misma temporada, y su historial lo demuestra. Un gol
+     con otra camiseta es lo normal en esta liga, asi que se separa de los
+     casos sospechosos en vez de dar la voz de alarma. */
+  assert.deepStrictEqual(r.otroClub, [], 'ningun gol queda como atribucion sospechosa');
+  assert.strictEqual(r.traspasos.length, 1, 'y uno se explica por un traspaso');
+  assert.strictEqual(r.traspasos[0].nombre, 'Mike');
+  assert.strictEqual(r.traspasos[0].anotadoPor, 'Raimon');
+  assert.strictEqual(r.traspasos[0].clubReal, 'Royal Academy');
+  assert.ok(r.traspasos[0].etapa, 'con la etapa del historial que lo confirma');
+  assert.strictEqual(r.traspasos[0].etapa.equipo, 'Raimon');
+
+  /* Si esa etapa no existiera, si seria sospechoso. */
+  const sinEtapa = JSON.parse(JSON.stringify(d));
+  C.completarEsquema(sinEtapa);
+  sinEtapa.equipos.forEach(e => (e.jugadores || []).forEach(j => {
+    if (j.nombre === 'Mike') j.historial = [];
+  }));
+  const r2 = C.analizarNombres(sinEtapa, { parejas: false });
+  assert.strictEqual(r2.otroClub.length, 1, 'sin historial que lo respalde, vuelve a ser sospechoso');
+  assert.strictEqual(r2.traspasos.length, 0);
   assert.ok(r.parecidos.length >= 2, 'detecta las parejas de nombres casi iguales');
   assert.ok(r.parecidos.some(x => /Trungus/.test(x.a.j.nombre)), 'entre ellas Bump/Lump Trungus');
 
@@ -865,6 +880,81 @@ const ok = (m) => { n++; console.log('  ok  ' + m); };
   assert.strictEqual(C.renombrarEnEventos(c2, 'Renombrado Total', 'Renombrado Total'), 0);
   setD(d);
   ok('unificar nombres: arrastra eventos y textos, sin perder ni un gol');
+}
+
+/* -- 25. Partidos no jugados -------------------------------------------
+   En esta liga hay partidos que no se disputan y se resuelven con victoria
+   administrativa. Marcarlos no puede tocar ni el marcador ni la tabla: lo
+   unico que cambia es que dejan de contarse como goles sin goleador. */
+{
+  const c = JSON.parse(JSON.stringify(d));
+  C.completarEsquema(c); setD(c);
+
+  const antesTabla = JSON.stringify(C.tablaCalculada());
+  const p = c.partidos_liga.find(x => C.isFin(x) && (Number(C.gl(x)) || 0) + (Number(C.gv(x)) || 0) > 0);
+  const marcador = [C.gl(p), C.gv(p)];
+
+  assert.strictEqual(C.esNoJugado(p), false, 'por defecto todo partido cuenta como disputado');
+  p.no_jugado = true;
+  assert.strictEqual(C.esNoJugado(p), true);
+
+  /* Lo que NO puede pasar: que marcar cambie el resultado o la clasificacion. */
+  assert.deepStrictEqual([C.gl(p), C.gv(p)], marcador, 'el marcador no se toca al marcar');
+  assert.strictEqual(JSON.stringify(C.tablaCalculada()), antesTabla,
+    'un partido no jugado sigue sumando en la clasificacion exactamente igual');
+
+  /* Y la web no se entera: el campo es aditivo. */
+  assert.strictEqual(C.isFin(p), true, 'sigue siendo FINALIZADO para la web');
+  delete p.no_jugado;
+  assert.strictEqual(C.esNoJugado(p), false);
+  setD(d);
+  ok('no_jugado: marca sin tocar marcador ni clasificacion');
+}
+
+/* -- 26. Limpiar los campos que la liga no usa ------------------------- */
+{
+  const c = JSON.parse(JSON.stringify(d));
+  C.completarEsquema(c); setD(c);
+
+  const antes = C.contarCamposSinUso(c);
+  assert.ok(antes.campos > 1000, 'el archivo real arrastra miles de campos sin uso');
+
+  const golesAntes = C.calcScorers([...c.partidos_liga, ...c.partidos_ascenso, ...c.partidos_copa].filter(C.isFin))
+    .reduce((s, r) => s + r.goles, 0);
+  const tablaAntes = JSON.stringify(C.tablaCalculada());
+  const carreras = c.equipos.flatMap(e => (e.jugadores || []).map(j => (j.goles_totales || 0) + (j.goles || 0)));
+
+  const n = C.limpiarCamposSinUso(c);
+  assert.strictEqual(n, antes.campos + contarEnHistorial(d), 'quita los que dijo que iba a quitar');
+  assert.strictEqual(C.contarCamposSinUso(c).campos, 0, 'no queda ninguno');
+
+  /* Nada de lo que la web usa puede haberse movido. */
+  assert.strictEqual(JSON.stringify(C.tablaCalculada()), tablaAntes, 'la clasificacion no cambia');
+  assert.strictEqual(
+    C.calcScorers([...c.partidos_liga, ...c.partidos_ascenso, ...c.partidos_copa].filter(C.isFin))
+      .reduce((s, r) => s + r.goles, 0), golesAntes, 'los goleadores no cambian');
+  assert.deepStrictEqual(
+    c.equipos.flatMap(e => (e.jugadores || []).map(j => (j.goles_totales || 0) + (j.goles || 0))),
+    carreras, 'las carreras no cambian');
+  assert.deepStrictEqual(C.validarIntegridad(c).err.map(x => x.m), [], 'no rompe la integridad');
+
+  /* Y `goles` sobrevive: es el unico de esa familia que si se usa. */
+  assert.ok(c.equipos.some(e => (e.jugadores || []).some(j => 'goles' in j)), 'goles se conserva');
+  assert.ok(!c.equipos.some(e => (e.jugadores || []).some(j => 'asistencias' in j)), 'asistencias fuera');
+
+  /* Volver a limpiar no encuentra nada: es idempotente. */
+  assert.strictEqual(C.limpiarCamposSinUso(c), 0);
+  setD(d);
+  ok('limpiarCamposSinUso: quita ' + n + ' campos sin mover un solo dato de competicion');
+}
+function contarEnHistorial(x) {
+  let n = 0;
+  const mirar = (j) => (j.historial || []).forEach(h => {
+    ['asistencias', 'amarillas', 'rojas'].forEach(k => { if (k in h) n++; });
+  });
+  (x.equipos || []).forEach(e => (e.jugadores || []).forEach(mirar));
+  (x.agentes_libres || []).forEach(mirar);
+  return n;
 }
 
 console.log('\n' + n + ' comprobaciones OK.');

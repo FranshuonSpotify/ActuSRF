@@ -332,8 +332,7 @@ function plantilla(e){
     '</div>'+
     (js.length ? '<div class="tabla-scroll"><table class="tabla"><thead><tr>'+
       '<th class="num">#</th><th>Jugador</th><th>Pos</th><th>Afinidad</th><th>Tit.</th>'+
-      '<th class="num">G</th><th class="num">A</th><th class="num">TA</th><th class="num">TR</th>'+
-      '<th class="num">Carrera</th><th class="acc"></th></tr></thead><tbody>'+
+      '<th class="num">Goles</th><th class="num">Carrera</th><th class="acc"></th></tr></thead><tbody>'+
       ordenarPlantilla(js).map(function(o){
         var j = o.j;
         return '<tr>'+
@@ -342,8 +341,7 @@ function plantilla(e){
           '<td><span class="chip chip-'+String(j.posicion||'').toLowerCase()+'">'+esc(j.posicion||'—')+'</span></td>'+
           '<td>'+afinidadCel(j.afinidad)+'</td>'+
           '<td>'+(j.titular?'<i class="ph-bold ph-check" style="color:#6FD98A"></i>':'')+'</td>'+
-          '<td class="num">'+(j.goles||0)+'</td><td class="num">'+(j.asistencias||0)+'</td>'+
-          '<td class="num">'+(j.amarillas||0)+'</td><td class="num">'+(j.rojas||0)+'</td>'+
+          '<td class="num">'+(j.goles||0)+'</td>'+
           /* Carrera = histórico cerrado + temporada en curso, igual que golesCarrera() en app.js. */
           '<td class="num" title="goles_totales + goles de esta temporada">'+((j.goles_totales||0)+(j.goles||0))+'</td>'+
           '<td class="acc"><button class="btn btn-secondary btn-sm" data-a="equipos:editarJugador" data-i="'+o.i+'">Editar</button></td>'+
@@ -401,16 +399,17 @@ function formJugador(j){
     U.campoImagen('Foto', j.foto||'', 'equipos:jFoto')+
 
     '<div class="g-hueco"></div>'+
+    /* Sólo goles: las asistencias y las tarjetas no se registran nunca en
+       esta liga ni se muestran en ninguna pantalla de la web. Pedirlas era
+       pedir un dato que nadie iba a rellenar. */
     '<h4 style="font-size:.8125rem;color:var(--ink-2);margin-bottom:var(--g3)">Temporada en curso</h4>'+
     '<div class="rejilla rejilla-4">'+
-      [['goles','Goles'],['asistencias','Asistencias'],['amarillas','Amarillas'],['rojas','Rojas']].map(function(p){
-        return U.campo(p[1], '<input class="inp inp-mono" type="number" min="0" value="'+n(p[0])+'" data-c="equipos:jNum" data-k="'+p[0]+'">');
-      }).join('')+
+      U.campo('Goles', '<input class="inp inp-mono" type="number" min="0" value="'+n('goles')+'" data-c="equipos:jNum" data-k="goles">')+
     '</div>'+
     '<div class="g-hueco"></div>'+
     '<h4 style="font-size:.8125rem;color:var(--ink-2);margin-bottom:var(--g3)">Histórico (temporadas ya cerradas)</h4>'+
     '<div class="rejilla rejilla-4">'+
-      [['goles_totales','Goles'],['asistencias_totales','Asist.'],['amarillas_totales','Amarillas'],['rojas_totales','Rojas'],['pj','Partidos']].map(function(p){
+      [['goles_totales','Goles'],['pj','Partidos']].map(function(p){
         return U.campo(p[1], '<input class="inp inp-mono" type="number" min="0" value="'+n(p[0])+'" data-c="equipos:jNum" data-k="'+p[0]+'">');
       }).join('')+
     '</div>'+
@@ -483,12 +482,9 @@ var COLS = {
   posicion:'posicion', pos:'posicion',
   titular:'titular',
   goles:'goles', g:'goles',
-  asistencias:'asistencias', asis:'asistencias', a:'asistencias',
-  amarillas:'amarillas', ta:'amarillas',
-  rojas:'rojas', tr:'rojas',
   foto:'foto', afinidad:'afinidad', elemento:'afinidad'
 };
-var NUMERICOS = ['goles','asistencias','amarillas','rojas'];
+var NUMERICOS = ['goles'];
 
 /* Separador: se elige el que más veces aparece en la cabecera. Excel en
    español exporta con punto y coma y al copiar pega con tabuladores. */
@@ -523,7 +519,7 @@ function parseCSV(texto){
   lineas.slice(1).forEach(function(l, n){
     var celdas = partir(l, sep);
     var j = {nombre:'', dorsal:'', posicion:'MED', titular:false,
-             goles:0, asistencias:0, amarillas:0, rojas:0, foto:'', afinidad:'Neutro'};
+             goles:0, foto:'', afinidad:'Neutro'};
     cab.forEach(function(k, i){
       if(!k) return;
       var v = celdas[i]!=null ? celdas[i] : '';
@@ -560,7 +556,7 @@ function abrirImportador(){
       '<p class="ayuda" style="margin-bottom:var(--g4)">Pega un rango de Excel o el contenido de un .csv. '+
         'La primera fila son los nombres de columna. Sólo «nombre» es obligatoria; el resto se rellena con valores por defecto.</p>'+
       '<p class="ayuda" style="margin-bottom:var(--g3)">Columnas reconocidas: '+
-        '<span class="mono">nombre, dorsal, posicion, titular, goles, asistencias, amarillas, rojas, foto, afinidad</span></p>'+
+        '<span class="mono">nombre, dorsal, posicion, titular, goles, foto, afinidad</span></p>'+
       '<div class="color-par" style="margin-bottom:var(--g3)">'+
         '<input type="file" id="csv-file" accept=".csv,.tsv,.txt" class="inp inp-sm">'+
       '</div>'+
@@ -590,12 +586,12 @@ function previsualizarCSV(){
     '<p class="ayuda" style="margin:var(--g4) 0 var(--g2)">'+r.filas.length+' jugadores detectados'+
       (r.avisos.length ? ' · '+r.avisos.length+' avisos' : '')+'</p>'+
     '<div class="tabla-caja"><div class="tabla-scroll"><table class="tabla"><thead><tr>'+
-      '<th class="num">#</th><th>Nombre</th><th>Pos</th><th>Afinidad</th><th>Tit.</th><th class="num">G</th><th class="num">A</th>'+
+      '<th class="num">#</th><th>Nombre</th><th>Pos</th><th>Afinidad</th><th>Tit.</th><th class="num">Goles</th>'+
     '</tr></thead><tbody>'+r.filas.slice(0,15).map(function(j){
       return '<tr><td class="num">'+esc(j.dorsal)+'</td><td>'+esc(j.nombre)+'</td>'+
         '<td><span class="chip chip-'+j.posicion.toLowerCase()+'">'+j.posicion+'</span></td>'+
         '<td>'+esc(j.afinidad)+'</td><td>'+(j.titular?'sí':'')+'</td>'+
-        '<td class="num">'+j.goles+'</td><td class="num">'+j.asistencias+'</td></tr>';
+        '<td class="num">'+j.goles+'</td></tr>';
     }).join('')+'</tbody></table></div></div>'+
     (r.filas.length>15 ? '<p class="ayuda" style="margin-top:.5rem">y '+(r.filas.length-15)+' más.</p>' : '')+
     (r.avisos.length ? '<div class="tabla-caja" style="margin-top:var(--g3)">'+r.avisos.slice(0,8).map(function(a){
@@ -726,7 +722,7 @@ var A = {
     var e = club();
     if(!e.jugadores) e.jugadores = [];
     e.jugadores.push({nombre:'', dorsal:'', posicion:'MED', titular:false,
-      goles:0, asistencias:0, amarillas:0, rojas:0, foto:'', afinidad:'Neutro'});
+      goles:0, foto:'', afinidad:'Neutro'});
     jugadorAbierto = e.jugadores.length-1;
     editarJugador(jugadorAbierto);
   },

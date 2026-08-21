@@ -171,6 +171,9 @@ function pintarDatos(el){
     bloqueGoleadores()+
 
     '<div class="g-hueco"></div>'+
+    bloqueCamposMuertos()+
+
+    '<div class="g-hueco"></div>'+
     bloqueEnlaces()+
 
     '<div class="g-hueco"></div>'+
@@ -222,13 +225,16 @@ function bloqueErrores(errs){
 function analisisGoleadores(){
   var D = d();
   var fin = D.partidos_liga.concat(D.partidos_ascenso, D.partidos_copa).filter(C.isFin);
-  var golesMarcador = 0, golesAnotados = 0;
+  var golesMarcador = 0, golesAnotados = 0, noJugados = 0, golesNoJugados = 0;
   var vacios = [], descuadrados = [];
 
   [['liga','partidos_liga'],['ascenso','partidos_ascenso'],['copa','partidos_copa']].forEach(function(par){
     D[par[1]].forEach(function(p, i){
       if(!C.isFin(p)) return;
       var m = (Number(C.gl(p))||0) + (Number(C.gv(p))||0);
+      /* Un partido que no se disputó no tuvo goles que anotar: contarlo como
+         «gol sin goleador» falsea la única cifra que dice qué falta de verdad. */
+      if(C.esNoJugado(p)){ noJugados++; golesNoJugados += m; return; }
       var ev = C.parseDetalles(p.detalles);
       var g = ev.local.filter(esGol).length + ev.visitante.filter(esGol).length;
       golesMarcador += m; golesAnotados += g;
@@ -248,6 +254,7 @@ function analisisGoleadores(){
   });
 
   return {fin:fin.length, golesMarcador:golesMarcador, golesAnotados:golesAnotados,
+          noJugados:noJugados, golesNoJugados:golesNoJugados,
           vacios:vacios, descuadrados:descuadrados, fichas:fichas};
 }
 function esGol(e){ return e.tipo==='gol'; }
@@ -272,6 +279,16 @@ function bloqueGoleadores(){
         '<div style="height:100%;width:'+pct+'%;background:var(--accent)"></div></div>'+
       '<p class="ayuda" style="margin-top:var(--g2)">Un gol sin goleador anotado no aparece en la cronología del partido ni suma en el ranking de la web. '+
         'El marcador sí se muestra bien.</p>'+
+      (a.noJugados
+        ? '<p class="ayuda" style="margin-top:var(--g2)"><i class="ph ph-info"></i> '+
+          'No se cuentan '+a.noJugados+' partidos marcados como no disputados ('+a.golesNoJugados+
+          ' goles de victoria administrativa): no hubo goles que anotar.</p>'
+        : '')+
+      (a.vacios.length
+        ? '<p class="ayuda" style="margin-top:var(--g2)"><i class="ph ph-lightbulb"></i> '+
+          'Si alguno de los '+a.vacios.length+' partidos de abajo no llegó a jugarse, márcalo desde '+
+          '<b>Partidos</b>: selecciónalo y usa «Marcar como no jugado». Dejará de contar aquí.</p>'
+        : '')+
     '</div>'+
 
     (a.fichas.length
@@ -310,6 +327,38 @@ function bloqueGoleadores(){
               '" data-p=\''+esc(JSON.stringify({comp:x.comp, idx:x.idx}))+'\'>Abrir</button></div>';
         }).join('')+'</div>'
       : '')+
+  '</div>';
+}
+
+/* --------------------------------------------------------------------------
+   CAMPOS QUE ESTA LIGA NO USA
+   Asistencias y tarjetas están en las fichas porque el esquema las trae, pero
+   aquí no se anotan nunca ni se muestran en ninguna pantalla de la web. Son
+   peso muerto dentro del archivo que el visitante descarga entero.
+
+   Borrarlas es irreversible, así que no se hace solo: se cuenta primero y se
+   dice cuántas llevan un valor distinto de cero por si alguna guardaba algo.
+   -------------------------------------------------------------------------- */
+function bloqueCamposMuertos(){
+  var c = C.contarCamposSinUso(d());
+  if(!c.campos) return '<div class="card" style="padding:var(--g5)">'+
+    '<h3 style="font-size:.9375rem;margin-bottom:.35rem">Campos sin uso</h3>'+
+    '<p class="ayuda">Las fichas no llevan asistencias ni tarjetas. Nada que limpiar.</p></div>';
+
+  return '<div class="card" style="padding:var(--g5)">'+
+    '<div style="display:flex;align-items:center;gap:var(--g3);margin-bottom:.35rem;flex-wrap:wrap">'+
+      '<h3 style="font-size:.9375rem">Campos sin uso</h3>'+
+      '<span class="pastilla pastilla-ojo">'+c.campos+'</span></div>'+
+    '<p class="ayuda" style="margin-bottom:var(--g4)">'+
+      'Las fichas guardan <span class="mono">asistencias</span>, <span class="mono">amarillas</span>, '+
+      '<span class="mono">rojas</span> y sus totales. En esta liga no se anotan nunca y la web no los muestra '+
+      'en ninguna pantalla: son '+c.campos+' campos de peso muerto dentro del archivo que el visitante descarga entero.'+
+      (c.conValor
+        ? ' <b style="color:var(--gold)">'+c.conValor+' llevan un valor distinto de cero</b>, así que revísalos antes.'
+        : ' <b>Todos valen cero</b>, así que no se pierde ningún dato al quitarlos.')+
+    '</p>'+
+    '<button class="btn btn-'+(c.conValor?'secondary':'accent')+' btn-sm" data-a="datos:limpiarCampos">'+
+      '<i class="ph ph-broom"></i> Quitar los '+c.campos+' campos</button>'+
   '</div>';
 }
 
@@ -415,6 +464,25 @@ var A = {
     });
   },
   comprobarImgs: function(){ comprobarImagenes(); },
+  limpiarCampos: function(){
+    var c = C.contarCamposSinUso(d());
+    U.confirmar({
+      titulo:'Quitar los campos sin uso',
+      html:'Se borrarán <b>'+c.campos+' campos</b> de las fichas de jugador: asistencias, tarjetas y sus totales, '+
+        'también dentro del historial.<br><br>'+
+        (c.conValor
+          ? '<b style="color:var(--gold)">'+c.conValor+' de ellos no valen cero.</b> Ese dato se pierde.<br><br>'
+          : 'Todos valen cero, así que no se pierde ningún dato.<br><br>')+
+        'La web pública no los lee, así que no cambiará nada de lo que se ve. '+
+        'Nada se escribe en disco hasta que pulses Guardar.',
+      ok:'Quitar', peligro:!!c.conValor
+    }).then(function(si){
+      if(!si) return;
+      var n = C.limpiarCamposSinUso(d());
+      U.cambio();
+      U.aviso(n+' campos quitados de las fichas.', 'ok');
+    });
+  },
   aplicarFichas: function(){
     var a = analisisGoleadores();
     /* Sólo se toca `goles`: asistencias y tarjetas no tienen ni un evento en

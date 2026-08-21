@@ -150,8 +150,24 @@ function resolveSide(p,side){
    app.js reconoce gol, amarilla y roja, y pinta cualquier otro tipo como
    cambio; el prototipo además usaba asistencia. Se soportan los cinco.
    -------------------------------------------------------------------------- */
+/* Tipos que el PARSER reconoce: se conservan los cinco porque app.js los
+   pinta y podría haberlos en datos antiguos. Otra cosa es cuáles se ofrecen
+   al editar: en esta liga sólo se registran goles —las asistencias y las
+   tarjetas nunca se han puesto ni se muestran en ninguna pantalla—, así que
+   ofrecer cinco tipos era pedir un dato que nadie va a rellenar. */
 var TIPOS_EVENTO=['gol','asistencia','amarilla','roja','cambio'];
+var TIPOS_EDITABLES=['gol'];
 var TIPO_LABEL={gol:'Gol',asistencia:'Asistencia',amarilla:'Amarilla',roja:'Roja',cambio:'Cambio'};
+
+/* PARTIDOS NO JUGADOS
+   En esta liga hay partidos que no se disputan y se resuelven con una
+   victoria administrativa, normalmente 3-0. Cuentan para la clasificación
+   igual que cualquier otro, pero no tienen goleadores porque no hubo goles.
+   Sin marcarlos, los informes los cuentan como «goles sin anotar quién los
+   marcó» y ensucian la única cifra que sirve para saber qué falta de verdad.
+
+   Campo aditivo: app.js lo ignora y sigue mostrando el marcador tal cual. */
+function esNoJugado(p){ return !!(p && p.no_jugado); }
 
 function parseLado(raw){
   return String(raw||'').split(',').map(function(s){ return s.trim(); }).filter(Boolean).map(function(ev){
@@ -492,7 +508,7 @@ function analizarNombres(d, opciones){
       porClub[e.nombre]={equipo:e, nombres:set, vacia:!(e.jugadores||[]).length};
     });
 
-    var huerfanos=[], difusos=[], ambiguos=[], otroClub=[];
+    var huerfanos=[], difusos=[], ambiguos=[], otroClub=[], traspasos=[];
     var vistos={}, cache={};
     eventos.forEach(function(ev){
       var k=norm(ev.nombre);
@@ -510,10 +526,19 @@ function analizarNombres(d, opciones){
          a ese jugador, así que la web enseña la ficha de otro. */
       if(f){
         var info=porClub[ev.club];
-        if(!info || !info.nombres[k])
-          otroClub.push({nombre:ev.nombre, anotadoPor:ev.club, resuelve:f.j, clubReal:f.e.nombre,
-                         comp:ev.comp, idx:ev.idx, p:ev.p, tipo:ev.tipo,
-                         plantillaVacia: !!(info && info.vacia)});
+        if(!info || !info.nombres[k]){
+          /* Antes de dar la voz de alarma hay que mirar el historial: en esta
+             liga se ficha a mitad de temporada, así que un gol marcado con
+             otra camiseta es lo NORMAL, no un fallo. Si el jugador tiene una
+             etapa en el club que anotó, el dato está bien y sólo se informa. */
+          var etapa=(f.j.historial||[]).find(function(h){
+            return (info && h.equipo_id===info.equipo.id) || h.equipo===ev.club;
+          });
+          var caso={nombre:ev.nombre, anotadoPor:ev.club, resuelve:f.j, clubReal:f.e.nombre,
+                    comp:ev.comp, idx:ev.idx, p:ev.p, tipo:ev.tipo,
+                    plantillaVacia: !!(info && info.vacia), etapa:etapa||null};
+          if(etapa) traspasos.push(caso); else otroClub.push(caso);
+        }
       }
     });
 
@@ -538,7 +563,7 @@ function analizarNombres(d, opciones){
     }
 
     return {huerfanos:huerfanos, difusos:difusos, ambiguos:ambiguos,
-            otroClub:otroClub, parecidos:parecidos,
+            otroClub:otroClub, traspasos:traspasos, parecidos:parecidos,
             nombresDistintos:Object.keys(vistos).length, eventos:eventos.length};
   } finally { D=prev; }
 }
@@ -932,7 +957,11 @@ function normalizarJugador(j,reg){
     }
     /* Si sólo existe el canónico se deja así: no se inventa el alias. */
   });
-  ['goles','asistencias','amarillas','rojas'].forEach(function(k){ if(j[k]==null) j[k]=0; });
+  /* Sólo se garantiza `goles`. Asistencias y tarjetas no se registran nunca
+     en esta liga ni se muestran en ninguna pantalla, así que crearlas a cero
+     en fichas que no las traen sería engordar el archivo con ruido. Las que ya
+     existen no se tocan: borrarlas es una decisión aparte y explícita. */
+  if(j.goles==null) j.goles=0;
   if(j.dorsal!=null) j.dorsal=String(j.dorsal);      // la web asume string
   j.titular=!!j.titular;
   /* El historial guarda `temporada` en unos sitios y temporada_inicio/fin en
@@ -977,6 +1006,34 @@ function normalizar(d){
     });
   });
   return reg;
+}
+
+/* Quita de las fichas los campos que esta liga no usa. Es destructivo y por
+   eso no se hace solo: se ofrece como acción con su recuento por delante. */
+var CAMPOS_SIN_USO=['asistencias','amarillas','rojas','tarjetasAmarillas','tarjetasRojas',
+                    'asistencias_totales','amarillas_totales','rojas_totales'];
+function contarCamposSinUso(d){
+  var n=0, conValor=0;
+  function mirar(j){
+    CAMPOS_SIN_USO.forEach(function(k){
+      if(k in j){ n++; if(j[k]) conValor++; }
+    });
+  }
+  (d.equipos||[]).forEach(function(e){ (e.jugadores||[]).forEach(mirar); });
+  (d.agentes_libres||[]).forEach(mirar);
+  return {campos:n, conValor:conValor};
+}
+function limpiarCamposSinUso(d){
+  var n=0;
+  function limpiar(j){
+    CAMPOS_SIN_USO.forEach(function(k){ if(k in j){ delete j[k]; n++; } });
+    (j.historial||[]).forEach(function(h){
+      ['asistencias','amarillas','rojas'].forEach(function(k){ if(k in h){ delete h[k]; n++; } });
+    });
+  }
+  (d.equipos||[]).forEach(function(e){ (e.jugadores||[]).forEach(limpiar); });
+  (d.agentes_libres||[]).forEach(limpiar);
+  return n;
 }
 
 /* --------------------------------------------------------------------------
@@ -1256,7 +1313,8 @@ SFG.core={
   afKey:afKey, afName:afName, afinidadLimpia:afinidadLimpia, AF_HEX:AF_HEX, AFINIDADES:AFINIDADES,
   POS:POS, POS_ORDER:POS_ORDER, DIVISIONES:DIVISIONES, FASES:FASES, FASES_TODAS:FASES_TODAS,
   FASES_LIGA:FASES_LIGA, esRegular:esRegular, ZONAS_APP:ZONAS_APP, letrasGrupo:letrasGrupo,
-  TIPOS_EVENTO:TIPOS_EVENTO, TIPO_LABEL:TIPO_LABEL, CAMPOS_TABLA:CAMPOS_TABLA, CLAVES:CLAVES,
+  TIPOS_EVENTO:TIPOS_EVENTO, TIPOS_EDITABLES:TIPOS_EDITABLES, TIPO_LABEL:TIPO_LABEL,
+  esNoJugado:esNoJugado, contarCamposSinUso:contarCamposSinUso, limpiarCamposSinUso:limpiarCamposSinUso, CAMPOS_TABLA:CAMPOS_TABLA, CLAVES:CLAVES,
   instantaneaTemporada:instantaneaTemporada, campeones:campeones, cerrarTemporada:cerrarTemporada,
   traspasar:traspasar, moverEnCuadro:moverEnCuadro,
   generarCalendario:generarCalendario, generarCopa:generarCopa, azar:azar, barajar:barajar,

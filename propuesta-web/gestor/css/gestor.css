@@ -549,3 +549,15 @@ body.alto-contraste :focus-visible{ outline-width:3px; }
   .tv-progreso i{ animation:none; width:100%; }
   .cine-mundo{ will-change:auto; }
 }
+
+/* ============================ SELECCIÓN EN LOTE ============================
+   Casilla dentro de una tabla densa: hay que agrandar el objetivo sin
+   agrandar la fila, así que el área pulsable se extiende con padding en la
+   celda y no con tamaño en la casilla. */
+table.tabla input[type=checkbox]{
+  width:16px; height:16px; margin:0; cursor:pointer;
+  accent-color:var(--accent); vertical-align:middle;
+}
+table.tabla td.acc:has(input[type=checkbox]),
+table.tabla th.acc:has(input[type=checkbox]){ padding:.5rem .6rem; }
+table.tabla tr:has(input[type=checkbox]:checked) td{ background:rgba(255,81,0,.06); }

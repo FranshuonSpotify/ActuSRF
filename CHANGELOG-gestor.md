@@ -779,3 +779,107 @@ Ciclo completo probado en el navegador: se mete una errata que desengancha
 desplegable propone «Raleigh Greenstreet» como primer candidato, y tras
 unificar vuelven los 16 goles a su ficha. El total de goles del archivo no se
 mueve de 126 en ningún momento.
+
+---
+
+## Correcciones de Alejandro y limpieza de la interfaz
+
+Tres cosas que yo había interpretado mal, corregidas por quien conoce la liga.
+
+### 1. El caso «Mike» no era un fallo
+
+Marcó para el Raimon y **fichó por el Royal Academy en la misma temporada**.
+Su historial lo dice: una etapa cerrada en Raimon, temporada 2, con ese gol.
+
+En esta liga se ficha a mitad de temporada, así que **un gol con otra camiseta
+es lo normal**. `analizarNombres()` ahora mira el historial del jugador antes
+de dar la voz de alarma: si hay una etapa en el club que anotó, va a un bloque
+aparte —«Goles con la camiseta anterior»— que explica el caso en vez de
+señalarlo. Sólo queda como sospechoso lo que el historial no respalda.
+
+Resultado: **0 atribuciones sospechosas** en el archivo real, frente a la que
+yo reportaba antes.
+
+### 2. Los 94 goles sin goleador son partidos que no se jugaron
+
+Se resuelven con victoria administrativa. No falta anotar a nadie: **no hubo
+goles**.
+
+Campo nuevo `no_jugado`, aditivo — app.js lo ignora y sigue mostrando el
+marcador igual. Sirve para que los informes dejen de contarlos como «goles sin
+anotar quién los marcó», que es la única cifra que dice qué falta de verdad.
+
+> **Un fallo que cometí y corregí al probarlo:** la primera versión ponía 3-0
+> al marcar. Eso **volteó resultados reales** —los partidos que había ganado el
+> visitante pasaban a victoria local— y Zanark Domain perdió 3 puntos en la
+> tabla. El marcador de la victoria administrativa **ya está en los datos** y
+> puede ser para cualquiera de los dos lados. Ahora marcar **no toca el
+> marcador**; si algún partido está a 0-0, se dice y lo pone quien sabe.
+> Comprobado: clasificación y marcadores idénticos antes y después.
+
+Marcando los 11 partidos de Liga que estaban sin goleadores, la cobertura sube
+del **57% al 67%** sin mover un solo punto de la clasificación.
+
+### 3. Asistencias y tarjetas no se usan
+
+Nunca se ponen y no se muestran en ninguna parte. Se retiran de la interfaz:
+
+- **Editor de eventos**: sólo goles. Un evento antiguo de otro tipo se respeta
+  y se muestra, pero no se propone crear ninguno.
+- **Ficha de jugador** e **importador CSV**: fuera esas columnas.
+- **Estadísticas**: fuera los rankings de asistencias y tarjetas.
+- **Pestaña de Sanciones: retirada.** Se calculaba desde las tarjetas, así que
+  era una pantalla condenada a salir vacía siempre. El fichero pasa a llamarse
+  `vista-papelera.js`, que es lo único que le quedaba vivo.
+- **`normalizar()` deja de crearlos** en fichas que no los traen.
+
+Y una acción explícita en **Datos → Campos sin uso**: quita
+`asistencias`, `amarillas`, `rojas` y sus totales de todas las fichas, también
+dentro del historial. Sobre el archivo real son **5766 campos** y el JSON pasa
+de **644 KB a 556 KB** minificado, un 14% menos de lo que el visitante descarga
+en cada visita. No se hace solo: dice cuántos hay y cuántos llevan un valor
+distinto de cero antes de tocar nada.
+
+### Funcionalidades nuevas
+
+**Edición en lote de partidos.** Casilla por fila más «seleccionar todos», y
+una barra con las acciones: marcar como no jugado, finalizar, pasar a
+pendiente y mover a otra jornada. Marcar 31 partidos de uno en uno eran 31
+clics y 31 repintados.
+
+> **Segundo fallo corregido al probarlo:** marcar una casilla repintaba la
+> tabla entera, lo que destruía los checkbox mientras se estaban marcando —de
+> cinco clics seguidos sólo contaba el primero. Ahora la barra vive en su
+> propio hueco y se refresca sola; la tabla no se toca.
+
+### Arreglos de UX
+
+- **«Todas las jornadas» no se quedaba seleccionado**: el selector volvía solo
+  a la última jornada porque el estado «aún no he elegido» y «quiero todas»
+  compartían el mismo valor `null`. Ahora son distintos.
+- **Los errores se anuncian, no se susurran**: los avisos de error llevan
+  `role="alert"` y `aria-live="assertive"`; el resto sigue en la región
+  `polite`. Un error tiene que interrumpir al lector de pantalla, un
+  «guardado» puede esperar.
+- **Iconos marcados como decorativos** (`aria-hidden`) dentro de los avisos,
+  para que no se lean como contenido.
+- **Navegación más corta**: de 16 secciones a 15 al retirar Sanciones.
+- Casillas de selección con `accent-color` de marca, objetivo agrandado por el
+  relleno de la celda y fila resaltada con `:has(:checked)`.
+
+Sobre la guía `ui-ux-pro-max`: se han seguido sus reglas de accesibilidad,
+formularios y tablas densas, pero **no su paleta ni su tipografía**. Proponía
+un sistema propio (verde sobre azul oscuro, Fira Sans) y `CLAUDE.md` §2.3 fija
+el Design System v3 como no negociable.
+
+### Verificación
+
+`node propuesta-web/gestor/test-core.js` — **27 comprobaciones**. Las nuevas:
+
+- Marcar un partido como no jugado **no cambia ni el marcador ni la
+  clasificación**, y sigue siendo FINALIZADO para la web.
+- Limpiar los campos sin uso quita 5766 campos **sin mover un solo dato de
+  competición**: misma clasificación, mismos goleadores, mismas carreras, 0
+  errores de integridad, y es idempotente.
+- El caso de un gol con la camiseta anterior se separa de los sospechosos, y
+  vuelve a serlo si se le quita el historial que lo respalda.

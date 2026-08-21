@@ -18,6 +18,7 @@ var esc = C.esc;
 var st = {comp:'liga', j:null};        // competición y jornada visibles
 var copaFase = '';                     // filtro de fase en el cuadro
 var edit = null;                       // {comp, idx, ev} mientras el editor está abierto
+var TODAS = '*';                       // valor del selector para «todas las jornadas»
 
 function d(){ return SFG.d(); }
 function lista(comp){ return comp==='ascenso'?d().partidos_ascenso:comp==='copa'?d().partidos_copa:d().partidos_liga; }
@@ -56,10 +57,13 @@ function trasResultado(){
    -------------------------------------------------------------------------- */
 function pintar(el){
   var js = jornadas(st.comp);
-  if(st.j==null || js.indexOf(st.j)<0) st.j = js.length ? js[js.length-1] : null;
+  /* `null` significa «aun no he elegido», y entonces se abre por la ultima
+     jornada. `'*'` significa «quiero todas», y eso hay que respetarlo: antes
+     se trataba igual que null y el selector volvia solo a la ultima. */
+  if(st.j==null || (st.j!==TODAS && js.indexOf(st.j)<0)) st.j = js.length ? js[js.length-1] : TODAS;
   var todos = lista(st.comp);
   var vis = todos.map(function(p,i){ return {p:p,i:i}; })
-    .filter(function(o){ return st.j==null || o.p.jornada===st.j; });
+    .filter(function(o){ return st.j===TODAS || o.p.jornada===st.j; });
 
   var pend = vis.filter(function(o){ return !C.isFin(o.p); }).length;
 
@@ -78,7 +82,7 @@ function pintar(el){
       (js.length ? '<span style="display:flex;align-items:center;gap:.25rem;margin-left:var(--g3)">'+
         '<button class="btn btn-secondary btn-sm" data-a="partidos:jorMenos" aria-label="Jornada anterior"><i class="ph ph-caret-left"></i></button>'+
         '<select class="inp inp-sm" style="width:auto" data-c="partidos:jor">'+
-          '<option value="">Todas las jornadas</option>'+
+          '<option value="'+TODAS+'"'+(st.j===TODAS?' selected':'')+'>Todas las jornadas</option>'+
           js.map(function(j){ return '<option value="'+esc(j)+'"'+(st.j===j?' selected':'')+'>Jornada '+esc(j)+'</option>'; }).join('')+
         '</select>'+
         '<button class="btn btn-secondary btn-sm" data-a="partidos:jorMas" aria-label="Jornada siguiente"><i class="ph ph-caret-right"></i></button>'+
@@ -179,11 +183,46 @@ function avisoEliminatorias(todos){
 }
 
 function tablaPartidos(vis, comp){
-  return '<div class="tabla-caja"><div class="tabla-scroll"><table class="tabla"><thead><tr>'+
+  return barraLote(vis)+
+  '<div class="tabla-caja"><div class="tabla-scroll"><table class="tabla"><thead><tr>'+
+    '<th class="acc"><input type="checkbox" data-c="partidos:lotesTodos" aria-label="Seleccionar todos"'+
+      (vis.length && vis.every(function(o){ return lote[o.i]; }) ? ' checked' : '')+'></th>'+
     '<th class="num">J</th><th>Fase</th><th>Fecha</th><th>Local</th><th class="num">Goles</th><th></th><th class="num">Goles</th><th>Visitante</th>'+
     '<th>Estado</th><th>Eventos</th><th class="acc"></th></tr></thead><tbody>'+
     vis.map(function(o){ return filaPartido(o.p, o.i, comp); }).join('')+
   '</tbody></table></div></div>';
+}
+
+/* --------------------------------------------------------------------------
+   EDICIÓN EN LOTE
+   Marcar 31 partidos como no jugados de uno en uno son 31 clics y 31
+   repintados. Con selección múltiple es uno.
+   -------------------------------------------------------------------------- */
+var lote = {};
+function seleccionados(){ return Object.keys(lote).filter(function(k){ return lote[k]; }).map(Number); }
+
+/* La barra se pinta en su propio hueco y se refresca sola. Marcar una
+   casilla NO repinta la tabla: hacerlo destruía los checkbox mientras se
+   estaban marcando, así que de tres clics sólo contaba el primero. */
+function barraLote(vis){
+  return '<div id="lote-barra">'+contenidoBarra(vis)+'</div>';
+}
+function contenidoBarra(vis){
+  var sel = seleccionados().filter(function(i){ return vis.some(function(o){ return o.i===i; }); });
+  if(!sel.length) return '';
+  return '<div class="card" style="padding:var(--g3) var(--g4);margin-bottom:var(--g3);'+
+      'display:flex;align-items:center;gap:var(--g3);flex-wrap:wrap;border-color:var(--accent)">'+
+    '<b style="font-size:.8125rem">'+sel.length+(sel.length===1?' seleccionado':' seleccionados')+'</b>'+
+    '<button class="btn btn-secondary btn-sm" data-a="partidos:loteNoJugado">'+
+      '<i class="ph ph-prohibit"></i> Marcar como no jugado</button>'+
+    '<button class="btn btn-secondary btn-sm" data-a="partidos:loteEstado" data-v="FINALIZADO">Finalizar</button>'+
+    '<button class="btn btn-secondary btn-sm" data-a="partidos:loteEstado" data-v="PENDIENTE">Pasar a pendiente</button>'+
+    '<span style="display:flex;align-items:center;gap:.3rem">'+
+      '<span class="ayuda">Mover a jornada</span>'+
+      '<input class="inp inp-sm inp-num" type="number" min="1" id="lote-jor" placeholder="nº">'+
+      '<button class="btn btn-secondary btn-sm" data-a="partidos:loteJornada">Mover</button></span>'+
+    '<button class="btn btn-secondary btn-sm" style="margin-left:auto" data-a="partidos:loteNada">Quitar selección</button>'+
+  '</div>';
 }
 
 function filaPartido(p, i, comp){
@@ -194,7 +233,12 @@ function filaPartido(p, i, comp){
      partido en la web enseña un 3-1 con dos goleadores. */
   var descuadre = C.isFin(p) && goles!==marcados;
   var elim = !C.esRegular(p);
-  return '<tr'+(descuadre?' class="ojo"':'')+'>'+
+  var noJug = C.esNoJugado(p);
+  /* Un partido no jugado no descuadra: no tuvo goles que anotar. */
+  if(noJug) descuadre = false;
+  return '<tr'+(descuadre?' class="ojo"':'')+(noJug?' class="apagado"':'')+'>'+
+    '<td class="acc"><input type="checkbox" data-c="partidos:lote" data-i="'+i+'"'+(lote[i]?' checked':'')+
+      ' aria-label="Seleccionar partido"></td>'+
     '<td class="num"><input class="inp inp-sm inp-num" value="'+esc(p.jornada||'')+'" data-c="partidos:campo" data-i="'+i+'" data-k="jornada"'+
       (elim && (p.jornada==null||p.jornada==='') ? ' style="border-color:var(--c-copa)" title="Una eliminatoria sin jornada no se ve en la web"' : '')+'></td>'+
     /* Con fase, el partido es eliminatoria: no reparte puntos y la web pone
@@ -218,12 +262,24 @@ function filaPartido(p, i, comp){
         ? '<i class="ph-bold ph-list-bullets"></i> '+(ev.local.length+ev.visitante.length)
         : '<i class="ph ph-plus"></i>')+
       '</button>'+
+      (noJug?' <span class="pastilla" title="No se disputó: victoria administrativa">no jugado</span>':'')+
       (descuadre?' <span class="pastilla pastilla-ojo" title="El marcador dice '+marcados+' goles y hay '+goles+' goleadores">'+goles+'/'+marcados+'</span>':'')+
     '</td>'+
     '<td class="acc"><button class="btn btn-secondary btn-sm" data-a="partidos:borrar" data-comp="'+comp+'" data-i="'+i+'">×</button></td>'+
   '</tr>';
 }
 function esGol(e){ return e.tipo==='gol'; }
+
+/* Sólo se reemplaza el contenido de la barra: la tabla y sus casillas se
+   quedan donde están. */
+function refrescarBarra(){
+  var caja = document.getElementById('lote-barra');
+  if(!caja) return;
+  var todos = lista(st.comp);
+  var vis = todos.map(function(p,i){ return {p:p,i:i}; })
+    .filter(function(o){ return st.j===TODAS || o.p.jornada===st.j; });
+  caja.innerHTML = contenidoBarra(vis);
+}
 
 /* --------------------------------------------------------------------------
    COPA
@@ -529,9 +585,12 @@ function columna(lado, nombreEq, goles, cuenta){
 }
 function filaEvento(lado, e, k, eq){
   return '<div style="display:flex;gap:.25rem;margin-bottom:.35rem;align-items:center">'+
-    '<select class="inp inp-sm" style="width:96px" data-c="partidos:ev" data-lado="'+lado+'" data-i="'+k+'" data-k="tipo">'+
-      C.TIPOS_EVENTO.map(function(t){ return '<option value="'+t+'"'+(e.tipo===t?' selected':'')+'>'+C.TIPO_LABEL[t]+'</option>'; }).join('')+
-    '</select>'+
+    /* Sólo se ofrece «gol»: en esta liga no se registran asistencias ni
+       tarjetas. Si un evento antiguo trae otro tipo se respeta y se muestra,
+       pero no se propone crear ninguno nuevo. */
+    (C.TIPOS_EDITABLES.indexOf(e.tipo)<0
+      ? '<span class="pastilla pastilla-ojo" style="width:96px;justify-content:center" title="Tipo heredado">'+esc(C.TIPO_LABEL[e.tipo]||e.tipo)+'</span>'
+      : '<span class="pastilla" style="width:96px;justify-content:center"><i class="ph-bold ph-soccer-ball"></i> Gol</span>')+
     selectJugador(eq, e.nombre, 'data-c="partidos:ev" data-lado="'+lado+'" data-i="'+k+'" data-k="nombre"')+
     '<input class="inp inp-sm inp-num" type="number" min="0" max="130" value="'+esc(e.minuto||'')+'" placeholder="min" data-c="partidos:ev" data-lado="'+lado+'" data-i="'+k+'" data-k="minuto">'+
     '<button class="btn btn-secondary btn-sm" data-a="partidos:evDel" data-lado="'+lado+'" data-i="'+k+'" aria-label="Quitar evento">×</button>'+
@@ -647,13 +706,13 @@ var sim = null;      // {jornada, comp, res:{idx:{l,v}}}
 
 function abrirSimulacion(){
   var pend = lista(st.comp).map(function(p,i){ return {p:p,i:i}; })
-    .filter(function(o){ return !C.isFin(o.p) && C.esRegular(o.p) && (st.j==null || o.p.jornada===st.j); });
+    .filter(function(o){ return !C.isFin(o.p) && C.esRegular(o.p) && (st.j===TODAS || o.p.jornada===st.j); });
   if(!pend.length) return U.aviso('No hay partidos pendientes en esta vista para simular.', 'ojo');
 
   sim = {comp:st.comp, res:{}};
   pend.forEach(function(o){ sim.res[o.i] = {l:0, v:0}; });
   U.modal({
-    titulo:'Simular '+(st.j?('jornada '+st.j):'los partidos pendientes'),
+    titulo:'Simular '+(st.j&&st.j!==TODAS?('jornada '+st.j):'los partidos pendientes'),
     ancho:true,
     cuerpo:cuerpoSim(pend),
     pie:[
@@ -766,10 +825,97 @@ var A = {
       .filter(function(o){ return sim.res[o.i]!==undefined; });
     repintarSim(pend);
   },
-  jor:       function(el){ st.j = el.value || null; U.refrescar(); },
+  jor:       function(el){ st.j = el.value || TODAS; U.refrescar(); },
   jorMenos:  function(){ mueveJornada(-1); },
   jorMas:    function(){ mueveJornada(1); },
   nuevo:     function(){ nuevoPartido(st.comp); },
+
+  lote:      function(el){
+    lote[el.dataset.i] = el.checked;
+    refrescarBarra();
+  },
+  lotesTodos:function(el){
+    lista(st.comp).forEach(function(p,i){
+      if(st.j===TODAS || p.jornada===st.j) lote[i] = el.checked;
+    });
+    document.querySelectorAll('[data-c="partidos:lote"]').forEach(function(c){ c.checked = el.checked; });
+    refrescarBarra();
+  },
+  loteNada:  function(){
+    lote = {};
+    document.querySelectorAll('[data-c="partidos:lote"]').forEach(function(c){ c.checked = false; });
+    var t = document.querySelector('[data-c="partidos:lotesTodos"]');
+    if(t) t.checked = false;
+    refrescarBarra();
+  },
+  loteEstado:function(el){
+    var v = el.dataset.v, ls = lista(st.comp), sel = seleccionados();
+    sel.forEach(function(i){ if(ls[i]) ls[i].estado = v; });
+    lote = {};
+    trasResultado();
+    U.aviso(sel.length+' partidos a '+v+'.', 'ok');
+  },
+  loteJornada:function(){
+    var j = (document.getElementById('lote-jor')||{}).value;
+    if(!j) return U.aviso('Escribe el número de jornada.', 'ojo');
+    var ls = lista(st.comp), sel = seleccionados();
+    sel.forEach(function(i){ if(ls[i]) ls[i].jornada = String(j); });
+    lote = {};
+    U.cambio();
+    U.aviso(sel.length+' partidos movidos a la jornada '+j+'.', 'ok');
+  },
+  loteNoJugado: function(){
+    var ls = lista(st.comp), sel = seleccionados();
+    var conGoleadores = sel.filter(function(i){
+      var ev = C.parseDetalles(ls[i].detalles);
+      return ev.local.length + ev.visitante.length > 0;
+    });
+    /* El marcador NO se toca. La victoria administrativa ya está anotada en
+       los datos y puede ser para cualquiera de los dos lados: forzar un 3-0
+       al local voltearía todos los partidos que ganó el visitante y movería
+       la clasificación. Sólo se marcan los que están a cero, y se dice. */
+    var sinMarcador = sel.filter(function(i){
+      var p = ls[i];
+      return (Number(C.gl(p))||0)===0 && (Number(C.gv(p))||0)===0;
+    });
+    U.confirmar({
+      titulo:'Marcar '+sel.length+' partidos como no jugados',
+      html:'Se marcan como <b>no disputados</b>. <b>El marcador se respeta tal cual está</b>: '+
+        'la victoria administrativa ya está anotada y puede ser para cualquiera de los dos lados.<br><br>'+
+        'Siguen contando para la clasificación igual que antes, y ésta no se mueve. Lo que cambia es que los informes '+
+        'dejan de contarlos como «goles sin anotar quién los marcó», que es la cifra que sirve para saber qué falta de verdad.'+
+        (sinMarcador.length
+          ? '<br><br><b style="color:var(--gold)">'+sinMarcador.length+' están a 0-0</b> y se quedarán así: '+
+            'ponles tú el resultado que corresponda.'
+          : '')+
+        (conGoleadores.length
+          ? '<br><br><b style="color:var(--gold)">'+conGoleadores.length+' tienen goleadores anotados.</b> '+
+            'Si no se jugaron, esos goles no existieron y se borrarán.'
+          : ''),
+      ok:'Marcar como no jugados', peligro:!!conGoleadores.length
+    }).then(function(si){
+      if(!si) return;
+      sel.forEach(function(i){
+        var p = ls[i];
+        if(!p) return;
+        p.no_jugado = true;
+        p.estado = 'FINALIZADO';
+        p.detalles = ' / ';
+        if(p.goleadores_texto!=null) p.goleadores_texto = '';
+        if(p.goleadores_local_texto!=null) p.goleadores_local_texto = '';
+        if(p.goleadores_visitante_texto!=null) p.goleadores_visitante_texto = '';
+      });
+      lote = {};
+      trasResultado();
+      U.aviso(sel.length+' partidos marcados como no jugados. El marcador no se ha tocado.', 'ok', 6000);
+    });
+  },
+  quitarNoJugado: function(el){
+    var p = lista(st.comp)[Number(el.dataset.i)];
+    delete p.no_jugado;
+    U.cambio();
+    U.aviso('Vuelve a contar como partido disputado.', 'ok');
+  },
   nuevaJornada: function(){
     var js = jornadas(st.comp).map(Number).concat(0);
     st.j = String(Math.max.apply(null, js)+1);
@@ -838,7 +984,7 @@ function mueveJornada(paso){
   var js = jornadas(st.comp);
   if(!js.length) return;
   var i = js.indexOf(st.j);
-  if(i<0) i = js.length-1;
+  if(i<0) i = js.length-1;      // desde «todas», se entra por la ultima
   st.j = js[Math.min(js.length-1, Math.max(0, i+paso))];
   U.refrescar();
 }

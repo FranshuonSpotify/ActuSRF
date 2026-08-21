@@ -28,17 +28,6 @@ function partidos(){
 }
 function jugados(){ return partidos().filter(C.isFin); }
 
-/* Todos los eventos con su club, que es lo que la web usa para atribuirlos. */
-function eventos(){
-  var out = [];
-  jugados().forEach(function(p){
-    var ev = C.parseDetalles(p.detalles);
-    ev.local.forEach(function(e){ out.push({e:e, club:p.local, p:p, casa:true}); });
-    ev.visitante.forEach(function(e){ out.push({e:e, club:p.visitante, p:p, casa:false}); });
-  });
-  return out;
-}
-
 function pintar(el){
   var D = d();
   var ms = jugados();
@@ -60,7 +49,7 @@ function pintar(el){
 function bloques(ms){
   return kpis(ms)+
     '<div class="g-hueco"></div><div class="rejilla" style="--min:330px;align-items:start">'+
-      goleadores()+asistencias()+tarjetas()+porPosicion()+
+      goleadores()+porPosicion()+
     '</div>'+
     '<div class="g-hueco"></div><div class="rejilla" style="--min:330px;align-items:start">'+
       localVisitante(ms)+rachas()+proyeccion()+revelacion()+
@@ -111,19 +100,7 @@ function kpi(valor, etiqueta, titulo){
     '<div class="ayuda" style="margin-top:.15rem">'+esc(etiqueta)+'</div></div>';
 }
 
-/* --- Rankings por evento --------------------------------------------- */
-function rankingEventos(tipo){
-  var t = {};
-  eventos().forEach(function(x){
-    if(x.e.tipo!==tipo) return;
-    var f = C.findPlayer(x.e.nombre);
-    var clave = f ? f.e.nombre+'|'+f.j.nombre : '|'+x.e.nombre;
-    if(!t[clave]) t[clave] = {n:f?f.j.nombre:x.e.nombre, eq:f?f.e:null, j:f?f.j:null, v:0};
-    t[clave].v++;
-  });
-  return Object.keys(t).map(function(k){ return t[k]; })
-    .sort(function(a,b){ return b.v-a.v || String(a.n).localeCompare(String(b.n),'es'); });
-}
+/* --- Goleadores ------------------------------------------------------- */
 function tabla(titulo, filas, sufijo, vacio){
   return '<div class="card" style="padding:var(--g5)">'+
     '<h3 style="font-size:.9375rem;margin-bottom:var(--g4)">'+esc(titulo)+'</h3>'+
@@ -141,35 +118,6 @@ function goleadores(){
   var r = C.calcScorers(jugados()).map(function(x){ return {n:x.nombre, eq:x.e, j:x.j, v:x.goles}; });
   return tabla('Goleadores', r, 'G', 'Sin goles registrados.');
 }
-/* #26 y #27. Nota honesta: hoy salen vacíos porque en el archivo no hay ni un
-   solo evento de asistencia o tarjeta, ni una ficha con esos campos por
-   encima de cero. El editor de eventos ya permite registrarlos. */
-function asistencias(){
-  var r = rankingEventos('asistencia');
-  return tabla('Asistencias', r, 'A',
-    'Ningún partido tiene asistencias registradas. Se anotan en el editor de eventos de cada partido, junto a los goles.');
-}
-function tarjetas(){
-  var am = rankingEventos('amarilla'), ro = rankingEventos('roja');
-  var t = {};
-  am.forEach(function(r){ t[r.n] = {n:r.n, eq:r.eq, j:r.j, a:r.v, r:0}; });
-  ro.forEach(function(r){ (t[r.n] = t[r.n]||{n:r.n, eq:r.eq, j:r.j, a:0, r:0}).r = r.v; });
-  var filas = Object.keys(t).map(function(k){ return t[k]; })
-    .sort(function(a,b){ return (b.a+b.r*3)-(a.a+a.r*3); });
-  return '<div class="card" style="padding:var(--g5)">'+
-    '<h3 style="font-size:.9375rem;margin-bottom:var(--g4)">Tarjetas</h3>'+
-    (filas.length
-      ? '<table class="tabla"><thead><tr><th></th><th>Jugador</th><th class="num">TA</th><th class="num">TR</th></tr></thead><tbody>'+
-        filas.slice(0,10).map(function(r,i){
-          return '<tr><td class="num" style="width:1%;color:var(--ink-3)">'+(i+1)+'</td>'+
-            '<td>'+esc(r.n)+'<span style="color:var(--ink-3);font-size:.75rem"> · '+esc(r.eq?r.eq.nombre:'—')+'</span></td>'+
-            '<td class="num" style="color:var(--gold)">'+r.a+'</td>'+
-            '<td class="num" style="color:var(--c-copa)">'+r.r+'</td></tr>';
-        }).join('')+'</tbody></table>'
-      : '<p class="ayuda">Ninguna tarjeta registrada, ni en los eventos de los partidos ni en las fichas. Se anotan en el editor de eventos.</p>')+
-  '</div>';
-}
-
 /* --- #34 Por posición ------------------------------------------------- */
 function porPosicion(){
   var t = {};

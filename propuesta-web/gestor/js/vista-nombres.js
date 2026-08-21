@@ -48,6 +48,7 @@ function pintar(el){
         '</div></div></div>'+
 
     bloqueOtroClub(r.otroClub)+
+    bloqueTraspasos(r.traspasos)+
     bloqueHuerfanos(r.huerfanos)+
     bloqueDifusos(r.difusos)+
     bloqueAmbiguos(r.ambiguos)+
@@ -72,6 +73,23 @@ function bloqueOtroClub(lista){
         '<p class="ayuda" style="margin-top:var(--g3)">Suele tener dos causas: el club se quedó sin plantilla al archivarse, '+
         'o el nombre del evento está mal escrito. Lo primero se arregla dando de alta al jugador; lo segundo, unificando el nombre.</p>'
       : '<p class="ayuda">Todos los eventos apuntan a un jugador del club que los anotó.</p>');
+}
+
+/* --- 1b. Goles con otra camiseta, explicados por un traspaso ----------
+   No son un fallo: en esta liga se ficha a mitad de temporada, así que marcar
+   para un club y acabar en otro es lo normal. Se separan de los sospechosos
+   porque el historial del jugador lo respalda. */
+function bloqueTraspasos(lista){
+  if(!lista.length) return '';
+  return caja('Goles con la camiseta anterior', lista.length, 'ok',
+    'El jugador marcó para otro club y después fichó. Su historial lo confirma, así que el dato está bien: se listan sólo para que no sorprenda verlos.',
+    '<div class="tabla-caja">'+lista.map(function(x){
+      var t = x.etapa && (x.etapa.temporada_inicio||x.etapa.temporada||'');
+      return '<div class="problema"><i class="ph ph-arrows-left-right" style="color:var(--ink-3)"></i>'+
+        '<span><b>'+esc(x.nombre)+'</b> marcó para <b>'+esc(x.anotadoPor)+'</b>'+
+          (t?' en '+esc(String(t)):'')+' y ahora está en <b>'+esc(x.clubReal)+'</b></span>'+
+        '<button class="ir" data-a="nombres:irPartido" data-comp="'+esc(x.comp)+'" data-idx="'+x.idx+'">Partido</button></div>';
+    }).join('')+'</div>');
 }
 
 /* --- 2. Nombres que no encajan con nadie ------------------------------- */

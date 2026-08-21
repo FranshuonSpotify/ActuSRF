@@ -138,7 +138,11 @@ function aviso(texto, tipo, ms){
   tipo = tipo || 'ok';
   var el = document.createElement('div');
   el.className = 'g-aviso '+tipo;
-  el.innerHTML = '<i class="'+ICONO[tipo]+'"></i><span>'+esc(texto)+'</span>';
+  /* Un error tiene que interrumpir al lector de pantalla; un "guardado"
+     puede esperar a que termine la frase en curso. La region contenedora es
+     polite, asi que los errores llevan su propio role=alert. */
+  if(tipo==='mal'){ el.setAttribute('role','alert'); el.setAttribute('aria-live','assertive'); }
+  el.innerHTML = '<i class="'+ICONO[tipo]+'" aria-hidden="true"></i><span>'+esc(texto)+'</span>';
   $('avisos').appendChild(el);
   setTimeout(function(){
     el.classList.add('saliendo');
