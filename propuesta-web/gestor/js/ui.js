@@ -64,6 +64,11 @@ function cambio(soloMarcar){
   if(soloMarcar) contadores(); else refrescar();
 }
 
+/* Los contadores se parten en dos por una razón medida: validar la integridad
+   y analizar los nombres cuestan decenas de milisegundos cada uno, y esto
+   corre después de CADA edición. Hacerlo todo aquí metía 230 ms entre pulsar
+   una tecla y ver el resultado. Lo barato se actualiza al instante; lo caro,
+   un momento después y sólo cuando se ha dejado de escribir. */
 function contadores(){
   var d = SFG.d(); if(!d) return;
   $('n-equipos').textContent = d.equipos.filter(function(e){ return !e.archivado; }).length;
@@ -73,9 +78,25 @@ function contadores(){
   $('n-temporadas').textContent = d.historial_temporadas.length || '';
   $('n-traspasos').textContent = d.agentes_libres.length || '';
   $('n-papelera').textContent = d.equipos.filter(function(e){ return e.archivado; }).length || '';
+  programarAvisos();
+}
+
+var relojAvisos = null;
+function programarAvisos(){
+  clearTimeout(relojAvisos);
+  relojAvisos = setTimeout(avisosCaros, 400);
+}
+function avisosCaros(){
+  var d = SFG.d(); if(!d) return;
   var v = C.validarIntegridad(d);
   $('n-datos').textContent = v.err.length ? v.err.length : '';
   $('n-datos').title = v.err.length ? v.err.length+' problemas críticos' : '';
+  /* Sin la comparación por parejas, que es la parte de verdad cara: eso sólo
+     se hace a petición desde la propia pantalla de Nombres. */
+  var nb = C.analizarNombres(d, {parejas:false});
+  var nMal = nb.huerfanos.length + nb.difusos.length + nb.ambiguos.length + nb.otroClub.length;
+  $('n-nombres').textContent = nMal || '';
+  $('n-nombres').title = nMal ? nMal+' nombres que revisar' : '';
 }
 
 /* --------------------------------------------------------------------------

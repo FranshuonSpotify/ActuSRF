@@ -758,6 +758,115 @@ const ok = (m) => { n++; console.log('  ok  ' + m); };
   ok('statsJugadoresCalculadas: indexado por objeto, cuadra con calcScorers (' + suma + ' goles atribuidos)');
 }
 
+/* -- 23. Consistencia de nombres --------------------------------------- */
+{
+  /* Distancia y parecido. */
+  assert.strictEqual(C.distancia('Mike', 'Mike'), 0);
+  assert.strictEqual(C.distancia('Mike', 'Mike '), 0, 'ignora espacios de sobra');
+  assert.strictEqual(C.distancia('Bump Trungus', 'Lump Trungus'), 1);
+  assert.strictEqual(C.distancia('Muller', 'Müller'), 0, 'ignora tildes y dieresis');
+  assert.strictEqual(C.distancia('', 'abc'), 3);
+  assert.ok(C.parecido('Bump Trungus', 'Lump Trungus') > 0.9);
+  assert.ok(C.parecido('Mike', 'Zanark') < 0.4);
+
+  /* Sobre el archivo real. */
+  const c = JSON.parse(JSON.stringify(d));
+  C.completarEsquema(c); setD(c);
+  const r = C.analizarNombres(c);
+  assert.deepStrictEqual(r.huerfanos, [], 'ningun evento del archivo real apunta a la nada');
+  assert.deepStrictEqual(r.difusos, [], 'ningun evento depende de coincidencia difusa');
+  assert.deepStrictEqual(r.ambiguos, [], 'ningun nombre lo llevan dos jugadores');
+  assert.strictEqual(r.otroClub.length, 1, 'un unico gol atribuido a un jugador de otro club');
+  assert.strictEqual(r.otroClub[0].nombre, 'Mike');
+  assert.strictEqual(r.otroClub[0].anotadoPor, 'Raimon');
+  assert.strictEqual(r.otroClub[0].clubReal, 'Royal Academy');
+  assert.strictEqual(r.otroClub[0].plantillaVacia, true,
+    'la causa es que Raimon esta archivado y sin plantilla, no una errata');
+  assert.ok(r.parecidos.length >= 2, 'detecta las parejas de nombres casi iguales');
+  assert.ok(r.parecidos.some(x => /Trungus/.test(x.a.j.nombre)), 'entre ellas Bump/Lump Trungus');
+
+  /* Los detecta cuando se introducen a proposito. */
+  const roto = (mut) => {
+    const x = JSON.parse(JSON.stringify(d));
+    C.completarEsquema(x); mut(x);
+    return C.analizarNombres(x, { parejas: false });
+  };
+  const primerGol = (x) => {
+    const p = x.partidos_liga.find(q => C.isFin(q) && /gol:/.test(q.detalles || ''));
+    return { p, ev: C.parseDetalles(p.detalles) };
+  };
+  /* Un nombre que no existe en ninguna parte. */
+  let v = roto(x => {
+    const { p, ev } = primerGol(x);
+    ev.visitante[0].nombre = 'Zzyzx Nadieson';
+    p.detalles = C.serializarDetalles(ev);
+  });
+  assert.ok(v.huerfanos.some(h => h.nombre === 'Zzyzx Nadieson'), 'detecta el nombre huerfano');
+
+  /* Un nombre que solo casa por prefijo: findPlayer lo acepta y nadie se
+     entera, que es exactamente el fallo silencioso a cazar. */
+  v = roto(x => {
+    const { p, ev } = primerGol(x);
+    ev.visitante[0].nombre = 'Raleigh';
+    p.detalles = C.serializarDetalles(ev);
+  });
+  assert.ok(v.difusos.some(h => h.nombre === 'Raleigh'), 'detecta la coincidencia difusa');
+  assert.strictEqual(v.difusos.find(h => h.nombre === 'Raleigh').resuelve.nombre, 'Raleigh Greenstreet');
+
+  /* Dos jugadores de clubes distintos con el mismo nombre. */
+  v = roto(x => {
+    const otro = x.equipos.find(e => (e.jugadores || []).length && e.nombre !== 'Zanark Domain');
+    otro.jugadores.push({ nombre: 'Raleigh Greenstreet', dorsal: '99', posicion: 'DEL', titular: false, goles: 0, asistencias: 0, amarillas: 0, rojas: 0 });
+  });
+  assert.ok(v.ambiguos.some(h => h.nombre === 'Raleigh Greenstreet'), 'detecta el nombre ambiguo');
+
+  ok('analizarNombres: 0 huerfanos, 0 difusos, 0 ambiguos y 1 atribucion cruzada en el archivo real');
+}
+
+/* -- 24. Unificar un nombre -------------------------------------------- */
+{
+  const c = JSON.parse(JSON.stringify(d));
+  C.completarEsquema(c); setD(c);
+
+  /* Renombrar en los eventos mueve los goles al nombre nuevo, y ni uno se
+     pierde por el camino. */
+  const antes = C.calcScorers([...c.partidos_liga, ...c.partidos_ascenso, ...c.partidos_copa].filter(C.isFin));
+  const total = antes.reduce((s, r) => s + r.goles, 0);
+  const victima = antes[0];
+  const n = C.renombrarEnEventos(c, victima.nombre, 'Nombre Nuevo Del Todo');
+  assert.strictEqual(n, victima.goles, 'toca exactamente los eventos de ese jugador');
+
+  const despues = C.calcScorers([...c.partidos_liga, ...c.partidos_ascenso, ...c.partidos_copa].filter(C.isFin));
+  assert.strictEqual(despues.reduce((s, r) => s + r.goles, 0), total, 'no se pierde ningun gol');
+  assert.ok(despues.some(r => r.nombre === 'Nombre Nuevo Del Todo' || (r.j && r.j.nombre === victima.j.nombre)),
+    'los goles siguen contandose');
+  assert.ok(!despues.some(r => r.textoCrudo === victima.nombre), 'el nombre viejo ya no aparece en los eventos');
+
+  /* Los textos derivados se regeneran con el nombre nuevo. */
+  const conTexto = [...c.partidos_liga, ...c.partidos_ascenso].filter(p => p.goleadores_texto);
+  assert.ok(!conTexto.some(p => p.goleadores_texto.includes(victima.nombre)),
+    'el nombre viejo tampoco queda en los textos de goleadores');
+
+  /* Renombrar al jugador arrastra sus eventos: si no, se le desenganchan
+     todos los goles de golpe. */
+  const c2 = JSON.parse(JSON.stringify(d));
+  C.completarEsquema(c2); setD(c2);
+  const top = C.calcScorers(c2.partidos_liga.filter(C.isFin))[0];
+  const golesAntes = top.goles;
+  const res = C.renombrarJugador(c2, top.j, 'Renombrado Total');
+  assert.strictEqual(res.eventos, golesAntes, 'se arrastran sus eventos');
+  assert.strictEqual(top.j.nombre, 'Renombrado Total');
+  const rank = C.calcScorers(c2.partidos_liga.filter(C.isFin));
+  const suyo = rank.find(r => r.nombre === 'Renombrado Total');
+  assert.ok(suyo && suyo.j === top.j, 'sus goles siguen enganchados a su ficha tras el renombrado');
+  assert.strictEqual(suyo.goles, golesAntes, 'y son los mismos goles');
+
+  /* Renombrar a algo que ya se llamaba igual no toca nada. */
+  assert.strictEqual(C.renombrarEnEventos(c2, 'Renombrado Total', 'Renombrado Total'), 0);
+  setD(d);
+  ok('unificar nombres: arrastra eventos y textos, sin perder ni un gol');
+}
+
 console.log('\n' + n + ' comprobaciones OK.');
 
 /* Informe de contexto, no es una comprobación: lo que el gestor debería

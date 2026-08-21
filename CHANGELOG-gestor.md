@@ -682,3 +682,100 @@ clubes y 30 de jugadores sobre los datos reales.
 | **§5.3.6** | Diff entre snapshots, changelog en lenguaje natural, roles, modo solo lectura, notas internas, checklist |
 | **§5.3.7** | Redactor asistido y sugeridor de titulares; el corrector de nombres parecidos se puede portar del prototipo |
 | **§5.3.8** | Widgets configurables, favoritos, vista compacta, multi-idioma |
+
+---
+
+## Corrector de consistencia de nombres (§5.3.7)
+
+### Por qué era el punto frágil
+
+Los eventos de un partido guardan el nombre del jugador **como texto**, y la
+web lo resuelve con `findPlayer()`, que acepta el nombre completo, el primer
+nombre **o un prefijo**. Una errata no da error: engancha el gol a otro
+jugador, o al de otro club, y no lo nota nadie.
+
+El prototipo `gestor.html` tenía un detector de duplicados, pero sólo buscaba
+**fichas de jugador parecidas entre sí**. No miraba lo que de verdad puede
+romperse, que es el enlace entre un evento y una ficha.
+
+### Las cinco formas de que falle
+
+| Qué busca | En el archivo real |
+|---|---|
+| Evento atribuido a un jugador **que no está en la plantilla del club que anotó** | **1** |
+| Nombre de evento que **no casa con ningún jugador** | 0 |
+| Nombre que **sólo casa por prefijo o primer nombre** | 0 |
+| Nombre que **llevan dos jugadores** (`findPlayer` devuelve el primero) | 0 |
+| Fichas con **nombre casi igual**, posibles duplicados | 2 |
+
+Más una sexta que apareció al mirar: **3 jugadores sin nombre**, fichas que no
+se pueden enlazar con ningún gol.
+
+> **El caso real, con su causa:** el gol `gol:Mike:39` de un Raimon 1-3 Cala
+> Pirata se cuelga del «Mike» del **Royal Academy**. No es una errata:
+> **Raimon está archivado y se quedó con la plantilla vacía**, pero conserva
+> sus 10 partidos. Como no hay ningún Mike en Raimon, `findPlayer()` sigue
+> buscando por el resto de clubes y encuentra otro. La web enseña ese gol con
+> la foto y el enlace del jugador equivocado. La pantalla lo dice con esas
+> palabras, incluida la causa.
+
+Las otras dos parejas parecidas son «Soldado de Terracota 1» / «Soldado de
+Terracota 4» —dos jugadores distintos de verdad— y «Bump Trungus» / «Lump
+Trungus», que puede ser cualquiera de las dos cosas. Por eso **el gestor no
+fusiona fichas por su cuenta**: juntarlas mal perdería el historial de una.
+Enseña las dos con sus datos y decide quien sabe.
+
+### Unificar
+
+Reescribe un nombre en **todos** los eventos que lo lleven y regenera los
+textos de goleadores. No toca ninguna ficha. El desplegable de candidatos
+ordena **primero los jugadores del club que anotó**, que es donde debería
+estar el que se busca. Si el nombre nuevo tampoco casa con nadie, avisa antes
+de cambiar un problema por otro.
+
+También existe `renombrarJugador()`, que cambia el nombre de la ficha **y
+arrastra sus eventos**: sin eso, renombrar a un jugador le desengancharía
+todos los goles de golpe.
+
+### Dos fallos míos corregidos por el camino
+
+**1. `distancia()` no recortaba espacios.** Aquí se comparan identidades, no
+bytes: «Mike» y «Mike » no son dos personas. Lo destapó una comprobación.
+
+**2. Metí el análisis en el camino caliente, y costaba 127 ms.**
+`contadores()` corre después de **cada** edición, y con `validarIntegridad`
+(61 ms) más `analizarNombres` (127 ms) metía **232 ms entre pulsar una tecla y
+ver el resultado**. Dos arreglos:
+
+- **El algoritmo:** llamaba a `findPlayer()` por cada evento, y `findPlayer()`
+  normaliza los 791 nombres de plantilla en cada llamada. Ahora se construye
+  **un índice de nombres ya normalizados una sola vez** por análisis, en el
+  mismo orden en que los recorre `findPlayer()` y replicando sus tres
+  condiciones, más una caché por nombre repetido. **127 ms → 6 ms.**
+- **El sitio:** los contadores se parten en dos. Lo barato se actualiza al
+  instante; la validación de integridad y el análisis de nombres se aplazan
+  400 ms y sólo corren cuando se ha dejado de escribir. **`contadores()`:
+  232 ms → 0 ms.**
+
+La comparación por parejas —lo único de verdad caro, 791 × 791— no entra en
+ningún contador: se pide con un botón desde la propia pantalla.
+
+### Verificación
+
+`node propuesta-web/gestor/test-core.js` — **25 comprobaciones**. Las nuevas:
+
+- `distancia` y `parecido`: tildes, espacios, cadenas vacías.
+- Sobre el archivo real: 0 huérfanos, 0 difusos, 0 ambiguos, **1** atribución
+  cruzada, y que su causa marcada sea `plantillaVacia`.
+- Los detecta cuando se introducen a propósito: un nombre inventado
+  (huérfano), «Raleigh» a secas (difuso, resuelve a Raleigh Greenstreet), y un
+  segundo jugador con un nombre ya usado (ambiguo).
+- **Unificar no pierde ni un gol:** se cuenta el total antes y después,
+  se comprueba que el nombre viejo desaparece también de los textos derivados,
+  y que renombrar a un jugador mantiene sus goles enganchados a su ficha.
+
+Ciclo completo probado en el navegador: se mete una errata que desengancha
+**16 goles** del máximo goleador, la pantalla la detecta como huérfana, el
+desplegable propone «Raleigh Greenstreet» como primer candidato, y tras
+unificar vuelven los 16 goles a su ficha. El total de goles del archivo no se
+mueve de 126 en ningún momento.

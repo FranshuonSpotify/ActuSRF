@@ -384,6 +384,200 @@ function cerrarTemporada(d, opciones){
 }
 
 /* --------------------------------------------------------------------------
+   CONSISTENCIA DE NOMBRES
+
+   El punto más frágil de este archivo: los eventos de un partido guardan el
+   nombre del jugador COMO TEXTO, y la web lo resuelve con findPlayer(), que
+   acepta coincidencia por nombre completo, por primer nombre o por prefijo.
+   Eso significa que una errata no da error: engancha el gol a otro jugador, o
+   al de otro club, y nadie se entera.
+
+   Este análisis busca las cinco formas en que eso puede pasar, ordenadas por
+   lo caro que sale cada una.
+   -------------------------------------------------------------------------- */
+function distancia(a,b){
+  /* Se recorta: aquí se comparan identidades, no bytes. Un espacio de más al
+     final no es una persona distinta. */
+  a=norm(a).trim(); b=norm(b).trim();
+  if(a===b) return 0;
+  var m=a.length, n=b.length;
+  if(!m) return n;
+  if(!n) return m;
+  /* Sólo se guardan dos filas de la matriz: con 791 jugadores comparados por
+     parejas, reservar la matriz entera cada vez cuesta más que la cuenta. */
+  var prev=new Array(n+1), cur=new Array(n+1), i, j;
+  for(j=0;j<=n;j++) prev[j]=j;
+  for(i=1;i<=m;i++){
+    cur[0]=i;
+    for(j=1;j<=n;j++){
+      cur[j]= a.charAt(i-1)===b.charAt(j-1) ? prev[j-1]
+            : 1+Math.min(prev[j], cur[j-1], prev[j-1]);
+    }
+    var t=prev; prev=cur; cur=t;
+  }
+  return prev[n];
+}
+function parecido(a,b){
+  var max=Math.max(String(a||'').length, String(b||'').length);
+  return max ? 1 - distancia(a,b)/max : 0;
+}
+
+/* Todos los jugadores del archivo, con el club donde están. */
+function todosLosJugadores(d){
+  var out=[];
+  (d.equipos||[]).forEach(function(e){
+    (e.jugadores||[]).forEach(function(j){ out.push({j:j, club:e.nombre, equipo:e, libre:false}); });
+  });
+  (d.agentes_libres||[]).forEach(function(j){ out.push({j:j, club:'', equipo:null, libre:true}); });
+  return out;
+}
+/* Todos los eventos con el nombre que llevan escrito y de dónde salen. */
+function todosLosEventos(d){
+  var out=[];
+  [['liga','partidos_liga'],['ascenso','partidos_ascenso'],['copa','partidos_copa']].forEach(function(par){
+    (d[par[1]]||[]).forEach(function(p,i){
+      if(!isFin(p)) return;
+      var ev=parseDetalles(p.detalles);
+      ev.local.forEach(function(e){ out.push({nombre:e.nombre, tipo:e.tipo, club:p.local, p:p, comp:par[0], idx:i}); });
+      ev.visitante.forEach(function(e){ out.push({nombre:e.nombre, tipo:e.tipo, club:p.visitante, p:p, comp:par[0], idx:i}); });
+    });
+  });
+  return out;
+}
+
+/* Índice de nombres ya normalizados, en el MISMO orden en que los recorre
+   findPlayer(). Se construye una vez por análisis en vez de normalizar los
+   791 nombres en cada consulta: es la diferencia entre 127 ms y unos pocos.
+   La resolución replica las tres condiciones de findPlayer —nombre completo,
+   primer nombre, prefijo— y devuelve el primero que encaje, como ella. */
+function indiceNombres(d){
+  var arr=[];
+  (d.equipos||[]).forEach(function(e){
+    (e.jugadores||[]).forEach(function(j){
+      var pn=norm(j.nombre);
+      arr.push({j:j, e:e, pn:pn, pri:pn.split(' ')[0]});
+    });
+  });
+  return {
+    arr:arr,
+    resolver:function(nombre){
+      var n=norm(nombre), nPri=n.split(' ')[0];
+      for(var i=0;i<arr.length;i++){
+        var x=arr[i];
+        if(x.pn===n || x.pri===n || (nPri===x.pri && x.pn.indexOf(n)===0)) return {j:x.j, e:x.e};
+      }
+      return null;
+    }
+  };
+}
+
+function analizarNombres(d, opciones){
+  opciones=opciones||{};
+  var prev=D; D=d;
+  try {
+    var plantilla=todosLosJugadores(d);
+    var eventos=todosLosEventos(d);
+    var indice=indiceNombres(d);
+    var porNombre={};
+    plantilla.forEach(function(x){
+      var k=norm(x.j.nombre);
+      if(!k) return;
+      (porNombre[k]=porNombre[k]||[]).push(x);
+    });
+    /* El club que anota se busca una vez, no en cada evento. */
+    var porClub={};
+    (d.equipos||[]).forEach(function(e){
+      var set={};
+      (e.jugadores||[]).forEach(function(j){ set[norm(j.nombre)]=1; });
+      porClub[e.nombre]={equipo:e, nombres:set, vacia:!(e.jugadores||[]).length};
+    });
+
+    var huerfanos=[], difusos=[], ambiguos=[], otroClub=[];
+    var vistos={}, cache={};
+    eventos.forEach(function(ev){
+      var k=norm(ev.nombre);
+      var exactos=porNombre[k]||[];
+      /* Un mismo nombre se resuelve una sola vez aunque aparezca 16 veces. */
+      var f = (k in cache) ? cache[k] : (cache[k]=indice.resolver(ev.nombre));
+
+      if(!vistos[k]){
+        vistos[k]=1;
+        if(!f) huerfanos.push({nombre:ev.nombre, ejemplo:ev});
+        else if(!exactos.length) difusos.push({nombre:ev.nombre, resuelve:f.j, club:f.e.nombre, ejemplo:ev});
+        if(exactos.length>1) ambiguos.push({nombre:ev.nombre, donde:exactos.map(function(x){ return x.libre?'(agente libre)':x.club; })});
+      }
+      /* El caso que de verdad hace daño: el club que anotó el evento no tiene
+         a ese jugador, así que la web enseña la ficha de otro. */
+      if(f){
+        var info=porClub[ev.club];
+        if(!info || !info.nombres[k])
+          otroClub.push({nombre:ev.nombre, anotadoPor:ev.club, resuelve:f.j, clubReal:f.e.nombre,
+                         comp:ev.comp, idx:ev.idx, p:ev.p, tipo:ev.tipo,
+                         plantillaVacia: !!(info && info.vacia)});
+      }
+    });
+
+    /* Parejas de nombres casi iguales. Es lo único caro —comparación por
+       parejas— así que se hace sólo si se pide. El filtro por diferencia de
+       longitud descarta la inmensa mayoría antes de calcular nada. */
+    var parecidos=[];
+    if(opciones.parejas!==false){
+      var umbral=opciones.umbral||0.85;
+      for(var i=0;i<plantilla.length;i++){
+        var a=plantilla[i].j.nombre||'';
+        if(a.length<4) continue;
+        for(var k2=i+1;k2<plantilla.length;k2++){
+          var b=plantilla[k2].j.nombre||'';
+          if(b.length<4) continue;
+          if(Math.abs(a.length-b.length)>3) continue;
+          var s=parecido(a,b);
+          if(s>=umbral) parecidos.push({a:plantilla[i], b:plantilla[k2], similitud:s, dist:distancia(a,b)});
+        }
+      }
+      parecidos.sort(function(x,y){ return y.similitud-x.similitud; });
+    }
+
+    return {huerfanos:huerfanos, difusos:difusos, ambiguos:ambiguos,
+            otroClub:otroClub, parecidos:parecidos,
+            nombresDistintos:Object.keys(vistos).length, eventos:eventos.length};
+  } finally { D=prev; }
+}
+
+/* Cambia un nombre dentro de los eventos de todos los partidos. Devuelve
+   cuántos eventos ha tocado. Se compara normalizado para que también atrape
+   la variante con otra tilde o mayúscula, que es justo el caso a corregir. */
+function renombrarEnEventos(d, viejo, nuevo){
+  var n=0, k=norm(viejo);
+  ['partidos_liga','partidos_ascenso','partidos_copa'].forEach(function(clave){
+    (d[clave]||[]).forEach(function(p){
+      var ev=parseDetalles(p.detalles), tocado=false;
+      ['local','visitante'].forEach(function(lado){
+        ev[lado].forEach(function(e){
+          if(norm(e.nombre)===k && e.nombre!==nuevo){ e.nombre=nuevo; n++; tocado=true; }
+        });
+      });
+      if(!tocado) return;
+      p.detalles=serializarDetalles(ev);
+      if(p.goleadores_texto!=null||p.goleadores_local_texto!=null||p.goleadores_visitante_texto!=null){
+        var t=textosDerivados(ev);
+        p.goleadores_texto=t.goleadores_texto;
+        p.goleadores_local_texto=t.goleadores_local_texto;
+        p.goleadores_visitante_texto=t.goleadores_visitante_texto;
+      }
+    });
+  });
+  return n;
+}
+
+/* Renombrar a un jugador arrastrando el cambio por sus eventos, que es lo que
+   hay que hacer para que no se desenganchen sus goles. */
+function renombrarJugador(d, jugador, nuevo){
+  var viejo=jugador.nombre;
+  jugador.nombre=nuevo;
+  return {eventos: viejo ? renombrarEnEventos(d, viejo, nuevo) : 0, viejo:viejo};
+}
+
+/* --------------------------------------------------------------------------
    GENERADORES
    Producen partidos, no los escriben: devuelven el array y quien llama decide
    si lo aplica. Así se puede enseñar el resultado antes de tocar el archivo,
@@ -1073,6 +1267,8 @@ SFG.core={
   findPlayer:findPlayer, calcScorers:calcScorers,
   tablaCalculada:tablaCalculada, desajustesTabla:desajustesTabla, statsJugadoresCalculadas:statsJugadoresCalculadas,
   eventosDe:eventosDe,
+  distancia:distancia, parecido:parecido, analizarNombres:analizarNombres,
+  renombrarEnEventos:renombrarEnEventos, renombrarJugador:renombrarJugador,
   normalizar:normalizar, validarEsquema:validarEsquema, completarEsquema:completarEsquema, validarIntegridad:validarIntegridad
 };
 
