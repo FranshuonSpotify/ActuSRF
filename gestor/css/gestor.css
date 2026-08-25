@@ -1,0 +1,752 @@
+/* ==========================================================================
+   GESTOR SUPERLIGA FRONTIER — gestor.css
+
+   Se carga DESPUÉS de _fuente/styles.css, que aporta el Design System v3
+   entero: tokens de :root, tipografías, .card, .btn, .badge, .chip. Aquí sólo
+   está lo que la web pública no necesitaba y el gestor sí:
+   formularios, tablas de datos y el armazón de escritorio.
+
+   Nada de colores nuevos. Si un token no existe en styles.css, no se inventa:
+   se compone con los que hay.
+   ========================================================================== */
+
+:root{
+  --nav-w:232px;
+  --barra-h:56px;
+  /* Escala densa: un panel de gestión mete mucho más por pantalla que una
+     página de marketing. La escala de styles.css sigue mandando en tipografía;
+     esto sólo afecta a separaciones internas. */
+  --g1:4px; --g2:8px; --g3:12px; --g4:16px; --g5:24px; --g6:32px;
+}
+
+body{
+  /* La web pública centra todo en .wrap; un dashboard ocupa la ventana. */
+  min-height:100vh;
+  display:grid;
+  grid-template-columns:var(--nav-w) 1fr;
+  grid-template-rows:var(--barra-h) 1fr;
+  grid-template-areas:'marca barra' 'nav vista';
+}
+
+/* ============================ BARRA SUPERIOR ============================ */
+.g-marca{
+  grid-area:marca; display:flex; align-items:center; gap:.55rem;
+  padding-inline:var(--g5); border-bottom:1px solid var(--line);
+  border-right:1px solid var(--line); background:var(--bg-raised);
+}
+.g-marca b{ font-size:.8125rem; font-weight:600; letter-spacing:-.02em; }
+.g-marca .pip{ width:7px; height:7px; border-radius:50%; background:var(--accent); box-shadow:0 0 10px var(--accent-glow); flex-shrink:0; }
+
+.g-barra{
+  grid-area:barra; display:flex; align-items:center; gap:var(--g3);
+  padding-inline:var(--g5); border-bottom:1px solid var(--line);
+  background:rgba(0,0,0,.72); backdrop-filter:blur(14px) saturate(180%);
+  position:sticky; top:0; z-index:200;
+}
+.g-barra .sep{ flex:1; }
+
+/* Estado del archivo. Está SIEMPRE visible, no aparece y desaparece: saber si
+   hay cambios sin guardar es la información más cara de este programa. */
+.g-estado{
+  display:inline-flex; align-items:center; gap:.5rem; min-width:0;
+  font-size:.75rem; color:var(--ink-3);
+  padding:.3rem .7rem; border:1px solid var(--line); border-radius:var(--r-full);
+}
+.g-estado .punto{ width:7px; height:7px; border-radius:50%; background:var(--ink-4); flex-shrink:0; transition:background var(--t2); }
+.g-estado .nom{ font-family:var(--f-mono); font-size:.6875rem; color:var(--ink-2); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:22ch; }
+.g-estado[data-e="limpio"] .punto{ background:#46B45F; }
+.g-estado[data-e="sucio"] .punto{ background:var(--accent); box-shadow:0 0 8px var(--accent-glow); animation:pulse 2s var(--ease-io) infinite; }
+.g-estado[data-e="guardando"] .punto{ background:var(--gold); animation:pulse .9s var(--ease-io) infinite; }
+.g-estado[data-e="vacio"] .punto{ background:var(--ink-5); }
+
+/* Modo descarga: hay que moverlo a mano, y eso no puede pasar desapercibido. */
+.g-modo{ font-family:var(--f-mono); font-size:.625rem; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-4); }
+.g-modo.aviso{ color:var(--gold); }
+
+/* ============================ NAVEGACIÓN ============================ */
+.g-nav{
+  grid-area:nav; border-right:1px solid var(--line); background:var(--bg-raised);
+  padding:var(--g4) var(--g3); overflow-y:auto;
+  display:flex; flex-direction:column; gap:var(--g1);
+}
+.g-nav .grupo{
+  font-family:var(--f-mono); font-size:.625rem; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--ink-4); padding:var(--g4) var(--g3) var(--g2);
+}
+.g-nav a{
+  display:flex; align-items:center; gap:.6rem;
+  padding:.55rem var(--g3); border-radius:var(--r-sm);
+  font-size:.8125rem; color:var(--ink-3); min-height:36px;
+  transition:background var(--t1), color var(--t1);
+}
+.g-nav a:hover{ background:rgba(255,255,255,.04); color:var(--ink); }
+.g-nav a.on{ background:rgba(255,255,255,.07); color:var(--ink); font-weight:500; }
+.g-nav a i{ font-size:1rem; flex-shrink:0; opacity:.7; }
+.g-nav a.on i{ opacity:1; color:var(--accent); }
+.g-nav a .cnt{ margin-left:auto; font-family:var(--f-mono); font-size:.6875rem; color:var(--ink-4); }
+/* Contador de problemas: sólo se pinta cuando hay alguno. */
+.g-nav a .mal{ margin-left:auto; font-family:var(--f-mono); font-size:.6875rem; color:var(--c-copa); }
+
+/* ============================ VISTA ============================ */
+/* min-width:0 en toda la cadena: un elemento de rejilla se niega por defecto a
+   encogerse por debajo de su contenido, así que una tabla ancha empujaba la
+   página entera y aparecía scroll horizontal de documento. Con esto el
+   desbordamiento se queda dentro de .tabla-scroll, que es donde debe estar. */
+.g-vista{ grid-area:vista; overflow-y:auto; overflow-x:hidden; min-width:0; padding:var(--g6) var(--g5) 6rem; }
+.g-vista > .seccion{ display:none; max-width:1180px; margin-inline:auto; min-width:0; }
+.g-vista > .seccion.on{ display:block; }
+.g-nav, .g-barra{ min-width:0; }
+
+.g-cab{ display:flex; align-items:flex-end; gap:var(--g4); flex-wrap:wrap; margin-bottom:var(--g5); }
+.g-cab h1{ font-size:1.75rem; font-weight:600; letter-spacing:-.035em; }
+.g-cab p{ color:var(--ink-3); font-size:.875rem; margin-top:.25rem; }
+.g-cab .acciones{ margin-left:auto; display:flex; gap:var(--g2); flex-wrap:wrap; }
+
+/* Barra de filtros de una vista. Pegajosa: en listas de 43 equipos o 66
+   partidos, perder el buscador al bajar es perderlo del todo. */
+.g-filtros{
+  display:flex; align-items:center; gap:var(--g2); flex-wrap:wrap;
+  padding:var(--g3) 0; margin-bottom:var(--g4);
+  border-bottom:1px solid var(--line);
+  position:sticky; top:0; z-index:100;
+  background:linear-gradient(var(--bg) 70%, transparent);
+}
+
+/* ============================ FORMULARIOS ============================
+   Lo único que styles.css no traía. Mismo lenguaje: hairline de 1px, radio
+   pequeño, foco en ámbar, transición corta. */
+.campo{ display:flex; flex-direction:column; gap:.3rem; min-width:0; }
+/* --ink-3 y no --ink-4 en todo lo que sea texto informativo: sobre --surface,
+   --ink-4 (#525252) da 2,5:1 y no llega al 4,5:1 exigido. --ink-3 (#7A7A7A)
+   da 4,6:1. --ink-4 se reserva para marcas redundantes, nunca para leer. */
+.campo > label{
+  font-family:var(--f-mono); font-size:.625rem; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--ink-3);
+}
+.campo .ayuda, .ayuda{ font-size:.6875rem; color:var(--ink-3); }
+.campo .mal{ font-size:.6875rem; color:var(--c-copa); }
+
+.inp, .campo input:not([type=color]):not([type=checkbox]), .campo select, .campo textarea{
+  height:38px; padding:0 .7rem; width:100%;
+  background:var(--surface); color:var(--ink);
+  border:1px solid var(--line-2); border-radius:var(--r-sm);
+  font-size:.8125rem; font-family:inherit;
+  transition:border-color var(--t1), background var(--t1);
+}
+.campo textarea, textarea.inp{ height:auto; min-height:96px; padding:.6rem .7rem; line-height:1.5; resize:vertical; }
+.inp:hover, .campo input:hover, .campo select:hover, .campo textarea:hover{ border-color:var(--line-3); }
+.inp:focus, .campo input:focus, .campo select:focus, .campo textarea:focus{
+  outline:none; border-color:var(--accent); background:var(--surface-2);
+  box-shadow:0 0 0 3px var(--accent-glow);
+}
+.inp::placeholder, .campo input::placeholder, .campo textarea::placeholder{ color:var(--ink-5); }
+.inp:disabled, .campo input:disabled, .campo select:disabled{ opacity:.45; cursor:not-allowed; }
+.inp-mono{ font-family:var(--f-mono); font-variant-numeric:tabular-nums; }
+.inp-sm{ height:30px; font-size:.75rem; padding-inline:.5rem; }
+/* Un número no necesita 20ch de ancho y roba sitio a los nombres. */
+.inp-num{ width:64px; text-align:center; font-family:var(--f-mono); }
+
+.campo select{
+  appearance:none; cursor:pointer; padding-right:1.9rem;
+  background-image:linear-gradient(45deg,transparent 50%,var(--ink-3) 50%),linear-gradient(135deg,var(--ink-3) 50%,transparent 50%);
+  background-position:calc(100% - 15px) 16px, calc(100% - 10px) 16px;
+  background-size:5px 5px,5px 5px; background-repeat:no-repeat;
+}
+
+/* Rejillas de formulario. Se rompen a una columna solas, sin media query
+   por cada caso. */
+.rejilla{ display:grid; gap:var(--g4); grid-template-columns:repeat(auto-fit,minmax(var(--min,200px),1fr)); }
+.rejilla-2{ --min:260px; }
+.rejilla-4{ --min:132px; }
+
+/* Interruptor. Es un checkbox de verdad debajo: funciona con teclado y con
+   lectores de pantalla sin escribir una línea de ARIA. */
+.sw{ display:inline-flex; align-items:center; gap:.55rem; cursor:pointer; font-size:.8125rem; color:var(--ink-2); min-height:32px; }
+.sw input{ position:absolute; opacity:0; width:0; height:0; }
+.sw .pista{
+  width:34px; height:20px; border-radius:var(--r-full); background:var(--surface-3);
+  border:1px solid var(--line-2); position:relative; flex-shrink:0; transition:background var(--t1), border-color var(--t1);
+}
+.sw .pista::after{
+  content:''; position:absolute; top:2px; left:2px; width:14px; height:14px;
+  border-radius:50%; background:var(--ink-3); transition:transform var(--t2) var(--ease), background var(--t1);
+}
+.sw input:checked + .pista{ background:var(--accent); border-color:var(--accent); }
+.sw input:checked + .pista::after{ transform:translateX(14px); background:#fff; }
+.sw input:focus-visible + .pista{ outline:2px solid var(--accent); outline-offset:3px; }
+
+/* Selector de color de club. El picker nativo abre la paleta del sistema; al
+   lado va el hex escribible, porque los colores llegan copiados de otro sitio
+   más veces que elegidos a ojo. */
+.color-par{ display:flex; align-items:center; gap:var(--g2); }
+.color-par input[type=color]{
+  width:38px; height:38px; padding:2px; flex-shrink:0; cursor:pointer;
+  background:var(--surface); border:1px solid var(--line-2); border-radius:var(--r-sm);
+}
+.color-par input[type=color]::-webkit-color-swatch{ border:none; border-radius:5px; }
+.color-par input[type=color]::-webkit-color-swatch-wrapper{ padding:0; }
+.color-par .inp{ font-family:var(--f-mono); text-transform:uppercase; }
+/* Vista previa del degradado del club, tal y como lo pinta la web. */
+.grad-prev{ height:38px; flex:1; min-width:60px; border-radius:var(--r-sm); border:1px solid var(--line-2); }
+
+/* ============================ TABLAS ============================ */
+.tabla-caja{ border:1px solid var(--line); border-radius:var(--r-lg); overflow:hidden; background:var(--surface); }
+.tabla-scroll{ overflow-x:auto; }
+table.tabla{ width:100%; border-collapse:collapse; font-size:.8125rem; }
+table.tabla th{
+  font-family:var(--f-mono); font-size:.625rem; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--ink-3); font-weight:500; text-align:left;
+  padding:.7rem .75rem; border-bottom:1px solid var(--line);
+  background:var(--bg-raised); position:sticky; top:0; z-index:2; white-space:nowrap;
+}
+/* Celda que abre una ficha. Botón de verdad para que funcione con teclado, y
+   con alto suficiente: como enlace desnudo se quedaba en 20px, por debajo del
+   objetivo táctil mínimo. */
+.cel-btn{
+  all:unset; cursor:pointer; display:flex; align-items:center;
+  min-height:26px; padding-block:.2rem; color:inherit;
+}
+.cel-btn:hover{ color:var(--accent); }
+.cel-btn:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; border-radius:3px; }
+table.tabla td{ padding:.5rem .75rem; border-bottom:1px solid var(--line); vertical-align:middle; }
+table.tabla tr:last-child td{ border-bottom:none; }
+table.tabla tbody tr:hover{ background:rgba(255,255,255,.025); }
+table.tabla .num{ font-family:var(--f-mono); font-variant-numeric:tabular-nums; text-align:right; }
+table.tabla .acc{ width:1%; white-space:nowrap; text-align:right; }
+/* Fila cuya edición apunta a un dato que no cuadra. */
+table.tabla tr.ojo td{ background:rgba(255,81,0,.05); }
+table.tabla tr.apagado td{ opacity:.45; }
+
+/* Celda de equipo: escudo + nombre, sin que el escudo empuje al texto. */
+.eq-cel{ display:flex; align-items:center; gap:.5rem; min-width:0; }
+.eq-cel img{ width:22px; height:22px; object-fit:contain; flex-shrink:0; }
+.eq-cel .noimg{
+  width:22px; height:22px; border-radius:6px; flex-shrink:0;
+  display:grid; place-items:center; font-size:.5rem; font-weight:700;
+  background:var(--surface-3); color:var(--ink-3);
+}
+.eq-cel span{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
+/* ============================ PIEZAS SUELTAS ============================ */
+.pastilla{
+  display:inline-flex; align-items:center; gap:.3rem;
+  font-family:var(--f-mono); font-size:.625rem; letter-spacing:.06em;
+  padding:.2rem .45rem; border-radius:var(--r-sm);
+  background:var(--surface-3); color:var(--ink-3);
+}
+.pastilla-ok{ background:rgba(70,180,95,.13); color:#6FD98A; }
+.pastilla-mal{ background:rgba(255,59,59,.13); color:#FF7B7B; }
+.pastilla-ojo{ background:rgba(255,201,74,.13); color:var(--gold); }
+
+.vacio{ padding:3rem 1.5rem; text-align:center; color:var(--ink-4); font-size:.875rem; }
+.g-hueco{ height:var(--g5); }
+
+/* Bloqueo de edición durante el guardado: no se puede tocar nada mientras el
+   archivo se está escribiendo. */
+body.bloqueado .g-vista{ pointer-events:none; opacity:.55; filter:saturate(.6); }
+body.bloqueado .g-vista *:focus{ outline:none; }
+
+/* ============================ MODAL ============================
+   Se apoya en .ov/.ov-panel de styles.css y sólo añade el ancho y el cuerpo
+   desplazable, que allí no hacían falta. */
+.ov-panel.ancho{ width:min(94vw,860px); }
+.ov-panel.medio{ width:min(94vw,620px); }
+.ov-cuerpo{ padding:var(--g5); max-height:min(66vh,640px); overflow-y:auto; }
+.ov-pie{ display:flex; gap:var(--g2); justify-content:flex-end; padding:var(--g4) var(--g5); border-top:1px solid var(--line); background:var(--bg-raised); }
+.ov-pie .izq{ margin-right:auto; }
+
+/* ============================ ARRASTRAR Y SOLTAR ============================
+   Un solo lenguaje visual para las cinco pantallas que arrastran: el hueco
+   marca el destino, el fantasma sigue al dedo, y el contenedor bajo el puntero
+   se ilumina. Sin eso no se sabe dónde va a caer la cosa. */
+.dnd-item{ cursor:grab; user-select:none; }
+.dnd-item:active{ cursor:grabbing; }
+.dnd-item:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+.dnd-oculto{ display:none !important; }
+
+.dnd-hueco{
+  border:1px dashed var(--accent); border-radius:var(--r-sm);
+  background:var(--accent-glow); opacity:.35; margin:.2rem 0; flex-shrink:0;
+}
+.dnd-fantasma{
+  position:fixed; top:0; left:0; z-index:1000; pointer-events:none;
+  opacity:.85; transform-origin:top left;
+  box-shadow:0 18px 44px -12px rgba(0,0,0,.9);
+  border:1px solid var(--line-3); border-radius:var(--r-sm);
+  background:var(--surface-2); overflow:hidden;
+}
+.dnd-encima{ background:rgba(255,81,0,.05); border-color:var(--accent) !important; }
+body.dnd-arrastrando{ cursor:grabbing; }
+body.dnd-arrastrando *{ cursor:grabbing !important; }
+
+/* Asa visible: sin ella no se adivina que una tarjeta se puede mover. */
+.dnd-asa{ color:var(--ink-4); flex-shrink:0; font-size:.875rem; }
+.dnd-item:hover .dnd-asa{ color:var(--ink-2); }
+
+/* Columna de destino (grupos de Copa, kanban, titulares/suplentes). */
+.dnd-col{
+  min-height:72px; padding:var(--g2); border-radius:var(--r-sm);
+  border:1px solid var(--line); background:var(--surface);
+  display:flex; flex-direction:column; gap:.25rem;
+  transition:background var(--t1), border-color var(--t1);
+}
+.dnd-col .vacio{ padding:1.25rem .5rem; font-size:.75rem; }
+
+/* Ficha movible: club, jugador o partido. */
+.dnd-ficha{
+  display:flex; align-items:center; gap:.45rem;
+  padding:.4rem .55rem; border-radius:var(--r-sm);
+  background:var(--surface-2); border:1px solid var(--line);
+  font-size:.75rem; min-height:34px;
+}
+.dnd-ficha:hover{ border-color:var(--line-2); }
+.dnd-ficha .nm{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.dnd-ficha .tras{ margin-left:auto; display:flex; gap:.15rem; flex-shrink:0; }
+
+@media (prefers-reduced-motion:reduce){
+  .dnd-fantasma{ opacity:1; box-shadow:none; }
+}
+
+/* ============================ ALINEACIÓN ============================
+   El césped se hereda de .pitch de styles.css para que el gestor y la web se
+   vean iguales. Lo que se añade aquí son las cuatro franjas de línea, que en
+   la web no existen porque allí no hace falta soltar nada encima. */
+.alin{ display:grid; grid-template-columns:minmax(0,1.15fr) minmax(0,1fr); gap:var(--g5); align-items:start; }
+.alin-campo{ position:relative; }
+.alin-linea{
+  position:absolute; left:3%; right:3%;
+  display:flex; justify-content:center; align-items:center; gap:.4rem;
+  flex-wrap:wrap; min-height:64px; padding:.25rem;
+  border-radius:var(--r-sm); border:1px dashed transparent;
+  transition:border-color var(--t1), background var(--t1);
+}
+.alin-linea.dnd-encima{ border-color:var(--accent); background:rgba(255,81,0,.08); }
+.alin-linea[data-pos="POR"]{ top:82%; }
+.alin-linea[data-pos="DEF"]{ top:60%; }
+.alin-linea[data-pos="MED"]{ top:36%; }
+.alin-linea[data-pos="DEL"]{ top:11%; }
+.alin-et{
+  position:absolute; left:.5rem; top:.15rem; z-index:1;
+  font-family:var(--f-mono); font-size:.5625rem; letter-spacing:.12em;
+  color:rgba(255,255,255,.35); pointer-events:none;
+}
+
+/* Ficha de jugador sobre el césped: el aro toma el color de su posición, como
+   en la web. */
+.alin-j{
+  display:flex; flex-direction:column; align-items:center; gap:.2rem;
+  width:58px; cursor:grab; touch-action:none; z-index:2;
+}
+.alin-j .tok{
+  width:38px; height:38px; border-radius:50%; overflow:hidden;
+  background:var(--surface-2); border:2px solid var(--c,#fff);
+  box-shadow:0 6px 16px rgba(0,0,0,.6), 0 0 0 3px rgba(0,0,0,.35);
+  display:grid; place-items:center; font-size:.75rem; font-weight:600; color:var(--ink-2);
+}
+.alin-j .tok img{ width:100%; height:100%; object-fit:cover; }
+.alin-j .nm{
+  font-size:.5625rem; max-width:58px; text-align:center; line-height:1.2;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  background:rgba(0,0,0,.6); border-radius:3px; padding:.05rem .2rem;
+}
+.alin-j .dor{ font-family:var(--f-mono); color:var(--ink-3); }
+.alin-j:focus-visible{ outline:2px solid var(--accent); outline-offset:3px; border-radius:var(--r-sm); }
+.alin-j.p-por .tok{ --c:var(--pos-por); }
+.alin-j.p-def .tok{ --c:var(--pos-def); }
+.alin-j.p-med .tok{ --c:var(--pos-med); }
+.alin-j.p-del .tok{ --c:var(--pos-del); }
+
+.alin-banq{ min-height:120px; display:flex; flex-direction:column; gap:.25rem; }
+
+@media (max-width:900px){
+  .alin{ grid-template-columns:1fr; }
+}
+
+/* ============================ AVISOS FLOTANTES ============================ */
+.g-avisos{ position:fixed; right:var(--g5); bottom:var(--g5); z-index:900; display:flex; flex-direction:column; gap:var(--g2); pointer-events:none; }
+.g-aviso{
+  pointer-events:auto; min-width:260px; max-width:400px;
+  display:flex; align-items:flex-start; gap:.6rem;
+  padding:.75rem .9rem; font-size:.8125rem;
+  background:var(--surface-2); border:1px solid var(--line-2); border-radius:var(--r);
+  box-shadow:0 20px 50px -20px rgba(0,0,0,.9);
+  animation:g-entra var(--t2) var(--ease);
+}
+.g-aviso i{ flex-shrink:0; margin-top:.1rem; }
+.g-aviso.ok i{ color:#6FD98A; }
+.g-aviso.mal i{ color:#FF7B7B; }
+.g-aviso.ojo i{ color:var(--gold); }
+.g-aviso.saliendo{ animation:g-sale var(--t2) var(--ease) forwards; }
+@keyframes g-entra{ from{ opacity:0; transform:translateY(10px); } }
+@keyframes g-sale{ to{ opacity:0; transform:translateY(6px); } }
+
+/* ============================ LISTA DE PROBLEMAS ============================ */
+.problema{
+  display:flex; align-items:flex-start; gap:.6rem; padding:.6rem .75rem;
+  border-bottom:1px solid var(--line); font-size:.8125rem; color:var(--ink-2);
+}
+.problema:last-child{ border-bottom:none; }
+.problema i{ flex-shrink:0; margin-top:.15rem; }
+.problema.err i{ color:#FF7B7B; }
+.problema.avi i{ color:var(--gold); }
+.problema .ir{ margin-left:auto; flex-shrink:0; font-size:.75rem; color:var(--ink-4); border-bottom:1px solid var(--line-2); }
+.problema .ir:hover{ color:var(--accent); border-color:var(--accent); }
+
+/* ============================ RESPONSIVO ============================
+   Se adapta, no se recorta: en pantalla estrecha la navegación pasa arriba en
+   una fila desplazable y la vista ocupa el ancho entero. */
+@media (max-width:900px){
+  body{ grid-template-columns:1fr; grid-template-rows:var(--barra-h) auto 1fr; grid-template-areas:'barra' 'nav' 'vista'; }
+  .g-marca{ display:none; }
+  .g-nav{
+    flex-direction:row; gap:var(--g1); overflow-x:auto; overflow-y:hidden;
+    border-right:none; border-bottom:1px solid var(--line); padding:var(--g2) var(--g3);
+  }
+  .g-nav .grupo{ display:none; }
+  .g-nav a{ white-space:nowrap; }
+  .g-nav a .cnt{ display:none; }
+  .g-vista{ padding:var(--g5) var(--g4) 5rem; }
+  .g-estado .nom{ display:none; }
+  .g-avisos{ left:var(--g4); right:var(--g4); bottom:var(--g4); }
+  .g-aviso{ max-width:none; }
+}
+
+@media (prefers-reduced-motion:reduce){
+  .g-aviso, .g-estado .punto{ animation:none !important; }
+  *{ transition-duration:1ms !important; }
+}
+
+/* ============================ CUADRO DE COPA ============================
+   Cada hueco es un destino de arrastre, así que necesita alto propio aunque
+   esté vacío: sin eso no habría dónde soltar en un cruce sin equipos. */
+.br-slot{
+  min-height:34px; display:flex; align-items:center;
+  padding:.15rem; border-radius:var(--r-sm);
+  border:1px solid transparent; transition:background var(--t1), border-color var(--t1);
+}
+.br-slot.dnd-encima{ background:rgba(255,81,0,.08); border-color:var(--accent); }
+.br-slot.fijo{ opacity:.72; }
+.br-eq{
+  display:flex; align-items:center; gap:.4rem; width:100%;
+  padding:.25rem .4rem; border-radius:var(--r-sm); font-size:.75rem;
+  background:var(--surface-2); border:1px solid var(--line);
+}
+.br-eq .nm{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.br-eq img, .br-eq .noimg{ width:18px; height:18px; flex-shrink:0; object-fit:contain; }
+.br-eq.gana{ border-color:rgba(70,180,95,.4); font-weight:600; }
+.br-eq.pierde{ opacity:.5; }
+.br-eq:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+.br-vinc{
+  display:flex; align-items:center; gap:.3rem; padding:.25rem .4rem;
+  font-size:.6875rem; color:var(--ink-3); width:100%;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+.br-vinc i{ color:var(--accent); flex-shrink:0; }
+.br-vacio{ padding:.25rem .4rem; font-size:.6875rem; color:var(--ink-5); font-style:italic; }
+
+/* ============================ MODO PRESENTACION ============================
+   Sólo lectura y a pantalla completa. Tipografía mucho mayor: esto se ve
+   proyectado o desde el otro lado de la habitación, no a 50 cm. */
+#tv{ position:fixed; inset:0; z-index:1200; background:var(--bg); display:none; flex-direction:column; }
+#tv.on{ display:flex; }
+body.tv-activo{ overflow:hidden; }
+
+.tv-barra{
+  display:flex; align-items:center; gap:var(--g4);
+  padding:var(--g3) var(--g5); border-bottom:1px solid var(--line); flex-shrink:0;
+}
+.tv-marca{ font-size:.9375rem; font-weight:600; letter-spacing:-.02em; }
+.tv-marca span{ color:var(--ink-3); font-weight:400; font-family:var(--f-mono); font-size:.75rem; }
+.tv-ctrl{ margin-left:auto; display:flex; align-items:center; gap:.4rem; }
+.tv-puntos{ display:flex; gap:.35rem; }
+.tv-punto{ width:8px; height:8px; border-radius:50%; background:var(--ink-5); border:none; padding:0; cursor:pointer; transition:background var(--t1); }
+.tv-punto.on{ background:var(--accent); box-shadow:0 0 10px var(--accent-glow); }
+.tv-punto:focus-visible{ outline:2px solid var(--accent); outline-offset:3px; }
+
+.tv-cuerpo{ flex:1; overflow-y:auto; padding:clamp(1rem,3vw,2.5rem) clamp(1rem,4vw,4rem); }
+.tv-tit{ font-size:clamp(1.5rem,3.2vw,2.75rem); font-weight:600; letter-spacing:-.035em; margin-bottom:clamp(1rem,2vw,2rem); }
+.tv-vacio{ color:var(--ink-3); font-size:1.125rem; padding:3rem 0; }
+
+.tv-tabla{ width:100%; border-collapse:collapse; font-size:clamp(.875rem,1.5vw,1.25rem); }
+.tv-tabla th{
+  font-family:var(--f-mono); font-size:.6875rem; letter-spacing:.12em; text-transform:uppercase;
+  color:var(--ink-3); font-weight:500; text-align:right; padding:.5rem .6rem; border-bottom:1px solid var(--line);
+}
+.tv-tabla th:nth-child(2){ text-align:left; }
+.tv-tabla td{ padding:.5rem .6rem; border-bottom:1px solid var(--line); text-align:right; font-variant-numeric:tabular-nums; }
+.tv-tabla tbody tr:last-child td{ border-bottom:none; }
+.tv-pos{ width:1%; color:var(--ink-3); font-family:var(--f-mono); position:relative; }
+.tv-eq{ text-align:left !important; display:flex; align-items:center; gap:.6rem; font-weight:500; }
+.tv-eq img, .tv-eq .noimg{ width:clamp(20px,2.2vw,30px); height:clamp(20px,2.2vw,30px); object-fit:contain; flex-shrink:0; }
+.tv-pts{ font-weight:700; font-family:var(--f-mono); }
+/* Franja de zona a la izquierda, con los mismos cortes que pinta la web. */
+.tv-tabla tr[class^="z-"] .tv-pos::before{ content:''; position:absolute; left:-2px; top:20%; bottom:20%; width:3px; border-radius:2px; }
+.tv-tabla tr.z-po .tv-pos::before, .tv-tabla tr.z-asc .tv-pos::before{ background:var(--accent); }
+.tv-tabla tr.z-pi .tv-pos::before{ background:var(--gold); }
+.tv-tabla tr.z-pp .tv-pos::before{ background:var(--ink-3); }
+.tv-tabla tr.z-desc .tv-pos::before{ background:var(--c-copa); }
+
+.tv-rejilla{ display:grid; gap:var(--g4); grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); }
+.tv-partido{
+  display:flex; align-items:center; gap:var(--g3);
+  padding:var(--g4); border:1px solid var(--line); border-radius:var(--r-lg); background:var(--surface);
+}
+.tv-lado{ flex:1; display:flex; flex-direction:column; align-items:center; gap:.4rem; text-align:center; min-width:0; }
+.tv-lado img, .tv-lado .noimg{ width:44px; height:44px; object-fit:contain; }
+.tv-lado span{ font-size:.8125rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:100%; }
+.tv-marcador{ font-family:var(--f-mono); font-size:1.75rem; font-weight:600; letter-spacing:-.04em; flex-shrink:0; }
+.tv-marcador i{ color:var(--ink-4); font-style:normal; margin:0 .2rem; }
+.tv-vs{ font-size:.875rem; color:var(--ink-4); }
+
+.tv-noticia{ border:1px solid var(--line); border-radius:var(--r-lg); overflow:hidden; background:var(--surface); }
+.tv-noticia img{ width:100%; height:150px; object-fit:cover; }
+.tv-noticia .pastilla{ margin:var(--g4) var(--g4) 0; }
+.tv-noticia h3{ font-size:1.0625rem; line-height:1.3; padding:var(--g3) var(--g4) 0; }
+.tv-noticia p{ font-size:.875rem; color:var(--ink-2); line-height:1.5; padding:var(--g2) var(--g4) var(--g4); }
+
+/* Barra de avance del pase automático. */
+.tv-progreso{ height:2px; background:var(--surface-3); flex-shrink:0; }
+.tv-progreso i{ display:block; height:100%; background:var(--accent); width:0; animation:tv-avanza linear forwards; }
+@keyframes tv-avanza{ to{ width:100%; } }
+
+/* ============================ CUADRO EN GRANDE ============================ */
+.cine-lienzo{ flex:1; overflow:hidden; cursor:grab; position:relative; touch-action:none; }
+.cine-mundo{ position:absolute; top:0; left:0; transform-origin:0 0; padding:var(--g5); will-change:transform; }
+.cine-fases{ display:flex; gap:clamp(1.5rem,4vw,4rem); align-items:flex-start; }
+.cine-ronda{ min-width:230px; display:flex; flex-direction:column; gap:var(--g4); }
+.cine-etq{ font-family:var(--f-mono); font-size:.6875rem; letter-spacing:.14em; color:var(--ink-3); }
+.cine-cruce{ border:1px solid var(--line-2); border-radius:var(--r); overflow:hidden; background:var(--surface); }
+.cine-lado{ display:flex; align-items:center; gap:.5rem; padding:.6rem .7rem; font-size:.9375rem; border-bottom:1px solid var(--line); }
+.cine-cruce .cine-lado:last-of-type{ border-bottom:none; }
+.cine-lado img, .cine-lado .noimg{ width:24px; height:24px; object-fit:contain; flex-shrink:0; }
+.cine-lado span{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.cine-lado b{ margin-left:auto; font-family:var(--f-mono); }
+.cine-lado.gana{ background:rgba(70,180,95,.08); font-weight:600; }
+.cine-lado.pierde{ opacity:.45; }
+.cine-lado.pend{ color:var(--ink-3); font-style:italic; }
+.cine-pen{ padding:.3rem .7rem; font-family:var(--f-mono); font-size:.6875rem; color:var(--gold); background:var(--bg-raised); }
+.cine-ayuda{ padding:var(--g3) var(--g5); font-size:.75rem; color:var(--ink-3); border-top:1px solid var(--line); flex-shrink:0; }
+
+/* ============================ TECLAS Y ALTO CONTRASTE ============================ */
+.tecla{
+  font-family:var(--f-mono); font-size:.6875rem; min-width:2.2rem; text-align:center;
+  padding:.15rem .4rem; border-radius:4px; flex-shrink:0;
+  background:var(--surface-3); border:1px solid var(--line-2); color:var(--ink);
+}
+
+/* Alto contraste: se suben las tintas apagadas y las líneas. No se toca el
+   ámbar de marca ni los semánticos, que ya pasan de sobra. */
+body.alto-contraste{
+  --ink-2:#E4E4E4; --ink-3:#C4C4C4; --ink-4:#A8A8A8; --ink-5:#8A8A8A;
+  --line:rgba(255,255,255,.22); --line-2:rgba(255,255,255,.34); --line-3:rgba(255,255,255,.5);
+  --surface:#101010; --surface-2:#1A1A1A; --surface-3:#262626;
+}
+body.alto-contraste .btn-secondary{ border-color:var(--line-3); }
+body.alto-contraste .dnd-ficha, body.alto-contraste .card{ border-color:var(--line-2); }
+body.alto-contraste :focus-visible{ outline-width:3px; }
+
+@media (prefers-reduced-motion:reduce){
+  .tv-progreso i{ animation:none; width:100%; }
+  .cine-mundo{ will-change:auto; }
+}
+
+/* ============================ SELECCIÓN EN LOTE ============================
+   Casilla dentro de una tabla densa: hay que agrandar el objetivo sin
+   agrandar la fila, así que el área pulsable se extiende con padding en la
+   celda y no con tamaño en la casilla. */
+table.tabla input[type=checkbox]{
+  width:16px; height:16px; margin:0; cursor:pointer;
+  accent-color:var(--accent); vertical-align:middle;
+}
+table.tabla td.acc:has(input[type=checkbox]),
+table.tabla th.acc:has(input[type=checkbox]){ padding:.5rem .6rem; }
+table.tabla tr:has(input[type=checkbox]:checked) td{ background:rgba(255,81,0,.06); }
+
+/* ==========================================================================
+   REDISEÑO — lenguaje de las referencias sobre la paleta de la Superliga
+
+   De las referencias se toman las DECISIONES DE FORMA, no sus colores:
+   tarjetas muy redondeadas, píldora rellena en la navegación activa,
+   indicadores con su variación al lado, gráficos con relleno degradado y
+   movimiento corto. El color sigue siendo el Design System v3 —negro real y
+   ámbar #FF5100 con cuentagotas—, porque CLAUDE.md lo fija como no
+   negociable y la web pública tiene que parecer la misma casa.
+   ========================================================================== */
+
+:root{
+  --r-card:20px;                 /* las referencias redondean más que la web */
+  --glow:0 0 0 1px rgba(255,81,0,.18), 0 18px 46px -22px var(--accent-glow);
+}
+
+/* ---------------------------------------------------------------- ESCUDOS
+   Tamaño propio, siempre. Sin esto un escudo dentro de un contenedor sin
+   regla se pinta al tamaño natural del archivo del CDN. */
+.escudo{
+  width:22px; height:22px; flex-shrink:0; object-fit:contain;
+  border-radius:5px; display:inline-block; vertical-align:middle;
+}
+.escudo-sm{ width:16px; height:16px; }
+.escudo-lg{ width:34px; height:34px; }
+span.escudo.noimg{
+  display:inline-grid; place-items:center; line-height:1;
+  font-size:.5rem; font-weight:700; letter-spacing:-.02em;
+  background:var(--surface-3); color:var(--ink-2); overflow:hidden;
+}
+span.escudo-sm.noimg{ font-size:.4375rem; }
+span.escudo-lg.noimg{ font-size:.6875rem; }
+/* Los contenedores que ya medían el escudo siguen mandando sobre el defecto. */
+.eq-cel .escudo{ width:22px; height:22px; }
+.br-eq .escudo{ width:18px; height:18px; }
+.cine-lado .escudo{ width:24px; height:24px; }
+.tv-eq .escudo{ width:clamp(20px,2.2vw,30px); height:clamp(20px,2.2vw,30px); }
+.tv-lado .escudo{ width:44px; height:44px; }
+
+/* ---------------------------------------------------------------- TARJETAS */
+.card{ border-radius:var(--r-card); }
+/* Elevación al pasar por encima, corta y sólo donde hay algo que pulsar. */
+.card.pulsable{ cursor:pointer; }
+.card.pulsable:hover{ transform:translateY(-2px); border-color:var(--line-2); }
+
+/* ------------------------------------------------------------ INDICADORES
+   Cifra grande, etiqueta debajo y la variación al lado, como en las
+   referencias. La tarjeta destacada lleva el lavado ámbar; una sola por
+   pantalla, que el acento es raro por definición. */
+.kpi{
+  position:relative; overflow:hidden;
+  padding:var(--g4) var(--g4) var(--g3);
+  background:var(--surface); border:1px solid var(--line);
+  border-radius:var(--r-card);
+  transition:border-color var(--t2) var(--ease-io), transform var(--t2) var(--ease);
+}
+.kpi:hover{ border-color:var(--line-2); }
+.kpi-on{ border-color:rgba(255,81,0,.28); box-shadow:var(--glow); }
+.kpi-on::before{
+  content:''; position:absolute; inset:0; pointer-events:none;
+  background:radial-gradient(ellipse 80% 120% at 12% 0%, var(--accent-glow), transparent 62%);
+}
+.kpi > *{ position:relative; }
+.kpi-ico{
+  display:inline-grid; place-items:center; width:30px; height:30px;
+  border-radius:9px; background:var(--surface-3); color:var(--ink-2);
+  font-size:.875rem; margin-bottom:var(--g3);
+}
+.kpi-on .kpi-ico{ background:rgba(255,81,0,.16); color:var(--accent-2); }
+.kpi-val{
+  font-size:1.625rem; font-weight:600; letter-spacing:-.04em; line-height:1.05;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+.kpi-pie{ display:flex; align-items:center; gap:.4rem; margin-top:.35rem; flex-wrap:wrap; }
+.kpi-etq{ font-size:.6875rem; color:var(--ink-3); }
+.kpi-delta{
+  display:inline-flex; align-items:center; gap:.15rem;
+  font-family:var(--f-mono); font-size:.625rem; font-weight:500;
+  padding:.1rem .35rem; border-radius:var(--r-full);
+}
+.kpi-delta.sube{ background:rgba(70,180,95,.14); color:#6FD98A; }
+.kpi-delta.baja{ background:rgba(255,59,59,.14); color:#FF7B7B; }
+.kpi-delta.igual{ background:var(--surface-3); color:var(--ink-3); }
+
+/* ------------------------------------------------------------- NAVEGACIÓN
+   Píldora rellena en el elemento activo, como las referencias. Sustituye al
+   fondo gris tenue, que a 15 secciones no se veía. */
+.g-nav a{ border-radius:var(--r-full); }
+.g-nav a.on{
+  background:var(--accent); color:#fff; font-weight:600;
+  box-shadow:0 6px 18px -8px var(--accent-glow);
+}
+.g-nav a.on i{ color:#fff; opacity:1; }
+.g-nav a.on .cnt{ color:rgba(255,255,255,.72); }
+.g-nav a.on .mal{ color:#fff; }
+.g-marca{ border-bottom-color:transparent; }
+
+/* Buscador dentro de la barra lateral, como en las referencias, en vez de
+   escondido detrás de un botón de la barra superior. */
+.g-buscar{
+  display:flex; align-items:center; gap:.5rem; width:100%;
+  height:34px; padding:0 .6rem; margin-bottom:var(--g2);
+  background:var(--surface); border:1px solid var(--line);
+  border-radius:var(--r-full); color:var(--ink-4);
+  font-size:.75rem; cursor:pointer; text-align:left;
+  transition:border-color var(--t1), color var(--t1);
+}
+.g-buscar:hover{ border-color:var(--line-2); color:var(--ink-2); }
+.g-buscar kbd{
+  margin-left:auto; font-family:var(--f-mono); font-size:.5625rem;
+  padding:.1rem .3rem; border-radius:4px;
+  background:var(--surface-3); border:1px solid var(--line); color:var(--ink-3);
+}
+
+/* -------------------------------------------------------------- CABECERAS */
+.g-cab h1{ font-size:clamp(1.375rem,2.4vw,1.875rem); }
+
+/* --------------------------------------------------------------- GRÁFICOS
+   Los rótulos de las series se salían del margen derecho porque el ancho era
+   fijo y el nombre no. Ahora el SVG deja aire y el texto se recorta con
+   elipsis desde JS. */
+.grafico{ width:100%; overflow-x:auto; overflow-y:hidden; }
+.grafico svg{ display:block; min-width:520px; }
+.grafico-alto svg{ min-width:680px; }
+
+/* ---------------------------------------------------------------- PÍLDORAS
+   Punto de color delante, como los estados de las referencias. */
+.pastilla{ border-radius:var(--r-full); padding:.2rem .5rem; }
+.pastilla-ok::before, .pastilla-mal::before, .pastilla-ojo::before{
+  content:''; width:5px; height:5px; border-radius:50%; background:currentColor; flex-shrink:0;
+}
+
+/* ------------------------------------------------------------- MOVIMIENTO
+   Corto y con sentido: las tarjetas entran una detrás de otra al cambiar de
+   sección, para que se lea el orden. Nada de decoración. */
+@keyframes g-sube{ from{ opacity:0; transform:translateY(8px); } }
+.g-vista > .seccion.on > .card,
+.g-vista > .seccion.on > .rejilla > .card,
+.g-vista > .seccion.on > .rejilla > .kpi{
+  animation:g-sube var(--t3) var(--ease) backwards;
+}
+.g-vista > .seccion.on > .rejilla > :nth-child(1){ animation-delay:0ms; }
+.g-vista > .seccion.on > .rejilla > :nth-child(2){ animation-delay:40ms; }
+.g-vista > .seccion.on > .rejilla > :nth-child(3){ animation-delay:80ms; }
+.g-vista > .seccion.on > .rejilla > :nth-child(4){ animation-delay:120ms; }
+.g-vista > .seccion.on > .rejilla > :nth-child(5){ animation-delay:160ms; }
+.g-vista > .seccion.on > .rejilla > :nth-child(6){ animation-delay:200ms; }
+
+/* La cifra de un indicador cambia con una transición de color, no de tamaño:
+   mover el número haría saltar la rejilla entera. */
+.kpi-val{ transition:color var(--t2) var(--ease-io); }
+
+@media (prefers-reduced-motion:reduce){
+  .g-vista > .seccion.on > .card,
+  .g-vista > .seccion.on > .rejilla > .card,
+  .g-vista > .seccion.on > .rejilla > .kpi{ animation:none; }
+  .card.pulsable:hover{ transform:none; }
+}
+
+/* ------------------------------------------------- ELIMINATORIAS APARTE
+   Un play-off no es una jornada más: se separa visualmente del calendario
+   regular para que no se lea como parte de él. */
+.elim-bloque{
+  border:1px solid rgba(255,81,0,.22); border-radius:var(--r-card);
+  background:linear-gradient(180deg, rgba(255,81,0,.05), transparent 40%);
+  padding:var(--g5); margin-bottom:var(--g5);
+}
+.elim-tit{
+  display:flex; align-items:center; gap:.5rem; margin-bottom:var(--g4);
+  font-family:var(--f-mono); font-size:.6875rem; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--accent-2);
+}
+.elim-tit::after{ content:''; flex:1; height:1px; background:rgba(255,81,0,.2); }
+
+/* ------------------------------------------------- CREAR ENFRENTAMIENTOS
+   Los clubes se colocan en una pista y se sueltan unos sobre otros. Las
+   fichas son pequeñas a propósito: hay que ver toda la división a la vez
+   para pensar en emparejamientos, no de tres en tres. */
+.crear-pista{
+  display:flex; flex-wrap:wrap; gap:.35rem;
+  padding:var(--g3); min-height:64px;
+  border:1px dashed var(--line-2); border-radius:var(--r-card);
+  background:var(--surface);
+}
+.crear-pista.dnd-encima{ border-color:var(--accent); background:rgba(255,81,0,.05); }
+.crear-eq{ padding:.3rem .5rem; min-height:30px; gap:.35rem; }
+.crear-eq .nm{ font-family:var(--f-mono); font-size:.6875rem; letter-spacing:-.01em; }
+.crear-eq:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }

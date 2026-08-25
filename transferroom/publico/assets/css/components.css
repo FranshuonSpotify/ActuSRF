@@ -1,0 +1,730 @@
+/* ==========================================================================
+   TRANSFER ROOM — Componentes
+   Una sola versión de cada componente en toda la app (Cap. XVI). Todo
+   referencia tokens.css — nunca un color o tamaño suelto en un componente.
+   ========================================================================== */
+
+/* ============================ NAV ============================ */
+.nav{
+  position:sticky; top:0; left:0; right:0; z-index:400; height:var(--nav-h);
+  display:flex; align-items:center; background:rgba(0,0,0,.82);
+  backdrop-filter:blur(14px) saturate(180%); -webkit-backdrop-filter:blur(14px) saturate(180%);
+  border-bottom:1px solid var(--line);
+}
+/* Sticky, no fixed superpuesto: ocupa sitio en el flujo, nunca tapa contenido con foco (decisión ya cerrada en tcg_srf, mismo criterio aquí). */
+.nav-in{ display:flex; align-items:center; gap:var(--space-7); width:100%; }
+.nav-brand{ display:flex; align-items:center; gap:.6rem; font-size:1.25rem; font-weight:600; letter-spacing:-.01em; color:var(--ink); flex-shrink:0; }
+.nav-brand .ph{ color:var(--accent); font-size:1.3rem; }
+.nav-links{ display:flex; align-items:center; gap:var(--space-6); }
+.nav-links a{ font-size:var(--fs-body-sm); font-weight:500; color:var(--ink-3); transition:color var(--t1); padding:.25rem 0; }
+.nav-links a:hover,.nav-links a.on{ color:var(--ink); }
+.nav-right{ margin-left:auto; display:flex; align-items:center; gap:var(--space-3); flex-shrink:0; }
+/* Icono de marca sin el texto en la topbar móvil: ver la nota junto al
+   marcado en nav.php — con el texto completo, la barra se desbordaba en
+   pantallas de verdad y recortaba la hamburguesa fuera de la vista. */
+.nav-topbar-mobile .nav-brand-text{ display:none; }
+.nav-user{ display:flex; align-items:center; gap:.5rem; font-size:var(--fs-body-sm); color:var(--ink-2); }
+.nav-user .ph{ color:var(--ink-4); }
+
+/* ============================ BOTONES ============================ */
+.btn{
+  display:inline-flex; align-items:center; justify-content:center; gap:.5rem;
+  height:40px; padding:0 var(--space-5); border-radius:var(--r-sm);
+  font-size:var(--fs-body-sm); font-weight:500; letter-spacing:-.01em;
+  border:1px solid transparent; white-space:nowrap;
+  transition:background var(--t1) var(--ease-io), border-color var(--t1), color var(--t1), transform var(--t1), box-shadow var(--t2);
+}
+.btn:active{ transform:scale(.98); }
+.btn:disabled,.btn.is-disabled{ color:var(--disabled-ink); background:var(--disabled-bg); border-color:var(--line); cursor:not-allowed; box-shadow:none; }
+.btn-primary{ background:var(--accent); color:#fff; font-weight:600; }
+.btn-primary:hover:not(:disabled){ background:var(--accent-hover); box-shadow:0 8px 24px -8px var(--accent-glow); }
+.btn-primary:active:not(:disabled){ background:var(--accent-active); }
+.btn-secondary{ background:transparent; border-color:var(--line-2); color:var(--ink); }
+.btn-secondary:hover:not(:disabled){ border-color:var(--line-3); background:rgba(255,255,255,.04); }
+.btn-danger{ background:transparent; border-color:rgba(255,59,59,.35); color:var(--danger); }
+.btn-danger:hover:not(:disabled){ background:var(--danger-bg); border-color:var(--danger); }
+.btn-ghost{ background:transparent; color:var(--ink-3); }
+.btn-ghost:hover:not(:disabled){ color:var(--ink); background:rgba(255,255,255,.05); }
+.btn-lg{ height:48px; padding:0 var(--space-6); font-size:var(--fs-body); border-radius:var(--r); }
+.btn-sm{ height:32px; padding:0 var(--space-3); font-size:var(--fs-caption); }
+/* Autocontenida a propósito: no depende de combinarse con .btn para centrar
+   el icono. Un <a>/<button class="btn-icon"> suelto (p. ej. el enlace "Ver
+   en la Wiki" de mercado.php) quedaba con el glifo pegado abajo-izquierda,
+   fuera del centro de la caja de 36×36 — bug real, sin flex no hay centrado. */
+.btn-icon{ display:inline-flex; align-items:center; justify-content:center; width:36px; height:36px; padding:0; border-radius:var(--r-sm); color:var(--ink-3); }
+.btn-icon:hover{ color:var(--ink); background:rgba(255,255,255,.06); }
+/* Objetivo táctil mínimo 44×44 (Cap. XVI, WCAG 2.2 SC 2.5.5): en escritorio
+   36px va bien porque el ratón apunta con precisión, pero en móvil .btn-icon
+   se usa en TODA la app (nav, tablas, tarjetas, modales) y muchos sitios lo
+   sobreescriben con width:auto/height:auto inline — min-width/min-height
+   como suelo funciona ahí igual, sin tener que tocar cada sitio a mano. */
+@media (max-width:767px){
+  .btn-icon{ min-width:44px; min-height:44px; }
+  .btn{ min-height:44px; }
+  /* --fs-body son 15px (tokens.css): por debajo de 16px, Safari/iOS hace
+     zoom automático de TODA la página al enfocar cualquier campo — pasa en
+     cada formulario del sitio (login, filtros, modal de súper técnicas...).
+     Es comportamiento determinista del navegador, no una suposición. Solo
+     en móvil, para no tocar la densidad visual de escritorio. */
+  .input,.select,.textarea{ font-size:16px; min-height:44px; }
+}
+.btn-block{ width:100%; }
+
+/* ============================ ESCUDOS Y FOTOS ============================
+   Visión UX (05-transfer_room_docs/02_ux_diseno): "el escudo del club es
+   elemento gráfico de primer nivel", "todo jugador se representa igual en
+   cualquier parte: foto + escudo + tier + posición". Un solo tamaño por
+   contexto, nunca CSS suelto por página. */
+/* .escudo-* y .jugador-foto-* son autocontenidas a propósito (no solo
+   "modificadores de tamaño" que dependan de combinarse con la clase base):
+   un <img> con SOLO class="jugador-foto-lg" perdía el recorte circular, el
+   fondo y el borde, y quedaba una foto cuadrada sin marco — pasó de verdad
+   en el snapshot del dashboard y en el modal de jugador.
+   Bug real corregido (ronda de feedback): este comentario llevaba, a mitad
+   de frase, el cierre de comentario CSS escrito sin espacio entre asterisco
+   y barra, así que el navegador daba por terminado el comentario ahí mismo.
+   Todo lo que venía detrás -- incluida la regla base .escudo de abajo -- se
+   parseaba como CSS inválido y se descartaba en silencio: por eso cualquier
+   img.escudo (mercado, el modal de traspaso, Liga/Clubes, scouting) se veía
+   a tamaño natural, gigante y sin recorte, mientras que .escudo-sm/-lg/-xl
+   sí funcionaban (el parser se recupera en la siguiente regla válida). Los
+   comentarios CSS no respetan comillas: ese cierre de comentario nunca debe
+   aparecer literal dentro del texto, ni como parte de una palabra. */
+.escudo{ width:32px; height:32px; border-radius:var(--r-sm); object-fit:contain; background:var(--surface-2); border:1px solid var(--line); flex-shrink:0; }
+.escudo-sm{ width:20px; height:20px; border-radius:var(--r-sm); object-fit:contain; background:var(--surface-2); border:1px solid var(--line); flex-shrink:0; }
+.escudo-lg{ width:72px; height:72px; border-radius:var(--r); object-fit:contain; background:var(--surface-2); border:1px solid var(--line); flex-shrink:0; }
+.escudo-xl{ width:104px; height:104px; border-radius:var(--r-lg); object-fit:contain; background:var(--surface-2); border:2px solid var(--line); flex-shrink:0; }
+.jugador-foto{ width:40px; height:40px; border-radius:50%; object-fit:cover; background:var(--surface-2); border:1px solid var(--line); flex-shrink:0; }
+.jugador-foto-lg{ width:88px; height:88px; border-radius:50%; object-fit:cover; background:var(--surface-2); border:1px solid var(--line); flex-shrink:0; }
+.jugador-foto-xl{ width:132px; height:132px; border-radius:50%; object-fit:cover; background:var(--surface-2); border:3px solid var(--line); flex-shrink:0; box-shadow:0 8px 24px rgba(0,0,0,.4); }
+.fila-jugador{ display:flex; align-items:center; gap:.65rem; }
+.fila-club{ display:flex; align-items:center; gap:.5rem; }
+
+/* ============================ CAP TRACKER ============================
+   Barra visual del Salary Cap (visión Football Manager: "barra de salud
+   del club"). Verde hasta 80%, aviso hasta 95%, peligro por encima. */
+.cap-tracker{ height:8px; border-radius:var(--r-full); background:var(--surface-2); border:1px solid var(--line); overflow:hidden; margin-top:.6rem; }
+.cap-tracker-fill{ height:100%; border-radius:var(--r-full); background:var(--success); transition:width var(--t2) var(--ease-io); }
+.cap-tracker-fill.aviso{ background:var(--warning); }
+.cap-tracker-fill.peligro{ background:var(--danger); }
+
+/* ============================ TARJETAS ============================ */
+.card{
+  background:var(--surface); border:1px solid var(--line);
+  border-radius:var(--r-lg); padding:var(--space-6); position:relative; overflow:hidden;
+  box-shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+  transition:border-color var(--t2) var(--ease-io), transform var(--t2) var(--ease-io), box-shadow var(--t2) var(--ease-io);
+}
+.card:hover{ border-color:var(--line-2); }
+a.card:hover, .card-interactivo:hover{ transform:translateY(-2px); box-shadow:0 2px 4px rgba(0,0,0,.35), 0 16px 32px -14px rgba(0,0,0,.6); }
+/* Rework de estética (a petición de Franshu: "que se parezca más al modal de
+   fichar"): el spotlight que sigue al cursor y el filo superior eran opt-in
+   (.con-spotlight/.con-filo, solo en el modal y en pocas tarjetas más) — ahora
+   son el comportamiento POR DEFECTO de .card en toda la app, para que la
+   misma sensación de profundidad y acabado del modal se sienta en cualquier
+   tarjeta del sitio sin tener que retocar el marcado de cada página. Las
+   clases .con-spotlight/.con-filo se conservan como alias (compatibilidad,
+   por si algún sitio las sigue usando explícitamente) pero ya no añaden nada
+   que .card no tenga ya. */
+/* Bug real (encontrado al aplicar esto a TODAS las tarjetas, incluidas las
+   que ya usa el modal de fichaje): forzar position:relative en cada hijo
+   directo de .card metía un contexto de posicionamiento nuevo justo donde no
+   tocaba — cualquier elemento con position:absolute más adentro (barras de
+   cap, chips de traspaso...) dejaba de anclarse al ancestro que le tocaba y
+   se solapaba con otra cosa. z-index negativo en los pseudo-elementos logra
+   lo mismo (que el contenido real pinte por encima del spotlight) sin tocar
+   el position de ningún hijo — por especificación CSS, un descendiente con
+   z-index negativo pinta SIEMPRE por debajo del contenido normal del mismo
+   contexto de apilamiento, sea cual sea el position de ese contenido. */
+.card::before{
+  content:''; position:absolute; inset:0; border-radius:inherit; pointer-events:none;
+  opacity:0; transition:opacity var(--t2) var(--ease-io); z-index:-1;
+  background:radial-gradient(340px circle at var(--mx,50%) var(--my,50%), rgba(255,255,255,.06), transparent 65%);
+}
+.card:hover::before{ opacity:1; }
+.card::after{ content:''; position:absolute; top:0; left:10%; right:10%; height:1px; pointer-events:none; z-index:-1; background:linear-gradient(90deg,transparent,rgba(255,255,255,.35),transparent); }
+/* Rendimiento en móvil (reportado: lag real al abrir modales sobre
+   mercado.php, que pinta cientos de .card de agentes libres sin paginar —
+   ver mercado.js/mercado.php, no hay LIMIT ni componente de paginación
+   conectado todavía). El spotlight que sigue al cursor no aporta nada en
+   touch (no hay hover persistente que seguir) pero cada .card sigue
+   pagando el coste de una capa compuesta lista para desvanecerse; el
+   box-shadow con blur es la operación de pintado más cara del componente,
+   repetida una vez por tarjeta. Se recorta solo la decoración, ninguna
+   funcionalidad — la tarjeta sigue interactiva igual. */
+@media (max-width:767px){
+  .card{ box-shadow:0 1px 2px rgba(0,0,0,.3); }
+  .card::before,.card::after{ display:none; }
+}
+.card-head{ display:flex; align-items:flex-start; justify-content:space-between; gap:var(--space-4); margin-bottom:var(--space-5); }
+.card-head p{ margin-top:.35rem; color:var(--ink-3); font-size:var(--fs-body-sm); }
+
+/* ============================ BADGES / CHIPS ============================ */
+.badge{
+  display:inline-flex; align-items:center; gap:.375rem;
+  font-family:var(--f-mono); font-size:.625rem; font-weight:500;
+  letter-spacing:.08em; text-transform:uppercase;
+  padding:.32rem .65rem; border-radius:var(--r-full);
+  background:rgba(255,255,255,.06); color:var(--ink-2);
+}
+.badge-success{ background:var(--success-bg); color:var(--success); }
+.badge-warning{ background:var(--warning-bg); color:var(--warning); }
+.badge-danger{ background:var(--danger-bg); color:var(--danger); }
+.badge-info{ background:var(--info-bg); color:var(--info); }
+.badge-gold{ background:rgba(255,201,74,.13); color:var(--gold); }
+.badge-silver{ background:rgba(200,200,200,.13); color:var(--silver); }
+.badge-bronze{ background:rgba(205,139,90,.13); color:var(--bronze); }
+.badge-accent{ background:rgba(255,81,0,.13); color:var(--accent-hover); }
+
+.chip{ display:inline-flex; align-items:center; gap:.3rem; font-family:var(--f-mono); font-size:.6875rem; font-weight:500; padding:.22rem .55rem; border-radius:var(--r-full); border:1px solid var(--line-2); color:var(--ink-2); }
+
+/* ============================ JERARQUÍA DE TIER ============================
+   Vision UX (02_ux_diseno/02, §1): "el tier se representa visualmente con
+   jerarquía de categoría creciente, no solo texto". 4 bandas sobre el mismo
+   .chip base: C/B- neutro, B/B+/A- info, A/A+/S aviso, S+/S++ oro con brillo. */
+.tier-medio{ border-color:rgba(62,123,255,.35); color:var(--info); background:var(--info-bg); }
+.tier-alto{ border-color:rgba(242,177,52,.4); color:var(--warning); background:var(--warning-bg); font-weight:600; }
+.tier-top{ border-color:rgba(255,201,74,.5); color:var(--gold); background:rgba(255,201,74,.13); font-weight:700; box-shadow:0 0 12px -2px rgba(255,201,74,.35); }
+
+/* ============================ FORMULARIOS ============================
+   Cap. XVI: una sola versión de input/selector en toda la app. Etiqueta
+   siempre visible (nunca solo placeholder), error debajo del campo, foco
+   con el mismo anillo que el resto del sitio. */
+.field{ display:flex; flex-direction:column; gap:.4rem; margin-bottom:var(--space-5); }
+/* Bug real: [hidden] es una regla de la hoja de estilos del navegador (user
+   agent), y una regla de autor como ".field{display:flex}" siempre le gana
+   aunque coincida el mismo elemento — el campo "hidden" se seguía viendo
+   (despertar_variante activo con cualquier hipertécnica, no solo "despertar"). */
+.field[hidden]{ display:none; }
+.field-label{ font-size:var(--fs-body-sm); font-weight:500; color:var(--ink-2); }
+.field-label .req{ color:var(--danger); margin-left:.15rem; }
+.field-hint{ font-size:var(--fs-caption); color:var(--ink-4); }
+.field-error{ font-size:var(--fs-caption); color:var(--danger); display:flex; align-items:center; gap:.35rem; }
+
+.input,.select,.textarea{
+  height:40px; width:100%; padding:0 var(--space-4); border-radius:var(--r-sm);
+  background:var(--surface); border:1px solid var(--line-2); color:var(--ink);
+  font-size:var(--fs-body); transition:border-color var(--t1), background var(--t1);
+}
+.input::placeholder,.textarea::placeholder{ color:var(--ink-4); }
+.input:hover,.select:hover,.textarea:hover{ border-color:var(--line-3); }
+.input:focus-visible,.select:focus-visible,.textarea:focus-visible{ outline:2px solid var(--focus); outline-offset:1px; border-color:transparent; }
+.textarea{ height:auto; min-height:96px; padding-block:.6rem; resize:vertical; }
+.select{ appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%237A7A7A' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right var(--space-4) center; padding-right:calc(var(--space-4) * 2 + 10px); }
+.field.has-error .input,.field.has-error .select,.field.has-error .textarea{ border-color:var(--danger); }
+.input:disabled,.select:disabled,.textarea:disabled{ color:var(--disabled-ink); background:var(--disabled-bg); border-color:var(--line); cursor:not-allowed; }
+
+.checkbox-row,.radio-row{ display:flex; align-items:center; gap:.6rem; font-size:var(--fs-body-sm); color:var(--ink-2); }
+.checkbox-row input,.radio-row input{ width:18px; height:18px; accent-color:var(--accent); }
+
+.form-actions{ display:flex; gap:var(--space-3); margin-top:var(--space-6); }
+
+/* ============================ TABLAS ============================
+   Cap. XVI: nunca mostrar una tabla vacía — .empty-state cubre ese caso. */
+.tbl-wrap{ border:1px solid var(--line); border-radius:var(--r-lg); overflow:hidden; background:var(--surface); }
+.tbl-scroll{ overflow-x:auto; }
+table.tbl{ width:100%; border-collapse:collapse; }
+table.tbl th{
+  font-family:var(--f-mono); font-size:.625rem; font-weight:500; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--ink-4); text-align:left;
+  padding:var(--space-4) var(--space-4); border-bottom:1px solid var(--line); background:var(--bg-2);
+  white-space:nowrap;
+}
+table.tbl td{ padding:.75rem var(--space-4); font-size:var(--fs-body-sm); border-bottom:1px solid var(--line); vertical-align:middle; }
+table.tbl tbody tr{ transition:background var(--t1); }
+table.tbl tbody tr:hover{ background:rgba(255,255,255,.035); }
+table.tbl tbody tr:last-child td{ border-bottom:0; }
+table.tbl td.num,table.tbl th.num{ font-family:var(--f-mono); text-align:right; }
+
+/* ============================ MODALES ============================
+   Cap. XVI "Confirmaciones": toda operación crítica usa este modal, nunca
+   confirm() del navegador. Atrapa foco y cierra con Esc (ver ui.js). */
+.modal-bg{ position:fixed; inset:0; z-index:800; background:rgba(0,0,0,.7); backdrop-filter:blur(6px); display:grid; place-items:center; padding:var(--space-5); opacity:0; visibility:hidden; transition:opacity var(--t2) var(--ease-io), visibility var(--t2); }
+.modal-bg.open{ opacity:1; visibility:visible; }
+/* max-height + flex-column por defecto en TODOS los modales, no solo en el
+   de traspaso: sin esto, un modal con contenido largo (lista de ofertas, un
+   formulario de admin) en un móvil de poca altura crece más que la pantalla
+   — .modal-bg solo centra, no da scroll propio, así que el contenido de
+   abajo (incluido el botón de confirmar) queda inalcanzable. Mismo patrón
+   que ya se usaba solo para el modal de traspaso, generalizado. */
+.modal{
+  /* No 92vw a secas: .modal-bg tiene padding:var(--space-5) (20px) a cada
+     lado, así que en un móvil de 375px el 92vw (345px) es más ancho que el
+     hueco real disponible (335px) — el modal se salía de su propio track
+     de centrado por 10px y el "centrado" del grid repartía ese sobrante de
+     forma asimétrica (22px izquierda / 12px derecha, medido en vivo), no
+     partido en dos. Restando el padding real del cálculo, el modal nunca
+     puede ser más ancho que el hueco disponible, así que el centrado del
+     grid siempre cae exacto. */
+  width:min(calc(100vw - 2 * var(--space-5)), 480px); max-height:90vh; display:flex; flex-direction:column;
+  background:var(--bg-2); border:1px solid var(--line-2); border-radius:var(--r-lg); box-shadow:0 30px 90px -20px rgba(0,0,0,.9);
+  transform:translateY(-8px) scale(.99); opacity:0; transition:transform var(--t2) var(--ease), opacity var(--t2);
+}
+.modal-bg.open .modal{ transform:none; opacity:1; }
+.modal-head{ display:flex; align-items:center; justify-content:space-between; padding:var(--space-5) var(--space-6); border-bottom:1px solid var(--line); flex-shrink:0; }
+.modal-head h2{ font-size:var(--fs-h4); }
+.modal-body{ padding:var(--space-6); color:var(--ink-2); font-size:var(--fs-body-sm); line-height:1.65; overflow-y:auto; min-height:0; }
+.modal-body strong{ color:var(--ink); font-weight:600; }
+.modal-foot{ display:flex; justify-content:flex-end; gap:var(--space-3); padding:var(--space-5) var(--space-6); border-top:1px solid var(--line); flex-shrink:0; }
+.modal-danger .modal-head{ border-bottom-color:rgba(255,59,59,.25); }
+
+/* Cabecera del modal unificado de jugador (Fase 2, pulido estético): foto
+   grande y jerarquía tipográfica de "tarjeta de jugador" — igual para
+   fichajes de club, agentes libres (incluidos externos) y traspasos, porque
+   todos comparten este mismo componente. */
+.modal-jugador-head{ background:linear-gradient(150deg, var(--surface-2), var(--surface)); align-items:flex-start; }
+.modal-jugador-head .jugador-foto-xl{ box-shadow:0 8px 24px -6px rgba(0,0,0,.6), 0 0 0 1px var(--line-2); }
+.modal-jugador-nombre-grande{ font-size:1.85rem; font-weight:700; line-height:1.05; letter-spacing:-.02em; color:var(--ink); }
+@media (max-width:480px){
+  .modal-jugador-head .jugador-foto-xl{ width:88px; height:88px; }
+  .modal-jugador-nombre-grande{ font-size:1.4rem; }
+}
+
+/* ===================== MODAL DE TRASPASO (rediseño) =====================
+   Casi a pantalla completa en escritorio. La caja del modal (#modal-jugador-caja)
+   pasa a ser una columna flex con alto máximo (fijado por JS solo para este
+   tipo); .modal-head no encoge y .modal-body es la única zona con scroll —
+   dentro de ese scroll, la barra de acciones queda "sticky" pegada al fondo
+   (con márgenes negativos que cancelan el padding del contenedor, truco
+   estándar para que un pie pegado no deje un hueco de padding debajo). Así
+   los botones nunca quedan fuera de la pantalla, tenga la que tenga el
+   usuario. Dos columnas generosas para el contenido: contexto del
+   jugador/contrato a la izquierda, mercado en vivo (ofertas + tu oferta) a
+   la derecha. Solo el traspaso ensancha la caja — agente_libre y propio
+   siguen en 620px, no necesitan tanto sitio. */
+.modal-head{ flex-shrink:0; }
+.modal-body{ flex:1 1 auto; min-height:0; overflow-y:auto; }
+
+.traspaso-actions{
+  position:sticky; bottom:calc(var(--space-6) * -1);
+  margin:var(--space-6) calc(var(--space-6) * -1) calc(var(--space-6) * -1);
+  padding:var(--space-4) var(--space-6);
+  background:var(--bg-2); border-top:1px solid var(--line);
+  display:flex; justify-content:flex-end; align-items:center; gap:.75rem;
+}
+
+.traspaso-grid{ display:grid; grid-template-columns:minmax(320px,.92fr) minmax(360px,1.08fr); gap:var(--space-8); align-items:start; }
+@media (max-width:900px){ .traspaso-grid{ grid-template-columns:1fr; gap:var(--space-6); } }
+
+/* Cada columna es UNA tarjeta con varias secciones internas separadas por
+   filete, no varias tarjetas sueltas apiladas — lee mejor como "un panel",
+   menos como "una pila de cajas". */
+.traspaso-col-eyebrow{ display:block; font-size:var(--fs-caption); font-weight:700; text-transform:uppercase; letter-spacing:.09em; color:var(--ink-4); margin-bottom:.6rem; }
+.traspaso-card{ position:relative; overflow:hidden; padding:var(--space-6); }
+
+.traspaso-section{ padding-top:var(--space-6); }
+.traspaso-section:first-child{ padding-top:0; }
+.traspaso-section + .traspaso-section{ margin-top:var(--space-6); border-top:1px solid var(--line); }
+.traspaso-section-label{ display:flex; align-items:center; gap:.5rem; font-size:var(--fs-caption); font-weight:600; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-3); }
+.traspaso-section-label .ph{ font-size:1rem; color:var(--ink-4); }
+
+.traspaso-card .fila-club{ margin-top:1rem; gap:.75rem; }
+.traspaso-card .fila-club .escudo{ width:44px; height:44px; }
+.traspaso-card .fila-club strong{ font-size:1.2rem; }
+
+.traspaso-stats-grid{ display:flex; gap:var(--space-7); margin-top:var(--space-5); flex-wrap:wrap; }
+.traspaso-stat{ min-width:0; }
+.traspaso-stat .caption{ display:flex; align-items:center; gap:.35rem; }
+.traspaso-stat .caption .ph{ font-size:.9rem; color:var(--ink-4); }
+.traspaso-stat strong{ display:block; margin-top:.4rem; font-size:1.6rem; font-weight:700; letter-spacing:-.01em; color:var(--ink); white-space:nowrap; }
+
+.traspaso-cap-bar{ height:10px; border-radius:var(--r-full); background:var(--surface-2); overflow:hidden; margin-top:.85rem; border:1px solid var(--line); }
+.traspaso-cap-bar-fill{ height:100%; border-radius:var(--r-full); background:var(--info); transition:width var(--t2) var(--ease-io); }
+.traspaso-cap-bar-fill.cerca{ background:var(--warning); }
+.traspaso-cap-bar-fill.al-limite{ background:var(--danger); }
+.traspaso-cap-footer{ display:flex; justify-content:space-between; align-items:baseline; margin-top:.65rem; gap:var(--space-4); }
+.traspaso-cap-footer span:first-child{ font-size:var(--fs-body-sm); color:var(--ink-2); }
+.traspaso-cap-footer span:last-child{ font-family:var(--f-mono); font-size:var(--fs-caption); color:var(--ink-3); white-space:nowrap; }
+
+.traspaso-franquicia-nota{ margin-top:var(--space-6); margin-bottom:0; }
+
+.traspaso-ofertas-lista{ margin-top:var(--space-4); display:flex; flex-direction:column; gap:.6rem; max-height:240px; overflow-y:auto; padding-right:2px; }
+.traspaso-oferta-item{ display:flex; align-items:center; gap:.85rem; padding:.85rem 1rem; border-radius:var(--r); background:var(--surface-2); border:1px solid var(--line); }
+.traspaso-oferta-item.lider{ border-color:rgba(255,81,0,.45); background:linear-gradient(90deg, rgba(255,81,0,.1), var(--surface-2) 70%); box-shadow:0 0 0 1px rgba(255,81,0,.14) inset; }
+.traspaso-oferta-rank{ flex-shrink:0; width:26px; height:26px; border-radius:50%; display:grid; place-items:center; font-family:var(--f-mono); font-size:.7rem; font-weight:700; background:var(--surface); color:var(--ink-3); border:1px solid var(--line-2); }
+.traspaso-oferta-item.lider .traspaso-oferta-rank{ background:var(--accent); color:#fff; border-color:var(--accent); }
+.traspaso-oferta-club{ flex:1; min-width:0; }
+.traspaso-oferta-club strong{ display:block; font-size:var(--fs-body-sm); color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.traspaso-oferta-club span{ font-size:var(--fs-caption); color:var(--ink-3); }
+.traspaso-oferta-importe{ font-family:var(--f-mono); font-size:1.05rem; font-weight:700; color:var(--ink); white-space:nowrap; }
+.traspaso-oferta-item.lider .traspaso-oferta-importe{ color:var(--accent-hover); }
+.traspaso-empty-ofertas{ text-align:center; padding:var(--space-6) var(--space-4); color:var(--ink-3); font-size:var(--fs-body-sm); }
+.traspaso-empty-ofertas .ph{ font-size:1.75rem; display:block; margin-bottom:.5rem; opacity:.6; }
+
+.traspaso-section form{ margin-top:1rem; }
+.traspaso-section .field{ margin-bottom:0; }
+.traspaso-section .input{ height:52px; font-size:1.15rem; font-family:var(--f-mono); }
+.traspaso-importe-hint{ margin-top:.55rem; font-size:var(--fs-body-sm); display:flex; align-items:center; gap:.4rem; min-height:1.3em; }
+.traspaso-importe-hint.supera{ color:var(--success); }
+.traspaso-importe-hint.no-supera{ color:var(--warning); }
+
+.traspaso-quick-fills{ display:flex; gap:.5rem; margin-top:.75rem; flex-wrap:wrap; }
+.traspaso-quick-fill{ cursor:pointer; background:var(--surface-2); transition:border-color var(--t1) var(--ease-io), color var(--t1) var(--ease-io); }
+.traspaso-quick-fill:hover{ border-color:var(--accent); color:var(--accent-hover); }
+
+/* Selector de jugadores propios a ofrecer en el intercambio (Franshu: "también
+   por jugadores, o jugadores más dinero"): lista de checkboxes, no un <select
+   multiple> — más fácil de escanear con posición/tier visibles por fila. */
+.traspaso-jugadores-picker{ margin-top:.5rem; max-height:180px; overflow-y:auto; border:1px solid var(--line); border-radius:var(--r); background:var(--surface-2); }
+.traspaso-jugador-picker-item{ display:flex; align-items:center; gap:.6rem; padding:.55rem .75rem; font-size:var(--fs-body-sm); cursor:pointer; border-bottom:1px solid var(--line); }
+.traspaso-jugador-picker-item:last-child{ border-bottom:none; }
+.traspaso-jugador-picker-item:hover{ background:rgba(255,255,255,.04); }
+.traspaso-jugador-picker-item input{ flex-shrink:0; width:16px; height:16px; accent-color:var(--accent); }
+
+/* ============================ LOGIN ============================
+   Ambiente propio (no reutiliza .card-spotlight base): dos halos radiales de
+   marca sobre negro puro + rejilla sutil, igual que la portada, para que la
+   puerta de entrada a la app no se sienta como un formulario plano. */
+.login-shell{
+  min-height:100vh; display:grid; place-items:center; padding-block:4rem;
+  position:relative; overflow:hidden; isolation:isolate;
+}
+.login-shell::before{
+  content:''; position:absolute; inset:0; z-index:-1; pointer-events:none;
+  background:
+    radial-gradient(560px circle at 18% 12%, rgba(255,81,0,.16), transparent 60%),
+    radial-gradient(640px circle at 86% 88%, rgba(255,81,0,.10), transparent 60%),
+    linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px);
+  background-size:auto, auto, 44px 44px, 44px 44px;
+  mask-image:radial-gradient(80% 70% at 50% 40%, #000, transparent);
+}
+.login-brand{ text-align:center; margin-bottom:2rem; animation:login-rise var(--t2) var(--ease-io) both; }
+.login-emblem{
+  width:68px; height:68px; margin:0 auto; border-radius:var(--r-lg);
+  display:grid; place-items:center; font-size:1.85rem; color:var(--accent);
+  background:linear-gradient(160deg, var(--surface-2), var(--surface));
+  border:1px solid var(--line-2);
+  box-shadow:0 0 0 1px rgba(255,81,0,.1), 0 20px 48px -16px rgba(255,81,0,.4), inset 0 1px 0 rgba(255,255,255,.08);
+}
+.login-card{
+  padding:var(--space-8) var(--space-7);
+  animation:login-rise var(--t2) var(--ease-io) .06s both;
+  box-shadow:0 32px 80px -24px rgba(0,0,0,.65), 0 1px 0 rgba(255,255,255,.03) inset;
+}
+.login-field-icon{ position:relative; }
+.login-field-icon i{
+  position:absolute; left:var(--space-4); top:50%; transform:translateY(-50%);
+  color:var(--ink-4); font-size:1.05rem; pointer-events:none; transition:color var(--t1) var(--ease-io);
+}
+.login-field-icon .input{ padding-left:calc(var(--space-4) * 2 + 14px); }
+.login-field-icon .input:focus-visible ~ i,.login-field-icon .input:focus ~ i{ color:var(--accent); }
+.login-card-foot{ text-align:center; margin-top:1.5rem; padding-top:1.25rem; border-top:1px solid var(--line); font-size:var(--fs-caption); }
+.login-card-foot a{ color:var(--ink-3); transition:color var(--t1) var(--ease-io); }
+.login-card-foot a:hover{ color:var(--accent-hover); }
+@keyframes login-rise{ from{ opacity:0; transform:translateY(10px); } to{ opacity:1; transform:translateY(0); } }
+@media (prefers-reduced-motion:reduce){ .login-brand,.login-card{ animation:none; } }
+
+/* ============================ DROPDOWNS ============================ */
+.dropdown{ position:relative; display:inline-block; }
+.dropdown-menu{
+  position:absolute; top:calc(100% + 6px); right:0; min-width:200px; z-index:300;
+  background:var(--bg-2); border:1px solid var(--line-2); border-radius:var(--r); padding:.375rem;
+  box-shadow:0 20px 50px -16px rgba(0,0,0,.85);
+  opacity:0; visibility:hidden; transform:translateY(-4px);
+  transition:opacity var(--t1) var(--ease-io), transform var(--t1) var(--ease-io), visibility var(--t1);
+}
+.dropdown-menu.open{ opacity:1; visibility:visible; transform:none; }
+.dropdown-menu a,.dropdown-menu button{ display:flex; align-items:center; gap:.6rem; width:100%; text-align:left; padding:.55rem .7rem; border-radius:var(--r-sm); font-size:var(--fs-body-sm); color:var(--ink-2); }
+.dropdown-menu a:hover,.dropdown-menu button:hover{ background:rgba(255,255,255,.06); color:var(--ink); }
+.dropdown-sep{ height:1px; background:var(--line); margin:.375rem 0; }
+
+/* ============================ TOOLTIPS ============================ */
+/* .tt / .tt-rich ya no llevan lógica CSS propia (solo marcan el elemento
+   como "objetivo de tooltip", vía [data-tt] en el selector de abajo): la
+   posición y el contenido los calcula ui.js con un único elemento flotante
+   anclado a <body>. Un pseudo-elemento ::after siempre puede quedar
+   recortado por overflow:hidden/auto de cualquier ancestro (nos pasó en la
+   sidebar); position:fixed relativo al viewport no tiene ese problema. */
+.tt-flotante{
+  position:fixed; z-index:900; background:var(--bg-2); border:1px solid var(--line-2); color:var(--ink);
+  font-size:var(--fs-caption); line-height:1.45; padding:.45rem .7rem; border-radius:var(--r-sm);
+  box-shadow:0 8px 24px -8px rgba(0,0,0,.6); pointer-events:none; white-space:nowrap;
+  opacity:0; transform:translateY(2px); transition:opacity var(--t1) var(--ease-io), transform var(--t1) var(--ease-io);
+}
+.tt-flotante.on{ opacity:1; transform:none; }
+.tt-flotante strong{ display:block; color:var(--ink); font-weight:600; }
+.tt-flotante span{ display:block; color:var(--ink-2); white-space:normal; margin-top:.15rem; }
+
+/* ============================ SIDEBAR (escritorio) ============================ */
+.sidebar{
+  display:none; position:fixed; top:0; left:0; bottom:0; width:var(--sidebar-w,76px); z-index:400;
+  flex-direction:column; align-items:center; gap:.2rem; padding:var(--space-3) 0;
+  background:rgba(0,0,0,.86); backdrop-filter:blur(14px) saturate(180%); -webkit-backdrop-filter:blur(14px) saturate(180%);
+  border-right:1px solid var(--line); overflow-y:auto; overflow-x:hidden;
+}
+/* Con un modal abierto, el overlay oscuro (.modal-bg) ya cubre y atenúa la
+   sidebar entera — su propio blur no aporta nada visible ahí debajo y sólo
+   suma coste de recomposición. Ver nota en ui.js abrirModal/cerrarModal. */
+html.modal-open .sidebar,html.modal-open .nav{ backdrop-filter:none; -webkit-backdrop-filter:none; }
+.sidebar-brand{ color:var(--accent); font-size:1.4rem; margin-bottom:var(--space-2); display:grid; place-items:center; width:44px; height:44px; flex-shrink:0; }
+.sidebar-club-escudo{ margin-bottom:var(--space-1); flex-shrink:0; }
+.sidebar-salud{ display:grid; place-items:center; width:44px; height:20px; margin-bottom:var(--space-1); flex-shrink:0; }
+.sidebar-hub{ display:flex; flex-direction:column; align-items:center; gap:.2rem; width:100%; }
+.sidebar-divider{ width:32px; height:1px; background:var(--line); margin:.35rem 0; flex-shrink:0; }
+.sidebar-spacer{ flex:1; min-height:var(--space-2); }
+.sidebar-icon{
+  width:44px; height:44px; border-radius:var(--r); display:grid; place-items:center; flex-shrink:0;
+  color:var(--ink-3); transition:background var(--t1) var(--ease-io), color var(--t1) var(--ease-io);
+}
+.sidebar-icon .ph{ font-size:1.25rem; }
+.sidebar-icon:hover{ background:var(--surface-2); color:var(--ink); }
+.sidebar-icon.on{ background:var(--surface-2); color:var(--accent); }
+.sidebar-icon .badge-dot{
+  position:absolute; top:8px; right:8px; min-width:16px; height:16px; padding:0 .2rem; border-radius:var(--r-full);
+  background:var(--accent); color:#fff; font-size:.5625rem; font-weight:600; display:grid; place-items:center; line-height:1;
+}
+
+/* Favoritos del riel: nada de flyout flotante (dos rondas seguidas de bugs
+   reales de overflow y posicionamiento fuera de pantalla — ver historial de
+   este bloque en git). Cada favorito es un .sidebar-icon normal más, en el
+   flujo del propio riel: empuja lo de abajo hacia abajo, sin JS de
+   posicionamiento y sin nada que se pueda desbordar por definición. Ver el
+   marcado en nav.php y $iconoPorRutaBaseNav (icono real de la página, no
+   una estrella genérica repetida). */
+
+/* ============================ NAV DRAWER (móvil) ============================
+   Rediseño completo de la navegación móvil (antes: tira de iconos con
+   scroll horizontal bajo la barra fija — competía con el gesto de scroll y
+   recortaba desplegables). Patrón estándar en su lugar: hamburguesa → panel
+   de pantalla completa que entra desde la derecha, con el hub entero en una
+   columna vertical de una sola dirección de scroll. Nada de backdrop-filter
+   aquí (fondo sólido semitransparente): con .sidebar/.nav ya con blur fijo
+   en pantalla, apilar OTRO blur encima es justo el bug de rendimiento que
+   se corrigió para los modales (ver ui.js abrirModal) — mismo motivo por el
+   que este drawer reutiliza la clase html.modal-open en vez de inventar
+   una propia. */
+#nav-burger{ display:none; }
+.nav-drawer-backdrop{
+  position:fixed; inset:0; z-index:598; background:rgba(0,0,0,.6);
+  opacity:0; transition:opacity var(--t2,.3s) var(--ease,ease);
+}
+.nav-drawer-backdrop.open{ opacity:1; }
+.nav-drawer{
+  position:fixed; top:0; right:0; bottom:0; z-index:599;
+  width:min(85vw,340px); max-width:100vw;
+  background:var(--bg-2); border-left:1px solid var(--line-2);
+  box-shadow:-20px 0 60px -20px rgba(0,0,0,.85);
+  display:flex; flex-direction:column;
+  transform:translateX(100%); transition:transform var(--t2,.3s) var(--ease,ease);
+}
+.nav-drawer.open{ transform:none; }
+.nav-drawer-head{
+  flex-shrink:0; display:flex; align-items:center; justify-content:space-between;
+  padding:var(--space-5); border-bottom:1px solid var(--line);
+  padding-top:max(var(--space-5), env(safe-area-inset-top));
+}
+.nav-drawer-brand{ display:flex; align-items:center; gap:.5rem; font-weight:600; }
+.nav-drawer-brand .ph{ color:var(--accent); font-size:1.2rem; }
+.nav-drawer-body{
+  flex:1 1 auto; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch;
+  padding:var(--space-3);
+  padding-bottom:max(var(--space-3), env(safe-area-inset-bottom));
+}
+.nav-drawer-item{
+  display:flex; align-items:center; gap:.85rem; width:100%; min-height:44px;
+  padding:.65rem .75rem; border-radius:var(--r-sm); font-size:var(--fs-body);
+  color:var(--ink-2); text-align:left; background:none; border:none;
+}
+.nav-drawer-item .ph,.nav-drawer-item .ph-fill{ font-size:1.15rem; color:var(--ink-4); flex-shrink:0; width:1.2em; text-align:center; }
+.nav-drawer-item:hover,.nav-drawer-item:focus-visible{ background:rgba(255,255,255,.06); color:var(--ink); }
+.nav-drawer-item.on{ background:rgba(255,81,0,.12); color:var(--ink); }
+.nav-drawer-item.on .ph{ color:var(--accent); }
+.nav-drawer-sep{ height:1px; background:var(--line); margin:.6rem .25rem; }
+.nav-drawer-section-label{ font-family:var(--f-mono); font-size:.625rem; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-4); padding:.4rem .75rem; }
+@media (max-width:767px){
+  #nav-burger{ display:inline-flex; }
+}
+@media (min-width:768px){
+  .nav-drawer,.nav-drawer-backdrop{ display:none; }
+}
+@media (min-width:768px){
+  .sidebar{ display:flex; }
+  .nav-topbar-mobile{ display:none; }
+  /* Solo empuja el body si la barra lateral existe de verdad en la página
+     (login.php, registro, recuperar contraseña... no la incluyen, no hay
+     sesión iniciada): antes se aplicaba siempre, dejando esas pantallas
+     descentradas 76px hacia la derecha por un hueco fantasma. */
+  body:has(.sidebar){ padding-left:var(--sidebar-w,76px); }
+}
+
+/* ============================ MENSAJES (master-detail) ============================
+   Antes: grid de dos columnas en línea, sin media query — en móvil la
+   columna de la lista (mínimo 240px) se comía casi todo el ancho y dejaba
+   el hilo aplastado/cortado (reportado con captura). En móvil se muestra
+   SOLO una de las dos columnas según haya conversación abierta en la URL
+   (?conversacion_id=, ya lo decide el servidor — .mensajes-oculto-movil lo
+   pone mensajes.php por PHP, no hace falta JS). */
+.mensajes-grid{ display:grid; grid-template-columns:minmax(240px,320px) 1fr; gap:1.5rem; align-items:start; }
+.mensajes-volver{ display:none; align-items:center; gap:.4rem; font-size:var(--fs-body-sm); color:var(--ink-3); margin-bottom:1rem; }
+@media (max-width:767px){
+  .mensajes-grid{ grid-template-columns:1fr; }
+  .mensajes-oculto-movil{ display:none; }
+  .mensajes-volver{ display:flex; }
+}
+
+/* ============================ TABS ============================ */
+.tabs{ display:flex; gap:var(--space-6); border-bottom:1px solid var(--line); }
+.tabs a,.tabs button{ padding:.85rem 0; font-size:var(--fs-body-sm); font-weight:500; color:var(--ink-4); white-space:nowrap; border-bottom:1.5px solid transparent; margin-bottom:-1px; transition:color var(--t1); }
+.tabs a:hover,.tabs button:hover{ color:var(--ink-2); }
+.tabs a.on,.tabs button.on{ color:var(--ink); border-bottom-color:var(--accent); }
+
+.seg{ display:inline-flex; padding:3px; background:var(--surface); border:1px solid var(--line); border-radius:var(--r-sm); gap:2px; }
+.seg button{ height:32px; padding:0 var(--space-4); border-radius:6px; font-size:var(--fs-body-sm); font-weight:500; color:var(--ink-3); transition:background var(--t1),color var(--t1); }
+.seg button:hover{ color:var(--ink-2); }
+.seg button.on{ background:var(--surface-3); color:var(--ink); }
+
+/* ============================ TOASTS ============================
+   Feedback de éxito/error tras una acción, sin bloquear la pantalla. */
+.toast-stack{ position:fixed; bottom:var(--space-6); right:var(--space-6); z-index:900; display:flex; flex-direction:column; gap:.6rem; width:min(92vw,360px); }
+.toast{
+  display:flex; align-items:flex-start; gap:.65rem; padding:.9rem 1rem; border-radius:var(--r);
+  background:var(--bg-2); border:1px solid var(--line-2); box-shadow:0 20px 50px -18px rgba(0,0,0,.85);
+  font-size:var(--fs-body-sm); color:var(--ink-2);
+  transform:translateX(8px); opacity:0; transition:transform var(--t2) var(--ease), opacity var(--t2);
+}
+.toast.in{ transform:none; opacity:1; }
+.toast .ph{ flex-shrink:0; font-size:1.125rem; margin-top:.05rem; }
+.toast-success .ph{ color:var(--success); }
+.toast-danger .ph{ color:var(--danger); }
+.toast-info .ph{ color:var(--info); }
+.toast strong{ display:block; color:var(--ink); font-weight:600; margin-bottom:.15rem; }
+.toast-close{ margin-left:auto; color:var(--ink-4); flex-shrink:0; }
+.toast-close:hover{ color:var(--ink); }
+
+/* ============================ SKELETON LOADERS ============================
+   Cap. XVI: nunca pantalla en blanco mientras carga. */
+.skel{ position:relative; overflow:hidden; background:var(--surface-2); border-radius:var(--r-sm); }
+.skel::after{
+  content:''; position:absolute; inset:0; transform:translateX(-100%);
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.06),transparent);
+  animation:skel-sweep 1.6s ease-in-out infinite;
+}
+@keyframes skel-sweep{ to{ transform:translateX(100%); } }
+.skel-text{ height:.9em; margin:.25em 0; }
+.skel-title{ height:1.5rem; width:40%; margin-bottom:var(--space-4); }
+.skel-row{ height:44px; border-radius:0; }
+@media (prefers-reduced-motion:reduce){
+  .skel::after{ animation:none; }
+  a.card:hover, .card-interactivo:hover{ transform:none; }
+}
+
+/* ============================ EMPTY STATES ============================
+   Cap. XVI: nunca una tabla vacía a secas — ilustración simple (icono),
+   explicación y una llamada a la acción. */
+.empty-state{ display:flex; flex-direction:column; align-items:center; text-align:center; gap:var(--space-3); padding:var(--space-10) var(--space-6); }
+.empty-state[hidden]{ display:none; }
+.empty-state .ph{ font-size:2.5rem; color:var(--ink-5); }
+.empty-state h3{ font-size:var(--fs-h4); color:var(--ink-2); }
+.empty-state p{ font-size:var(--fs-body-sm); color:var(--ink-4); max-width:44ch; }
+.empty-state .btn{ margin-top:var(--space-2); }
+
+/* ============================ ALERTAS EN LÍNEA ============================
+   Sustituyen los <p role="alert"> planos: mismo lenguaje semántico que
+   badges y toasts, pero fijo en la página (errores de formulario, avisos). */
+.alert{ display:flex; align-items:flex-start; gap:.65rem; padding:.85rem 1rem; border-radius:var(--r); border:1px solid var(--line); font-size:var(--fs-body-sm); margin-bottom:var(--space-5); }
+.alert .ph{ flex-shrink:0; font-size:1.125rem; margin-top:.05rem; }
+.alert-danger{ background:var(--danger-bg); border-color:rgba(255,59,59,.3); color:#FF9B9B; }
+.alert-success{ background:var(--success-bg); border-color:rgba(61,220,155,.3); color:#8FEFCB; }
+.alert-warning{ background:var(--warning-bg); border-color:rgba(242,177,52,.3); color:#F7CE7C; }
+.alert-info{ background:var(--info-bg); border-color:rgba(62,123,255,.3); color:#9DBBFF; }
+
+/* ============================ LAYOUT DE PÁGINA ============================
+   Rework de estética (a petición de Franshu): la cabecera de cada página
+   adopta el mismo tratamiento que la cabecera del modal de jugador
+   (.modal-jugador-head) — caja con degradado de marca, en vez del bloque
+   plano de siempre. Como .page-head ya se usa en todas las páginas (Cap.
+   XVI: un solo patrón de cabecera, tarea 72), este único cambio de CSS basta
+   para que la cabecera de TODA la app se sienta igual, sin tocar el marcado
+   de cada página una por una. */
+.page-head{
+  display:flex; align-items:flex-start; justify-content:space-between; gap:var(--space-5); flex-wrap:wrap;
+  background:linear-gradient(150deg, var(--surface-2), var(--surface));
+  border:1px solid var(--line); border-radius:var(--r-lg);
+  padding:var(--space-6) var(--space-7); margin-bottom:var(--space-7);
+}
+.page-head p{ margin-top:.4rem; color:var(--ink-3); font-size:var(--fs-body-sm); max-width:60ch; }
+.page-head .h1{ font-size:1.85rem; font-weight:700; letter-spacing:-.02em; }
+@media (max-width:640px){ .page-head{ padding:var(--space-5); } .page-head .h1{ font-size:1.5rem; } }
+/* Alias de compatibilidad: .page-head-hero ya no añade nada que .page-head no tenga. */
+.page-head-hero{ background:linear-gradient(150deg, var(--surface-2), var(--surface)); border:1px solid var(--line); border-radius:var(--r-lg); padding:var(--space-6) var(--space-7); margin-bottom:var(--space-7); }
+
+/* ============================ SECCIONES DE TARJETA ============================
+   Generalización del patrón del modal de jugador (.traspaso-section-label):
+   etiqueta con icono en vez de un <h3> plano, y separador con hairline entre
+   secciones consecutivas de una misma tarjeta. Pensada para adoptarse en
+   cualquier tarjeta del resto de la app, no solo en el modal. */
+.card-seccion-label{ display:flex; align-items:center; gap:.5rem; font-size:var(--fs-caption); font-weight:600; letter-spacing:.03em; text-transform:uppercase; color:var(--ink-3); margin-bottom:.75rem; }
+.card-seccion-label i{ font-size:1rem; color:var(--accent); }
+.card-seccion + .card-seccion{ margin-top:1.5rem; padding-top:1.5rem; border-top:1px solid var(--line); }
+.sec{ padding-block:var(--space-9); }
+.grid-2{ display:grid; grid-template-columns:1fr 1fr; gap:var(--space-6); }
+.grid-3{ display:grid; grid-template-columns:repeat(3,1fr); gap:var(--space-6); }
+@media (max-width:820px){ .grid-2,.grid-3{ grid-template-columns:1fr; } }
+
+/* Aviso legal: mismo hairline superior que el resto de bloques de cierre. */
+.legal-note{ border-top:1px solid var(--line); padding-top:var(--space-5); margin-top:var(--space-9); font-size:var(--fs-caption); color:var(--ink-5); line-height:1.6; }
+
+/* ============================ SIMULADOR DE SUPERTÉCNICAS (Mi Estrategia) ============================
+   Nada de esto toca el servidor: jugadores y supertécnicas de prueba viven
+   solo en localStorage del navegador (mi_estrategia.php, TRsuper). */
+.super-intro-card{ background:linear-gradient(150deg, var(--surface-2), var(--surface)); }
+.super-roster-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:1.25rem; margin-top:.5rem; }
+.super-jugador-card{ display:flex; flex-direction:column; gap:.9rem; }
+.super-jugador-head{ display:flex; align-items:center; justify-content:space-between; gap:.5rem; }
+.super-jugador-nombre{ font-size:1.1rem; font-weight:700; letter-spacing:-.01em; display:flex; align-items:center; gap:.5rem; }
+.super-jugador-nombre i{ color:var(--accent); }
+.super-tecnicas-lista{ display:flex; flex-direction:column; gap:.5rem; }
+.super-tecnica-item{
+  background:var(--surface-2); border:1px solid var(--line); border-radius:var(--r-sm);
+  padding:.6rem .75rem; display:flex; flex-direction:column; gap:.4rem;
+  border-left:3px solid var(--afinidad-color, var(--accent));
+}
+.super-tecnica-item-head{ display:flex; align-items:center; justify-content:space-between; gap:.5rem; }
+.super-tecnica-nombre{ font-weight:600; font-size:var(--fs-body-sm); }
+.super-tecnica-badges{ display:flex; flex-wrap:wrap; gap:.35rem; }
+.super-afinidad-dot{ width:8px; height:8px; border-radius:50%; background:var(--afinidad-color, var(--accent)); display:inline-block; flex-shrink:0; }
+.super-tecnica-form-grid{ display:grid; grid-template-columns:1fr 1fr; gap:.6rem; }
+@media (max-width:480px){ .super-tecnica-form-grid{ grid-template-columns:1fr; } }
+/* Metarráfaga detectada: chip con brillo pulsante, para que se note que algo
+   "se ha activado" — el mismo lenguaje visual que la app ya usa para
+   celebraciones (bold/fill de Phosphor solo en celebración). */
+.super-mr-chip{
+  display:flex; align-items:center; gap:.55rem;
+  background:linear-gradient(135deg, rgba(255,177,104,.18), rgba(255,81,0,.08));
+  border:1px solid rgba(255,177,104,.4); border-radius:var(--r); padding:.6rem 1rem;
+  font-weight:600; font-size:var(--fs-body-sm);
+  animation:super-mr-pulso 2.4s ease-in-out infinite;
+}
+.super-mr-chip i{ color:var(--accent-hover); font-size:1.15rem; }
+@keyframes super-mr-pulso{
+  0%,100%{ box-shadow:0 0 16px -8px rgba(255,129,0,.45); }
+  50%{ box-shadow:0 0 30px -6px rgba(255,129,0,.8); }
+}
+@media (prefers-reduced-motion:reduce){ .super-mr-chip{ animation:none; } }
+
+/* Checklist de TODAS las metarráfagas (no solo las activas): gris = sin
+   empezar, ámbar = parcial, verde = completa. */
+.super-mr-check-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:.6rem; margin-top:.9rem; }
+.super-mr-check{
+  background:var(--surface-2); border:1px solid var(--line); border-radius:var(--r-sm);
+  padding:.65rem .85rem; display:flex; flex-direction:column; gap:.35rem;
+  border-left:3px solid var(--line-2);
+}
+.super-mr-check-head{ display:flex; align-items:center; gap:.5rem; }
+.super-mr-check-nombre{ font-weight:600; font-size:var(--fs-body-sm); }
+.super-mr-check-icono{ font-size:1.05rem; color:var(--ink-4); flex-shrink:0; }
+.super-mr-check[data-estado="parcial"]{ border-left-color:var(--warning); background:linear-gradient(135deg, var(--warning-bg), var(--surface-2)); }
+.super-mr-check[data-estado="parcial"] .super-mr-check-icono{ color:var(--warning); }
+.super-mr-check[data-estado="completo"]{ border-left-color:var(--success); background:linear-gradient(135deg, var(--success-bg), var(--surface-2)); }
+.super-mr-check[data-estado="completo"] .super-mr-check-icono{ color:var(--success); }
+.super-mr-check-req{ font-size:var(--fs-caption); color:var(--ink-3); display:flex; justify-content:space-between; gap:.5rem; }
+.super-mr-check-req[data-cumplido="1"]{ color:var(--success); }
+
+/* Modal de crear supertécnica: selector de tipo (súper técnica / hipertécnica). */
+.super-tipo-toggle{ display:flex; gap:.5rem; margin-bottom:1.1rem; }
+.super-tipo-toggle button{
+  flex:1; padding:.55rem .75rem; border-radius:var(--r-sm); border:1px solid var(--line-2);
+  background:var(--surface-2); color:var(--ink-3); font-weight:600; font-size:var(--fs-body-sm); cursor:pointer;
+  transition:background var(--t1) var(--ease), color var(--t1) var(--ease), border-color var(--t1) var(--ease);
+}
+.super-tipo-toggle button.on{ background:var(--accent); border-color:var(--accent); color:#fff; }

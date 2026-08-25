@@ -1,0 +1,13 @@
+{
+  "name": "Superliga Frontier",
+  "short_name": "SF Frontier",
+  "description": "No sabes lo que te pierdes hasta que lo vives.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0A0000",
+  "theme_color": "#0A0000",
+  "icons": [
+    { "src": "assets/sf-icono.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "assets/sf-icono.png", "sizes": "192x192", "type": "image/png" }
+  ]
+}

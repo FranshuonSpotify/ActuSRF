@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://superligafrontier.es/sitemap.xml

@@ -1,0 +1,66 @@
+[
+  {
+    "path": "README_v5_2.txt",
+    "size": 654
+  },
+  {
+    "path": "api/admin_borrar_datos.php",
+    "size": 453
+  },
+  {
+    "path": "api/cargar_datos.php",
+    "size": 2985
+  },
+  {
+    "path": "api/commit_resultado.php",
+    "size": 1024
+  },
+  {
+    "path": "api/ejecutar_tirada_semanal.php",
+    "size": 184
+  },
+  {
+    "path": "api/helpers.php",
+    "size": 12366
+  },
+  {
+    "path": "api/obtener_historial.php",
+    "size": 973
+  },
+  {
+    "path": "api/obtener_lesiones_activas.php",
+    "size": 542
+  },
+  {
+    "path": "api/registrar_partido.php",
+    "size": 1042
+  },
+  {
+    "path": "api/reset_semana.php",
+    "size": 630
+  },
+  {
+    "path": "assets/css/styles.css",
+    "size": 13270
+  },
+  {
+    "path": "assets/js/app.js",
+    "size": 24477
+  },
+  {
+    "path": "data/estado_equipos.json",
+    "size": 3
+  },
+  {
+    "path": "data/estado_semanal.json",
+    "size": 67
+  },
+  {
+    "path": "data/lesiones_historial.json",
+    "size": 3
+  },
+  {
+    "path": "index.php",
+    "size": 9824
+  }
+]

@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Gestor · Superliga Frontier</title>
+<meta name="robots" content="noindex,nofollow">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+
+<!-- El Design System v3 entero, sin copiar ni un token: tipografías, .card,
+     .btn, .badge, .chip y las variables de :root vienen de aquí. -->
+<link rel="stylesheet" href="../_fuente/styles.css">
+<link rel="stylesheet" href="css/gestor.css">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/bold/style.css">
+</head>
+<body>
+
+<a class="skip-link" href="#vista">Saltar al contenido</a>
+
+<div class="g-marca">
+  <span class="pip" aria-hidden="true"></span>
+  <b>Gestor</b>
+  <span class="mono" style="font-size:.625rem;color:var(--ink-4);letter-spacing:.1em">SF</span>
+</div>
+
+<header class="g-barra">
+  <button class="btn btn-secondary btn-sm" id="b-abrir"><i class="ph ph-folder-open"></i> Abrir</button>
+  <button class="btn btn-primary btn-sm" id="b-guardar" disabled><i class="ph-bold ph-floppy-disk"></i> Guardar</button>
+  <input type="file" id="f-abrir" accept=".json,application/json" hidden>
+
+  <span class="sep"></span>
+
+  <button class="btn-icon" data-a="prefs:ayuda" aria-label="Atajos y accesibilidad" title="Atajos y accesibilidad (?)"><i class="ph ph-question"></i></button>
+
+  <span class="g-estado" id="estado" data-e="vacio" aria-live="polite">
+    <span class="punto" aria-hidden="true"></span>
+    <span id="estado-txt">Sin datos</span>
+    <span class="nom" id="estado-nom"></span>
+  </span>
+  <span class="g-modo" id="modo"></span>
+</header>
+
+<nav class="g-nav" id="nav" aria-label="Secciones del gestor">
+  <button class="g-buscar" id="b-buscar" disabled>
+    <i class="ph ph-magnifying-glass" aria-hidden="true"></i> Buscar…
+    <kbd>Ctrl K</kbd>
+  </button>
+  <span class="grupo">Competición</span>
+  <a href="#resumen"  data-s="resumen"><i class="ph ph-squares-four"></i> Resumen</a>
+  <a href="#equipos"  data-s="equipos"><i class="ph ph-shield"></i> Equipos <span class="cnt" id="n-equipos"></span></a>
+  <a href="#partidos" data-s="partidos"><i class="ph ph-soccer-ball"></i> Partidos <span class="cnt" id="n-partidos"></span></a>
+  <a href="#copa"     data-s="copa"><i class="ph ph-trophy"></i> Copa <span class="cnt" id="n-copa"></span></a>
+  <a href="#traspasos" data-s="traspasos"><i class="ph ph-arrows-left-right"></i> Traspasos <span class="cnt" id="n-traspasos"></span></a>
+  <a href="#sorteos" data-s="sorteos"><i class="ph ph-shuffle"></i> Sorteos</a>
+  <a href="#estadisticas" data-s="estadisticas"><i class="ph ph-chart-bar"></i> Estadísticas</a>
+  <a href="#graficos" data-s="graficos"><i class="ph ph-chart-line-up"></i> Gráficos</a>
+  <a href="#redes" data-s="redes"><i class="ph ph-image-square"></i> Redes</a>
+  <span class="grupo">Contenido</span>
+  <a href="#noticias" data-s="noticias"><i class="ph ph-newspaper"></i> Noticias <span class="cnt" id="n-noticias"></span></a>
+  <a href="#resenas" data-s="resenas"><i class="ph ph-quotes"></i> Reseñas <span class="cnt" id="n-resenas"></span></a>
+  <a href="#config"   data-s="config"><i class="ph ph-sliders"></i> Configuración</a>
+  <span class="grupo">Archivo</span>
+  <a href="#temporadas" data-s="temporadas"><i class="ph ph-archive"></i> Temporadas <span class="cnt" id="n-temporadas"></span></a>
+  <a href="#nombres" data-s="nombres"><i class="ph ph-text-aa"></i> Nombres <span class="mal" id="n-nombres"></span></a>
+  <a href="#papelera" data-s="papelera"><i class="ph ph-trash"></i> Papelera <span class="cnt" id="n-papelera"></span></a>
+  <a href="#datos"    data-s="datos"><i class="ph ph-shield-check"></i> Datos <span class="mal" id="n-datos"></span></a>
+</nav>
+
+<main class="g-vista" id="vista">
+
+  <!-- Pantalla de entrada: sin archivo no hay nada que gestionar. -->
+  <section class="seccion on" id="s-inicio">
+    <div class="g-cab"><div>
+      <h1>Gestor de la Superliga Frontier</h1>
+      <p>Edita <span class="mono">datos_oficiales.json</span>, el archivo que alimenta la web pública.</p>
+    </div></div>
+    <div class="card" style="padding:2rem;max-width:640px">
+      <p style="font-size:.875rem;color:var(--ink-2);margin-bottom:1.25rem">
+        Abre el archivo para empezar. Nada se guarda hasta que lo pidas.
+      </p>
+      <button class="btn btn-primary" id="b-abrir-2"><i class="ph-bold ph-folder-open"></i> Abrir datos_oficiales.json</button>
+      <p class="ayuda" id="aviso-modo" style="margin-top:1.25rem;font-size:.75rem;color:var(--ink-4)"></p>
+    </div>
+    <div class="g-hueco"></div>
+    <div id="copias-inicio"></div>
+  </section>
+
+  <section class="seccion" id="s-resumen"></section>
+  <section class="seccion" id="s-equipos"></section>
+  <section class="seccion" id="s-partidos"></section>
+  <section class="seccion" id="s-copa"></section>
+  <section class="seccion" id="s-traspasos"></section>
+  <section class="seccion" id="s-sorteos"></section>
+  <section class="seccion" id="s-nombres"></section>
+  <section class="seccion" id="s-papelera"></section>
+  <section class="seccion" id="s-estadisticas"></section>
+  <section class="seccion" id="s-graficos"></section>
+  <section class="seccion" id="s-redes"></section>
+  <section class="seccion" id="s-noticias"></section>
+  <section class="seccion" id="s-resenas"></section>
+  <section class="seccion" id="s-config"></section>
+  <section class="seccion" id="s-temporadas"></section>
+  <section class="seccion" id="s-datos"></section>
+
+</main>
+
+<!-- Modal genérico. Uno solo, reutilizado: dos modales distintos con el mismo
+     comportamiento son dos sitios donde arreglar el mismo fallo. -->
+<div class="ov" id="ov" role="dialog" aria-modal="true" aria-labelledby="ov-tit">
+  <div class="ov-panel medio" id="ov-panel">
+    <div class="ov-head">
+      <h3 id="ov-tit"></h3>
+      <button class="btn-icon" id="ov-x" aria-label="Cerrar"><i class="ph ph-x"></i></button>
+    </div>
+    <div class="ov-cuerpo" id="ov-cuerpo"></div>
+    <div class="ov-pie" id="ov-pie"></div>
+  </div>
+</div>
+
+<!-- Buscador global -->
+<div class="ov" id="ov-buscar" role="dialog" aria-modal="true" aria-label="Buscar">
+  <div class="ov-panel medio">
+    <div style="padding:var(--g4)">
+      <input class="inp" type="search" id="q" placeholder="Buscar equipos, jugadores, partidos, noticias…" autocomplete="off">
+    </div>
+    <div class="ov-cuerpo" id="q-res" style="padding-top:0"></div>
+  </div>
+</div>
+
+<!-- Modo presentacion y cuadro en grande: overlay unico, a pantalla completa. -->
+<div id="tv" tabindex="-1" role="region" aria-label="Modo presentacion"></div>
+
+<div class="g-avisos" id="avisos" aria-live="polite" aria-atomic="false"></div>
+
+<script src="js/core.js"></script>
+<script src="js/dnd.js"></script>
+<script src="js/fileio.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/vista-equipos.js"></script>
+<script src="js/vista-partidos.js"></script>
+<script src="js/vista-traspasos.js"></script>
+<script src="js/vista-sorteos.js"></script>
+<script src="js/vista-papelera.js"></script>
+<script src="js/vista-nombres.js"></script>
+<script src="js/vista-estadisticas.js"></script>
+<script src="js/vista-graficos.js"></script>
+<script src="js/vista-redes.js"></script>
+<script src="js/vista-contenido.js"></script>
+<script src="js/vista-temporadas.js"></script>
+<script src="js/vista-datos.js"></script>
+<script src="js/presentacion.js"></script>
+<script src="js/preferencias.js"></script>
+</body>
+</html>
