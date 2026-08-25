@@ -987,3 +987,78 @@ lados. Corregido: marcar no toca el marcador.
 `node propuesta-web/gestor/test-core.js` — 27 comprobaciones. Las 16 secciones
 pintan, 0 errores de JavaScript, 0 críticos de integridad. En Copa, **32
 escudos y ninguno sin clase de tamaño**.
+
+---
+
+## La web pasa a `htdocs/` y se aplican los tres parches de `app.js`
+
+**Alejandro sustituyó `propuesta-web/` por `htdocs/`**, que es la web
+actualizada de verdad. `propuesta-web/` ya no existe en disco.
+
+**El gestor vivía dentro de `propuesta-web/gestor/` y se borró con ella.** Se
+ha restaurado desde git en **`htdocs/gestor/`**, sin tocar una línea: las dos
+rutas relativas que usaba (`../_fuente/styles.css` y `../favicon.svg`)
+resuelven igual de bien desde su nueva casa. Los 27 checks de `test-core.js` y
+los 7 de `test-ciclo.js` pasan contra el archivo nuevo.
+
+> Que el esquema no haya cambiado no es casualidad: `htdocs/datos_oficiales.json`
+> trae `config.formatos` y `config.grupos_copa`, dos claves que **escribe el
+> propio gestor**. Los datos de htdocs descienden de datos ya editados con él.
+
+### Los tres parches, aplicados
+
+`CLAUDE.md` §7 pedía confirmación explícita antes de tocar la web pública.
+Alejandro la dio («haz los parches en la web oficial»). Van sobre
+`htdocs/_fuente/app.js` y se propagan a `index.html` con `node _fuente/build.js`.
+
+Los tres son **aditivos y con vuelta atrás**: si el dato nuevo no está en el
+archivo, la web se comporta exactamente igual que antes. Verificado en
+navegador quitando y poniendo el dato, comparando el texto resultante.
+
+**1. `renderPlayoff()` — el play-off real manda sobre el cuadro calculado.**
+Antes construía el cuadro *entero* desde `orderStandings()` y no miraba
+`bd.partidos_liga` en ningún momento, así que la final salía siempre en blanco
+y marcar un partido como PLAY IN desde el gestor no cambiaba nada. Ahora, si
+hay partidos con una fase de `FASES_PO`, se dibujan ellos: marcador real,
+ganador resaltado con `.br-win` y ficha del partido al pulsar, por la misma
+delegación `[data-comp][data-idx]` que ya usaban Resultados y Copa. Sin
+partidos cargados, el cuadro previsto de siempre.
+
+> `FASES_PO` incluye `DESEMPATE`, que estaba en el vocabulario del gestor pero
+> no en el borrador del parche. Y las etiquetas de ronda se traducen
+> reutilizando `FASE_KEY`/`faseName()`, con dos claves que ya existían
+> (`zone.playin.part`, `zone.playin`): cero entradas nuevas de i18n.
+
+**2. `palmares()` — campeones apuntados a mano.** Deducía el campeón como «el
+que más puntos tiene», que en una liga con play-off es sencillamente falso.
+Ahora `historial_temporadas[].campeones` manda sobre lo deducido.
+
+> **Corregido sobre el borrador:** aquél sustituía el palmarés *en bloque*, así
+> que apuntar sólo al campeón de Superliga **borraba a los de Ascenso y Copa**.
+> La versión aplicada decide competición a competición: cada una usa el
+> campeón apuntado si lo hay y el deducido si no. Las filas con `equipo` vacío
+> se ignoran, que es como el gestor representa «vuelve a calcularlo por puntos».
+
+**3. `renderQuotes()` — reseñas editables.** El editor de reseñas del gestor
+llevaba desde su commit escribiendo en `config.resenas` sin que la web las
+mirara. Ahora, si el archivo trae reseñas, mandan ellas; si no, el array
+`QUOTES` de ejemplo. De paso, `q.i` pasa por `esc()`: dejó de ser una ruta fija
+del repo y ahora es un dato que se edita desde fuera.
+
+> El campo de autor cambió de significado en la web nueva: ya no es texto sino
+> una **clave de rol** (`superliga`/`ascenso`/`exjugador`) que se traduce con
+> `T('resenas.rol.'+q.a, q.a)`. Como `T()` cae al propio valor cuando no
+> encuentra la clave, el texto libre que escribe el gestor sale tal cual. Nada
+> que cambiar, pero conviene saberlo.
+
+### Pendiente que ha traído el cambio de carpeta
+
+- **Los 31 partidos de victoria administrativa no están en `htdocs/`.** Se
+  marcaron sobre `datos_oficiales.json` de la raíz (commit `8336a83`), y el
+  archivo de htdocs es cinco días más nuevo y viene por otra rama: trae el
+  cuadro de Copa completo (30 partidos frente a 6) pero `no_jugado` a cero en
+  las tres competiciones. Hay que volver a marcarlos; el gestor lo hace en
+  bloque desde Partidos.
+- **Cuál de los dos `datos_oficiales.json` manda.** El de la raíz era la fuente
+  de verdad hasta ahora; el de `htdocs/` es más nuevo y es el que sirve la web.
+  Lo decide Alejandro.

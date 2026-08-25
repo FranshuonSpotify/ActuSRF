@@ -1,0 +1,1301 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>404 · Superliga Frontier</title>
+<meta name="theme-color" content="#0A0000">
+
+<link rel="icon" type="image/png" href="/favicon-96x96.png?v=spermor" sizes="96x96">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg?v=spermor">
+<link rel="shortcut icon" href="/favicon.ico?v=spermor">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=spermor">
+<meta name="apple-mobile-web-app-title" content="Superliga Frontier">
+<link rel="manifest" href="/site.webmanifest?v=spermor">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<style>
+/* ==========================================================================
+   SUPERLIGA FRONTIER — Design System v3
+   Referencia de acabado: Vercel / Linear / Apple.
+   1. Negro real (#000) — el negro cálido anterior leía "sucio", no premium.
+   2. 95% monocromo. El naranja es acento RARO y preciso, nunca decoración.
+   3. Jerarquía por tamaño y espacio, no por color ni bordes de colores.
+   4. Superficies definidas por hairlines (1px alpha), no por rellenos.
+   5. Profundidad real: glow radial, spotlight que sigue al cursor, capas.
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Teko:wght@500;600;700&family=Fraunces:ital,opsz,wght@1,9..144,300;1,9..144,400&family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+JP:wght@400;500;700&family=Noto+Sans+KR:wght@400;500;700&display=swap');
+
+:root{
+  /* Ancho de la barra de scroll del navegador, medido en tiempo real por JS
+     (observeReveals / init). Sirve para que los elementos a sangre lleguen
+     de verdad al borde físico de la ventana; ver .hero-photo. */
+  --sbw:0px;
+  --bg:#000000;
+  --bg-raised:#0A0A0A;
+  --surface:#0E0E0E;
+  --surface-2:#141414;
+  --surface-3:#1C1C1C;
+
+  --line:rgba(255,255,255,.07);
+  --line-2:rgba(255,255,255,.12);
+  --line-3:rgba(255,255,255,.20);
+
+  --ink:#EDEDED;
+  --ink-2:#A1A1A1;
+  --ink-3:#7A7A7A;
+  --ink-4:#525252;
+  --ink-5:#2E2E2E;
+
+  --accent:#FF5100;
+  --accent-2:#FF7A38;
+  --accent-glow:rgba(255,81,0,.28);
+  --gold:#FFC94A;
+
+  --c-superliga:#FF5100;
+  --c-ascenso:#3E7BFF;
+  --c-copa:#FF3B3B;
+
+  /* Afinidades elementales — nombres oficiales: Fuego, Montaña, Bosque, Aire, Neutro */
+  --af-fuego:#FF5A3C; --af-aire:#35D0C6; --af-bosque:#46B45F; --af-montana:#C08A3E; --af-neutro:#9AA0A6;
+  --pos-por:#FFC94A; --pos-def:#3E7BFF; --pos-med:#46B45F; --pos-del:#FF3B3B;
+
+  --f-sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --f-display:'Teko',var(--f-sans);
+  --f-serif:'Fraunces',Georgia,serif;
+  --f-mono:'JetBrains Mono',ui-monospace,monospace;
+
+  /* Lenguaje de formas: redondeado tipo Vercel / Apple (sustituye al angular
+     del Brand Identity v1 — decisión de dirección confirmada en revisión). */
+  --r-sm:8px; --r:12px; --r-lg:16px; --r-xl:24px; --r-full:999px;
+
+  --pad-x:clamp(1.25rem,5vw,5rem);
+  --sec:clamp(5rem,11vw,10rem);
+
+  --ease:cubic-bezier(.16,1,.3,1);
+  --ease-io:cubic-bezier(.4,0,.2,1);
+  --t1:150ms; --t2:280ms; --t3:600ms;
+
+  color-scheme:dark;
+}
+
+*,*::before,*::after{ box-sizing:border-box; margin:0; padding:0; }
+html{ background:var(--bg); scroll-behavior:smooth; -webkit-text-size-adjust:100%; }
+body{
+  background:var(--bg); color:var(--ink); font-family:var(--f-sans);
+  font-size:16px; line-height:1.55; letter-spacing:-.011em;
+  -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+  overflow-x:clip; min-height:100vh;
+}
+img{ max-width:100%; display:block; }
+a{ color:inherit; text-decoration:none; }
+button,input,select,textarea{ font:inherit; color:inherit; }
+button{ background:none; border:none; cursor:pointer; }
+ul,ol{ list-style:none; }
+::selection{ background:var(--accent); color:#fff; }
+::-webkit-scrollbar{ width:10px; height:10px; }
+::-webkit-scrollbar-track{ background:transparent; }
+::-webkit-scrollbar-thumb{ background:#242424; border-radius:6px; border:3px solid #000; }
+::-webkit-scrollbar-thumb:hover{ background:#333; }
+:focus-visible{ outline:2px solid var(--accent); outline-offset:3px; border-radius:2px; }
+.sr-only{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; }
+.skip-link{ position:absolute; left:-9999px; top:0; background:var(--ink); color:#000; padding:.75rem 1.25rem; z-index:9999; font-weight:600; }
+.skip-link:focus{ left:0; }
+
+.wrap{ width:100%; max-width:1240px; margin:0 auto; padding-inline:var(--pad-x); }
+.wrap-wide{ max-width:1480px; }
+
+/* ============================ TIPOGRAFÍA ============================ */
+.eyebrow{
+  font-family:var(--f-mono); font-size:.6875rem; font-weight:500;
+  letter-spacing:.16em; text-transform:uppercase; color:var(--ink-3);
+  display:inline-flex; align-items:center; gap:.6rem;
+}
+.eyebrow::before{ content:''; width:6px; height:6px; border-radius:50%; background:var(--accent); box-shadow:0 0 10px var(--accent); flex-shrink:0; }
+.eyebrow-plain::before{ display:none; }
+
+h1,h2,h3,h4,h5{ font-weight:600; letter-spacing:-.035em; line-height:1.04; }
+.h-display{ font-size:clamp(3rem,7.5vw,6.5rem); font-weight:700; letter-spacing:-.045em; line-height:.95; }
+.h1{ font-size:clamp(2.5rem,5.5vw,4.25rem); font-weight:600; letter-spacing:-.04em; line-height:1.02; }
+.h2{ font-size:clamp(1.75rem,3vw,2.5rem); font-weight:600; letter-spacing:-.035em; }
+.h3{ font-size:clamp(1.25rem,2vw,1.5rem); font-weight:600; letter-spacing:-.025em; }
+.lede{ font-size:clamp(1rem,1.35vw,1.1875rem); line-height:1.6; color:var(--ink-2); max-width:56ch; font-weight:400; letter-spacing:-.014em; }
+.muted{ color:var(--ink-3); }
+.mono{ font-family:var(--f-mono); font-variant-numeric:tabular-nums; letter-spacing:-.02em; }
+.serif-it{ font-family:var(--f-serif); font-style:italic; font-weight:300; letter-spacing:-.02em; }
+.grad-text{ background:linear-gradient(180deg,#FFFFFF 30%,#8A8A8A 100%); -webkit-background-clip:text; background-clip:text; color:transparent; }
+
+/* ============================ BOTONES ============================ */
+.btn{
+  display:inline-flex; align-items:center; justify-content:center; gap:.5rem;
+  height:44px; padding:0 1.25rem; border-radius:var(--r-sm);
+  font-size:.875rem; font-weight:500; letter-spacing:-.01em;
+  border:1px solid transparent; position:relative; white-space:nowrap;
+  transition:background var(--t1) var(--ease-io), border-color var(--t1), color var(--t1), transform var(--t1), box-shadow var(--t2);
+}
+.btn:active{ transform:scale(.985); }
+.btn-primary{ background:#FFFFFF; color:#000; font-weight:600; }
+.btn-primary:hover{ background:#E4E4E4; box-shadow:0 8px 30px -8px rgba(255,255,255,.3); }
+.btn-secondary{ background:transparent; border-color:var(--line-2); color:var(--ink); }
+.btn-secondary:hover{ border-color:var(--line-3); background:rgba(255,255,255,.04); }
+.btn-accent{ background:var(--accent); color:#fff; font-weight:600; }
+.btn-accent:hover{ background:var(--accent-2); box-shadow:0 8px 30px -8px var(--accent-glow); }
+.btn-lg{ height:52px; padding:0 1.75rem; font-size:.9375rem; border-radius:var(--r); }
+.btn-sm{ height:36px; padding:0 .875rem; font-size:.8125rem; }
+.btn-icon{ width:38px; height:38px; padding:0; border-radius:var(--r-sm); color:var(--ink-3); }
+.btn-icon:hover{ color:var(--ink); background:rgba(255,255,255,.06); }
+
+/* ============================ SUPERFICIES ============================ */
+.card{
+  background:var(--surface); border:1px solid var(--line);
+  border-radius:var(--r-lg); position:relative; overflow:hidden;
+  transition:border-color var(--t2) var(--ease-io), background var(--t2), transform var(--t2) var(--ease);
+}
+.card:hover{ border-color:var(--line-2); }
+.spotlight{ position:relative; }
+.spotlight::before{
+  content:''; position:absolute; inset:0; border-radius:inherit; pointer-events:none;
+  opacity:0; transition:opacity var(--t2) var(--ease-io); z-index:0;
+  background:radial-gradient(340px circle at var(--mx,50%) var(--my,50%), rgba(255,255,255,.07), transparent 65%);
+}
+.spotlight:hover::before{ opacity:1; }
+.spotlight > *{ position:relative; z-index:1; }
+.edge-top::after{ content:''; position:absolute; top:0; left:10%; right:10%; height:1px; pointer-events:none; background:linear-gradient(90deg,transparent,rgba(255,255,255,.35),transparent); }
+
+/* ============================ BADGES ============================ */
+.badge{
+  display:inline-flex; align-items:center; gap:.375rem;
+  font-family:var(--f-mono); font-size:.625rem; font-weight:500;
+  letter-spacing:.1em; text-transform:uppercase;
+  padding:.32rem .65rem; border-radius:var(--r-full);
+  background:rgba(255,255,255,.06); color:var(--ink-2);
+}
+.badge-superliga{ background:rgba(255,81,0,.13); color:#FF8A4F; }
+.badge-ascenso{ background:rgba(62,123,255,.13); color:#7BA3FF; }
+.badge-copa{ background:rgba(255,59,59,.13); color:#FF7B7B; }
+.badge-gold{ background:rgba(255,201,74,.13); color:var(--gold); }
+.badge-live{ background:rgba(255,81,0,.13); color:#FF8A4F; }
+.badge-live .pulse{ width:5px; height:5px; border-radius:50%; background:var(--accent); animation:pulse 2s var(--ease-io) infinite; }
+@keyframes pulse{ 0%,100%{ opacity:1; box-shadow:0 0 0 0 var(--accent-glow); } 50%{ opacity:.6; box-shadow:0 0 0 5px transparent; } }
+
+.chip{ display:inline-flex; align-items:center; gap:.3rem; font-family:var(--f-mono); font-size:.6875rem; font-weight:500; padding:.22rem .5rem; border-radius:var(--r-full); }
+.chip-por{ background:rgba(255,201,74,.14); color:var(--pos-por); }
+.chip-def{ background:rgba(62,123,255,.14); color:var(--pos-def); }
+.chip-med{ background:rgba(70,180,95,.14); color:var(--pos-med); }
+.chip-del{ background:rgba(255,59,59,.14); color:var(--pos-del); }
+
+.af{ display:inline-flex; align-items:center; gap:.35rem; font-size:.75rem; color:var(--ink-3); }
+.af i{ width:7px; height:7px; border-radius:50%; display:block; flex-shrink:0; }
+.af-fuego i{ background:var(--af-fuego); box-shadow:0 0 8px var(--af-fuego); }
+.af-aire i{ background:var(--af-aire); box-shadow:0 0 8px var(--af-aire); }
+.af-bosque i{ background:var(--af-bosque); box-shadow:0 0 8px var(--af-bosque); }
+.af-montana i{ background:var(--af-montana); box-shadow:0 0 8px var(--af-montana); }
+.af-neutro i{ background:var(--af-neutro); box-shadow:0 0 8px var(--af-neutro); }
+/* variante compacta en píldora, para listados densos (goleadores) */
+.af-pill{ padding:.22rem .5rem .22rem .42rem; border-radius:var(--r-full); background:rgba(255,255,255,.05); font-size:.6875rem; font-family:var(--f-mono); }
+
+/* ============================ REVEALS ============================ */
+/* Los reveals sólo se ocultan si JS está vivo y ha marcado <html class="anim">.
+   Sin JS —o si el IntersectionObserver nunca dispara— el contenido se ve igual:
+   una animación de entrada jamás debe poder dejar la web en blanco. */
+.rv{ transition:opacity 800ms var(--ease), transform 800ms var(--ease); }
+html.anim .rv{ opacity:0; transform:translateY(20px); }
+html.anim .rv.in{ opacity:1; transform:none; }
+.rv-d1{ transition-delay:80ms; } .rv-d2{ transition-delay:160ms; } .rv-d3{ transition-delay:240ms; } .rv-d4{ transition-delay:320ms; }
+
+/* ============================ PRELOADER / CURSOR ============================ */
+/* ============================ PANTALLA DE CARGA ============================
+   El logo en blanco entra con una revelación de máscara vertical, recibe un
+   barrido de luz y se asienta; debajo, una barra de progreso fina y el
+   nombre de la liga en mono con las letras separándose. Al terminar, todo el
+   bloque se va hacia arriba con un desenfoque muy corto. */
+#pre{
+  position:fixed; inset:0; z-index:9998; background:#000;
+  display:grid; place-items:center;
+  transition:opacity 700ms var(--ease), visibility 700ms;
+}
+#pre.done{ opacity:0; visibility:hidden; pointer-events:none; }
+#pre.done .pre-in{ transform:translateY(-14px); filter:blur(6px); opacity:0; }
+#pre::after{  /* halo cálido muy tenue, coherente con la marca */
+  content:''; position:absolute; left:50%; top:50%; width:min(760px,90vw); height:420px;
+  transform:translate(-50%,-50%); pointer-events:none;
+  background:radial-gradient(ellipse at center, rgba(255,81,0,.10), transparent 65%);
+  filter:blur(30px);
+}
+.pre-in{
+  position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; gap:1.75rem;
+  transition:transform 700ms var(--ease), filter 700ms var(--ease), opacity 700ms var(--ease);
+}
+.pre-mark{ position:relative; overflow:hidden; padding:.25rem 0; }
+.pre-logo{
+  width:clamp(150px,22vw,230px); height:auto; display:block;
+  animation:preReveal 1100ms var(--ease) both;
+}
+@keyframes preReveal{
+  0%   { clip-path:inset(100% 0 0 0); transform:translateY(14px) scale(.985); opacity:0; }
+  60%  { opacity:1; }
+  100% { clip-path:inset(0 0 0 0);    transform:none;                        opacity:1; }
+}
+/* barrido de luz sobre el logo */
+.pre-sweep{
+  position:absolute; inset:0; pointer-events:none;
+  background:linear-gradient(105deg,transparent 38%,rgba(255,255,255,.55) 50%,transparent 62%);
+  transform:translateX(-120%);
+  animation:preSweep 1500ms var(--ease-io) 700ms infinite;
+}
+@keyframes preSweep{ 0%{ transform:translateX(-120%); } 55%,100%{ transform:translateX(120%); } }
+.pre-track{
+  width:clamp(150px,22vw,230px); height:2px; border-radius:var(--r-full);
+  background:rgba(255,255,255,.10); overflow:hidden;
+}
+.pre-fill{
+  display:block; height:100%; width:0; border-radius:var(--r-full);
+  background:linear-gradient(90deg,var(--accent),var(--gold));
+  box-shadow:0 0 12px var(--accent-glow);
+  animation:preFill 1500ms var(--ease) forwards;
+}
+@keyframes preFill{ 0%{ width:0; } 55%{ width:72%; } 100%{ width:100%; } }
+.pre-word{
+  font-family:var(--f-mono); font-size:.625rem; font-weight:500;
+  letter-spacing:.34em; text-indent:.34em; color:var(--ink-4); text-transform:uppercase;
+  animation:preWord 1200ms var(--ease) 260ms both;
+}
+@keyframes preWord{ from{ opacity:0; letter-spacing:.14em; } to{ opacity:1; letter-spacing:.34em; } }
+@media (prefers-reduced-motion:reduce){
+  .pre-logo,.pre-sweep,.pre-fill,.pre-word{ animation:none; }
+  .pre-logo{ opacity:1; clip-path:none; }
+  .pre-fill{ width:100%; }
+}
+
+.cur{ position:fixed; top:0; left:0; width:26px; height:26px; border:1px solid rgba(255,255,255,.35); border-radius:50%; pointer-events:none; z-index:9999; transform:translate(-50%,-50%); transition:width var(--t2) var(--ease), height var(--t2) var(--ease), border-color var(--t2), background var(--t2); }
+.cur.on{ width:52px; height:52px; border-color:transparent; background:rgba(255,255,255,.10); }
+/* Sólo se ve el cursor de la web: se oculta el del sistema en todo lo que
+   sea puntero. La clase la pone el JS y sólo en dispositivos con ratón, para
+   no dejar sin cursor a quien navegue con teclado o pantalla táctil. */
+html.cur-custom, html.cur-custom *,
+html.cur-custom a, html.cur-custom button,
+html.cur-custom [role="button"], html.cur-custom input,
+html.cur-custom select, html.cur-custom textarea,
+html.cur-custom tr, html.cur-custom .card{ cursor:none !important; }
+/* El texto seleccionable conserva su cursor: escribir a ciegas en el buscador
+   sería peor experiencia que ver dos cursores. */
+html.cur-custom input:not([type="range"]), html.cur-custom textarea{ cursor:text !important; }
+@media (hover:none),(max-width:900px){ .cur{ display:none; } }
+
+/* ============================ NAV ============================ */
+.nav{ position:fixed; top:0; left:0; right:0; z-index:400; height:60px; display:flex; align-items:center; transition:background var(--t2), border-color var(--t2); border-bottom:1px solid transparent; }
+.nav.stuck{ background:rgba(0,0,0,.72); backdrop-filter:blur(14px) saturate(180%); -webkit-backdrop-filter:blur(14px) saturate(180%); border-bottom-color:var(--line); }
+.nav-in{ display:flex; align-items:center; gap:2rem; width:100%; }
+.nav-logo img{ height:24px; width:auto; }
+.nav-links{ display:flex; align-items:center; gap:1.75rem; margin-left:.5rem; }
+.nav-links a{ font-size:.8125rem; font-weight:450; color:var(--ink-3); transition:color var(--t1); padding:.25rem 0; }
+.nav-links a:hover,.nav-links a.on{ color:var(--ink); }
+.nav-right{ margin-left:auto; display:flex; align-items:center; gap:.5rem; }
+.nav-sep{ width:1px; height:20px; background:var(--line-2); margin-inline:.25rem; }
+.lang-btn{ display:flex; align-items:center; gap:.4rem; height:32px; padding:0 .5rem; border-radius:var(--r-sm); font-size:.75rem; font-weight:500; color:var(--ink-3); font-family:var(--f-mono); }
+.lang-btn:hover{ color:var(--ink); background:rgba(255,255,255,.06); }
+.lang-btn img{ width:16px; height:12px; object-fit:cover; border-radius:2px; }
+.sound-wrap{ display:flex; align-items:center; cursor:default; }
+.sound-pop{
+  width:0; height:38px; overflow:hidden; display:flex; align-items:center;
+  opacity:0; cursor:default; box-sizing:content-box;
+  transition:width var(--t2) var(--ease), opacity var(--t2) var(--ease), margin var(--t2) var(--ease);
+}
+/* 6px de margen a cada lado: el hueco donde el asa puede crecer en :hover sin
+   que el overflow:hidden del popover la recorte contra el borde. */
+.sound-wrap.open .sound-pop{ width:84px; padding-inline:6px; opacity:1; margin-right:.4rem; }
+#sound-range{
+  -webkit-appearance:none; appearance:none;
+  width:84px; height:38px; margin:0; padding:0;
+  background:transparent; border:none; outline:none; cursor:pointer;
+}
+#sound-range::-webkit-slider-runnable-track{
+  height:2px; border-radius:var(--r-full); cursor:pointer;
+  background:linear-gradient(90deg,var(--ink-3) 0%,var(--ink-3) var(--fill,10%),var(--line-2) var(--fill,10%),var(--line-2) 100%);
+  transition:background var(--t1) linear;
+}
+#sound-range:hover::-webkit-slider-runnable-track{
+  background:linear-gradient(90deg,var(--accent-2) 0%,var(--accent-2) var(--fill,10%),var(--line-2) var(--fill,10%),var(--line-2) 100%);
+}
+#sound-range::-webkit-slider-thumb{
+  -webkit-appearance:none; margin-top:-3.5px; width:9px; height:9px; border-radius:50%;
+  background:var(--ink); box-shadow:0 1px 2px rgba(0,0,0,.4);
+  cursor:pointer; transition:transform var(--t1) var(--ease),box-shadow var(--t1) var(--ease);
+}
+#sound-range:hover::-webkit-slider-thumb,#sound-range:active::-webkit-slider-thumb{
+  transform:scale(1.3); box-shadow:0 0 0 3px rgba(255,81,0,.16),0 1px 2px rgba(0,0,0,.4);
+}
+#sound-range::-moz-range-track{ height:2px; background:var(--line-2); border-radius:var(--r-full); cursor:pointer; }
+#sound-range::-moz-range-progress{ height:2px; background:var(--ink-3); border-radius:var(--r-full); cursor:pointer; }
+#sound-range:hover::-moz-range-progress{ background:var(--accent-2); }
+#sound-range::-moz-range-thumb{
+  width:9px; height:9px; border-radius:50%; background:var(--ink); border:none;
+  box-shadow:0 1px 2px rgba(0,0,0,.4); cursor:pointer;
+  transition:transform var(--t1) var(--ease);
+}
+#sound-range:hover::-moz-range-thumb,#sound-range:active::-moz-range-thumb{
+  transform:scale(1.3); box-shadow:0 0 0 3px rgba(255,81,0,.16),0 1px 2px rgba(0,0,0,.4);
+}
+.burger{ display:none; }
+@media (max-width:1040px){ .nav-links,.nav-cta{ display:none; } .burger{ display:flex; } }
+
+.drawer-bg{ position:fixed; inset:0; background:rgba(0,0,0,.6); backdrop-filter:blur(4px); z-index:490; opacity:0; visibility:hidden; transition:opacity var(--t2); }
+.drawer-bg.open{ opacity:1; visibility:visible; }
+.drawer{ position:fixed; top:0; right:0; bottom:0; width:min(88vw,340px); background:var(--bg-raised); border-left:1px solid var(--line); z-index:500; transform:translateX(100%); transition:transform var(--t2) var(--ease); padding:1.25rem; display:flex; flex-direction:column; overflow-y:auto; }
+.drawer.open{ transform:none; }
+.drawer-top{ display:flex; align-items:center; justify-content:space-between; margin-bottom:2rem; }
+.drawer nav{ display:flex; flex-direction:column; }
+.drawer nav a{ font-size:1.0625rem; font-weight:450; padding:.85rem 0; border-bottom:1px solid var(--line); color:var(--ink-2); }
+.drawer nav a:hover{ color:var(--ink); }
+
+/* ============================ HERO ============================ */
+/* HERO — fondo negro plano, a propósito.
+   La rejilla y el glow naranja sólo alcanzaban la zona central, así que el
+   área que rodea al recorte del jugador quedaba en negro liso y se leía como
+   un rectángulo pegado encima. Igualando TODO el hero a ese mismo negro, el
+   PNG se funde con el fondo sin costura visible. */
+.hero{ position:relative; min-height:100svh; display:flex; align-items:center; overflow:hidden; padding-top:60px; background:var(--bg); }
+.hero-bg{ position:absolute; inset:0; z-index:0; background:var(--bg); }
+.hero-grid,.hero-glow{ display:none; }
+/* La foto del hero es un PNG con canal alfa: todo el fundido tiene que vivir
+   en la MÁSCARA de la propia imagen, nunca en una capa opaca por encima.
+   La versión anterior pintaba tres degradados a #000 sobre toda la caja y eso
+   tapaba la rejilla y el glow del fondo — se veía un rectángulo negro sólido
+   detrás del jugador, como si la imagen fuese un JPG sin transparencia. */
+/* top+height (no bottom:0): así la foto SIEMPRE mide exactamente 100svh, sin
+   depender de cuánto texto tenga el titular en cada idioma. Antes usaba
+   top:0;bottom:0 para estirarse hasta el borde inferior de .hero, y como
+   .hero sólo tiene min-height (crece si el titular ocupa 3 líneas en vez de
+   2), la foto se estiraba y el recorte "cover" quedaba más o menos ampliado
+   según el idioma — el mismo encuadre se veía distinto en cada idioma.
+   right usa -var(--sbw) para sangrar bajo la barra de scroll: su carril es
+   transparente, así que la foto llega hasta el borde físico de la ventana
+   en vez de dejar una fina línea negra visible junto al margen. */
+.hero-photo{ position:absolute; right:calc(-1 * var(--sbw,0px)); top:0; height:100svh; width:56%; z-index:1; pointer-events:none; }
+.hero-photo img{
+  width:100%; height:100%; object-fit:cover; object-position:center 18%;
+  -webkit-mask-image:linear-gradient(90deg,transparent 0%,rgba(0,0,0,.35) 18%,#000 42%),
+                     linear-gradient(0deg,transparent 0%,#000 20%),
+                     linear-gradient(180deg,transparent 0%,#000 10%);
+  mask-image:linear-gradient(90deg,transparent 0%,rgba(0,0,0,.35) 18%,#000 42%),
+             linear-gradient(0deg,transparent 0%,#000 20%),
+             linear-gradient(180deg,transparent 0%,#000 10%);
+  -webkit-mask-composite:source-in; mask-composite:intersect;
+}
+/* Legibilidad del copy: velo suave SOLO en la mitad izquierda de la foto,
+   transparente (no #000 opaco) para que el fondo siga leyéndose a través. */
+.hero-photo::after{
+  content:''; position:absolute; inset:0; pointer-events:none;
+  background:linear-gradient(90deg,rgba(0,0,0,.92) 0%,rgba(0,0,0,.55) 26%,transparent 62%);
+}
+.hero-in{ position:relative; z-index:2; width:100%; padding-block:3rem 9rem; }
+.hero-copy{ max-width:660px; }
+.hero-title{ margin:1.5rem 0; }
+.hero-title .l2{ display:block; font-family:var(--f-serif); font-style:italic; font-weight:300; font-size:.46em; letter-spacing:-.02em; color:var(--accent-2); margin-top:.18em; }
+.hero-actions{ display:flex; gap:.75rem; flex-wrap:wrap; margin-top:2.25rem; }
+.hero-meta{ position:absolute; bottom:2.5rem; right:var(--pad-x); z-index:2; display:flex; gap:2.5rem; }
+.hero-meta div{ display:flex; flex-direction:column; gap:.15rem; }
+.hero-meta b{ font-family:var(--f-mono); font-size:1.375rem; font-weight:500; letter-spacing:-.03em; }
+.hero-meta span{ font-size:.6875rem; color:var(--ink-4); letter-spacing:.04em; text-transform:uppercase; }
+/* La pista de scroll vive en su propia banda inferior y nunca captura el
+   puntero: antes se solapaba con el CTA «Únete al Discord» y lo bloqueaba. */
+.scroll-cue{ position:absolute; bottom:2.5rem; left:var(--pad-x); z-index:1; pointer-events:none; display:flex; align-items:center; gap:.65rem; font-family:var(--f-mono); font-size:.625rem; letter-spacing:.16em; color:var(--ink-4); text-transform:uppercase; }
+.scroll-cue .track{ width:28px; height:1px; background:var(--line-3); position:relative; overflow:hidden; }
+.scroll-cue .track::after{ content:''; position:absolute; inset:0; background:var(--accent); transform:translateX(-100%); animation:cue 2s var(--ease-io) infinite; }
+@keyframes cue{ to{ transform:translateX(100%); } }
+
+@media (max-width:940px){
+  .hero{ min-height:auto; padding-top:76px; padding-bottom:3rem; display:block; }
+  .hero-in{ padding-block:0; }
+  .hero-photo{ position:relative; width:100%; height:46svh; margin-bottom:-12%; }
+  .hero-photo img{
+    object-position:center 12%;
+    -webkit-mask-image:linear-gradient(0deg,transparent 2%,#000 34%),linear-gradient(90deg,transparent 0%,#000 16%,#000 84%,transparent 100%);
+    mask-image:linear-gradient(0deg,transparent 2%,#000 34%),linear-gradient(90deg,transparent 0%,#000 16%,#000 84%,transparent 100%);
+    -webkit-mask-composite:source-in; mask-composite:intersect;
+  }
+  .hero-photo::after{ background:linear-gradient(0deg,rgba(0,0,0,.85) 2%,rgba(0,0,0,.15) 45%,transparent 78%); }
+  .hero-meta,.scroll-cue{ position:static; margin-top:2.5rem; padding:0; }
+  .hero-meta{ gap:1.75rem; flex-wrap:wrap; }
+}
+
+/* ============================ SECCIONES ============================ */
+.sec{ padding-block:var(--sec); position:relative; }
+.sec-head{ margin-bottom:3.5rem; }
+.sec-head .h1{ margin-top:1.25rem; }
+.sec-head .lede{ margin-top:1.25rem; }
+/* Titulares de sección en una sola línea SOLO donde caben de sobra.
+   Por debajo de 1000px vuelven a partirse con normalidad — nunca se recorta
+   ni se esconde texto, que es peor que un salto de línea. */
+.sec-head .lede,.block-head .lede{ max-width:56ch; }
+@media (min-width:1000px){ .nowrap{ white-space:nowrap; } }
+
+.metrics{ border-block:1px solid var(--line); background:linear-gradient(180deg,rgba(255,255,255,.02),transparent); }
+.metrics-in{ display:grid; grid-template-columns:repeat(4,1fr); }
+.metric{ padding:2.75rem 1.5rem; text-align:center; border-left:1px solid var(--line); }
+.metric:first-child{ border-left:0; }
+.metric b{ display:block; font-family:var(--f-mono); font-size:clamp(1.75rem,3.4vw,2.75rem); font-weight:500; letter-spacing:-.045em; line-height:1; }
+.metric span{ display:block; margin-top:.6rem; font-size:.6875rem; text-transform:uppercase; letter-spacing:.12em; color:var(--ink-4); }
+@media (max-width:760px){ .metrics-in{ grid-template-columns:1fr 1fr; } .metric{ padding:2rem 1rem; } .metric:nth-child(3){ border-left:0; } .metric:nth-child(n+3){ border-top:1px solid var(--line); } }
+
+/* ============================ REGLAS ============================
+   Es el argumento de venta de la liga, no un bloque de relleno de cuatro
+   tarjetas iguales. La regla que de verdad la define (jugadores verdes) ocupa
+   una pieza a ancho completo con sus cifras; las otras tres van debajo en una
+   rejilla de tres. Cada tarjeta tiene su propio halo que responde al hover. */
+/* La cabecera usa .sec-head, igual que Historia, Reseñas, Leyendas y Staff:
+   título en una línea y descripción debajo. Antes iba a dos columnas y
+   rompía el ritmo del resto de la página. */
+.rules{ position:relative; }
+
+/* Banda compacta: cuatro celdas separadas por hairlines dentro de un único
+   contenedor, la misma gramática que la banda de métricas del inicio. La
+   versión anterior ocupaba casi una pantalla entera para decir cuatro cosas;
+   ésta cabe en ~200px sin perder jerarquía. */
+.rules-strip{
+  display:grid; grid-template-columns:repeat(4,1fr);
+  border:1px solid var(--line); border-radius:var(--r-lg);
+  background:var(--surface); overflow:hidden;
+}
+.rule{
+  padding:1.5rem 1.375rem 1.625rem;
+  border-left:1px solid var(--line);
+  transition:background var(--t2) var(--ease-io);
+}
+.rule:first-child{ border-left:0; }
+.rule:hover{ background:rgba(255,255,255,.028); }
+.rule-head{ display:flex; align-items:baseline; justify-content:space-between; gap:.75rem; margin-bottom:1.125rem; }
+.rule-n{ font-family:var(--f-mono); font-size:.6875rem; letter-spacing:.16em; color:var(--ink-5); }
+.rule-fig{
+  font-family:var(--f-mono); font-size:1.5rem; font-weight:500;
+  letter-spacing:-.05em; line-height:1; color:var(--ink-2);
+  transition:color var(--t2) var(--ease-io);
+}
+.rule:first-child .rule-fig{ color:var(--accent); }   /* único acento */
+.rule:hover .rule-fig{ color:var(--ink); }
+.rule:first-child:hover .rule-fig{ color:var(--accent-2); }
+.rule h3{ font-size:1.0625rem; letter-spacing:-.025em; line-height:1.2; }
+.rule p{ font-size:.8125rem; color:var(--ink-4); line-height:1.6; margin-top:.5rem; }
+
+.rules-foot{ display:flex; align-items:center; justify-content:space-between; gap:1.5rem; flex-wrap:wrap; margin-top:1.25rem; }
+.rules-foot p{ font-size:.8125rem; color:var(--ink-5); line-height:1.6; }
+.rules-link{ display:inline-flex; align-items:center; gap:.45rem; font-size:.8125rem; color:var(--ink-3); transition:color var(--t1), gap var(--t1); }
+.rules-link:hover{ color:var(--ink); gap:.65rem; }
+
+@media (max-width:1000px){ .rules-strip{ grid-template-columns:1fr 1fr; } .rule:nth-child(3){ border-left:0; } .rule:nth-child(n+3){ border-top:1px solid var(--line); } }
+@media (max-width:560px){ .rules-strip{ grid-template-columns:1fr; } .rule{ border-left:0; } .rule + .rule{ border-top:1px solid var(--line); } }
+
+/* ============================ HISTORIA · LÍNEA TEMPORAL ============================
+   Sin fotografía: la evolución de la liga se cuenta con el propio recorrido.
+   El raíl se rellena con el scroll (--tl-p) y cada hito entra escalonado. */
+.tl-wrap{ position:relative; margin-top:clamp(2.5rem,5vw,4rem); }
+.tl-rail{
+  position:absolute; left:23px; top:14px; bottom:14px; width:2px;
+  background:var(--line-2); border-radius:var(--r-full);
+}
+.tl-rail::after{
+  content:''; position:absolute; left:0; top:0; width:100%; height:var(--tl-p,0%);
+  background:linear-gradient(180deg,var(--accent) 0%,var(--gold) 100%);
+  border-radius:var(--r-full); box-shadow:0 0 16px var(--accent-glow);
+}
+.tl-list{ display:flex; flex-direction:column; gap:1rem; }
+.tl-item{ position:relative; padding-left:72px; }
+.tl-node{
+  position:absolute; left:0; top:1.5rem; width:48px; height:48px; border-radius:50%;
+  display:grid; place-items:center; z-index:2;
+  background:var(--bg-raised); border:1px solid var(--line-2);
+  font-family:var(--f-mono); font-size:.8125rem; font-weight:600; color:var(--ink-3);
+  transition:border-color var(--t3) var(--ease), color var(--t3), box-shadow var(--t3), transform var(--t3) var(--ease);
+}
+html.anim .tl-item .tl-node{ transform:scale(.7); opacity:0; }
+html.anim .tl-item.in .tl-node{ transform:none; opacity:1; }
+.tl-item.in .tl-node{ color:var(--ink); border-color:var(--line-3); }
+.tl-node-live{ border-color:var(--accent) !important; color:var(--accent) !important; box-shadow:0 0 0 4px rgba(255,81,0,.10), 0 0 22px var(--accent-glow); }
+.tl-node-live::after{ content:''; position:absolute; inset:-1px; border-radius:50%; border:1px solid var(--accent); animation:tlPulse 2.6s var(--ease-io) infinite; }
+@keyframes tlPulse{ 0%{ transform:scale(1); opacity:.7; } 70%,100%{ transform:scale(1.45); opacity:0; } }
+.tl-card{ padding:1.5rem clamp(1.25rem,2.5vw,2rem) 1.625rem; }
+.tl-head{ display:flex; align-items:center; gap:.75rem; flex-wrap:wrap; margin-bottom:1rem; }
+/* Sin la clase .mono: ésa la usa el traductor para saltarse cifras, y aquí
+   dentro hay copy que sí debe traducirse. La tipografía se aplica igual. */
+.tl-year{ font-family:var(--f-mono); font-size:.6875rem; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-5); }
+.tl-card h3{ font-size:clamp(1.125rem,2vw,1.5rem); letter-spacing:-.03em; }
+.tl-card p{ font-size:.9375rem; color:var(--ink-3); line-height:1.7; margin-top:.75rem; max-width:72ch; }
+.tl-card strong{ color:var(--ink); font-weight:500; }
+.tl-facts{ display:flex; gap:.5rem; flex-wrap:wrap; margin-top:1.25rem; }
+.tl-fact{
+  display:inline-flex; align-items:center; gap:.5rem; padding:.45rem .75rem;
+  border:1px solid var(--line); border-radius:var(--r-full);
+  font-size:.75rem; color:var(--ink-2); background:rgba(255,255,255,.02);
+}
+.tl-fact i{ color:var(--ink-4); font-size:.875rem; }
+.tl-fact b{ font-weight:500; color:var(--ink); }
+.hist-note{ margin-top:3rem; padding-left:1.25rem; border-left:2px solid var(--ink-5); font-size:1.0625rem; color:var(--ink-2); max-width:74ch; }
+@media (max-width:640px){
+  .tl-rail{ left:17px; }
+  .tl-item{ padding-left:54px; }
+  .tl-node{ width:36px; height:36px; font-size:.6875rem; top:1.25rem; }
+}
+
+.quotes{ display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; }
+.quote{ padding:1.5rem 1.5rem 1.625rem; display:flex; flex-direction:column; gap:1.25rem; }
+.quote p{ font-size:1.0625rem; line-height:1.55; color:var(--ink); letter-spacing:-.02em; }
+.quote footer{ display:flex; align-items:center; gap:.75rem; margin-top:auto; }
+/* Las caras de los managers van a color: son personas de la comunidad, no
+   textura de fondo. El blanco y negro las convertía en decoración. */
+.quote img{ width:38px; height:38px; border-radius:50%; object-fit:cover; }
+.quote b{ display:block; font-size:.8125rem; font-weight:500; }
+.quote span{ font-size:.75rem; color:var(--ink-4); }
+.q-top{ display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; }
+.q-mark{ font-family:var(--f-serif); font-style:italic; font-size:2.75rem; line-height:.7; color:var(--ink-5); }
+.q-score{ display:inline-flex; align-items:baseline; gap:.1rem; padding:.35rem .7rem; border-radius:var(--r-full); border:1px solid var(--line-2); background:rgba(255,255,255,.03); font-family:var(--f-mono); flex-shrink:0; }
+.q-score b{ font-size:1.0625rem; font-weight:600; letter-spacing:-.04em; color:var(--gold); }
+.q-score span{ font-size:.6875rem; color:var(--ink-4); }
+.q-bar{ height:3px; border-radius:var(--r-full); background:var(--surface-3); overflow:hidden; }
+/* La barra se rellena de 0 a la nota cuando la reseña entra en pantalla. */
+.q-bar i{ display:block; height:100%; width:0; border-radius:var(--r-full); background:linear-gradient(90deg,var(--accent),var(--gold)); transition:width 1400ms var(--ease) 250ms; }
+.quote.in .q-bar i{ width:var(--w,0%); }
+html:not(.anim) .q-bar i{ width:var(--w,0%); transition:none; }
+@media (max-width:900px){ .quotes{ grid-template-columns:1fr; } }
+
+/* ============================ DATOS ============================ */
+.data{ border-top:1px solid var(--line); }
+.tabbar{ position:sticky; top:60px; z-index:150; background:rgba(0,0,0,.8); backdrop-filter:blur(14px) saturate(180%); border-bottom:1px solid var(--line); }
+.tabbar-in{ display:flex; gap:1.75rem; overflow-x:auto; scrollbar-width:none; }
+.tabbar-in::-webkit-scrollbar{ display:none; }
+.tabbar a{ padding:1rem 0; font-size:.8125rem; font-weight:450; color:var(--ink-4); white-space:nowrap; border-bottom:1.5px solid transparent; margin-bottom:-1px; transition:color var(--t1); }
+.tabbar a:hover{ color:var(--ink-2); }
+.tabbar a.on{ color:var(--ink); border-bottom-color:var(--ink); }
+
+/* scroll-margin: los anclas deben quedar por debajo de la nav (60px) + la
+   barra de pestañas (~53px), si no el título de sección queda tapado */
+.block{ padding-block:clamp(3.5rem,7vw,6rem); border-bottom:1px solid var(--line); scroll-margin-top:118px; }
+.sec{ scroll-margin-top:76px; }
+.block-head{ display:flex; align-items:flex-end; justify-content:space-between; gap:2rem; flex-wrap:wrap; margin-bottom:2rem; }
+
+.seg{ display:inline-flex; padding:3px; background:var(--surface); border:1px solid var(--line); border-radius:var(--r-sm); gap:2px; }
+.seg button{ height:32px; padding:0 .875rem; border-radius:4px; font-size:.8125rem; font-weight:450; color:var(--ink-3); transition:background var(--t1),color var(--t1); white-space:nowrap; }
+.seg button:hover{ color:var(--ink-2); }
+.seg button.on{ background:var(--surface-3); color:var(--ink); }
+
+.tbl-wrap{ border:1px solid var(--line); border-radius:var(--r-lg); overflow:hidden; background:var(--surface); }
+.tbl-scroll{ overflow-x:auto; }
+table.tbl{ width:100%; border-collapse:collapse; min-width:720px; }
+table.tbl th{ font-family:var(--f-mono); font-size:.625rem; font-weight:500; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-4); text-align:left; padding:.875rem 1rem; border-bottom:1px solid var(--line); background:var(--bg-raised); }
+table.tbl td{ padding:.6rem 1rem; font-size:.875rem; border-bottom:1px solid var(--line); vertical-align:middle; }
+table.tbl tbody tr{ cursor:pointer; transition:background var(--t1); }
+table.tbl tbody tr:hover{ background:rgba(255,255,255,.035); }
+table.tbl tbody tr:last-child td{ border-bottom:0; }
+.pos{ font-family:var(--f-mono); font-size:.8125rem; color:var(--ink-3); width:64px; white-space:nowrap; }
+.pos .zone{ display:inline-block; width:2px; height:14px; border-radius:1px; margin-right:.6rem; vertical-align:-2px; background:transparent; }
+.pos .tr-u,.pos .tr-d,.pos .tr-s{ font-size:.5rem; margin-left:.15rem; }
+.z-po{ background:var(--accent) !important; } .z-pi{ background:var(--gold) !important; }
+.z-pp{ background:var(--ink-3) !important; } .z-desc{ background:var(--c-copa) !important; } .z-asc{ background:var(--c-ascenso) !important; }
+.tm{ display:flex; align-items:center; gap:.7rem; font-weight:450; }
+.tm img{ width:22px; height:22px; object-fit:contain; flex-shrink:0; }
+.pts{ font-family:var(--f-mono); font-weight:600; }
+.frm{ display:flex; gap:3px; }
+.frm i{ width:5px; height:5px; border-radius:50%; display:block; }
+.f-w{ background:var(--af-bosque); } .f-e{ background:var(--ink-4); } .f-l{ background:var(--c-copa); }
+.tr-u{ color:var(--af-bosque); } .tr-d{ color:var(--c-copa); } .tr-s{ color:var(--ink-5); }
+.legend{ display:flex; gap:1.5rem; flex-wrap:wrap; margin-top:1.25rem; font-size:.75rem; color:var(--ink-4); }
+.legend span{ display:inline-flex; align-items:center; gap:.5rem; }
+.legend i{ width:2px; height:12px; border-radius:1px; display:block; }
+/* En móvil la tabla debe caber sin scroll horizontal y conservar lo que de
+   verdad se consulta: posición, equipo, PJ y PUNTOS. Antes Pts quedaba fuera
+   de pantalla, que es justo el dato por el que se abre una clasificación. */
+@media (max-width:820px){
+  .hide-sm{ display:none; }
+  table.tbl{ min-width:0; }
+  table.tbl th,table.tbl td{ padding:.6rem .5rem; }
+  .hide-xs{ display:none; }
+  .pos{ width:auto; }
+  .tm img{ width:20px; height:20px; }
+  .tm{ gap:.5rem; font-size:.8125rem; }
+}
+
+.bracket{ display:flex; gap:2.5rem; overflow-x:auto; padding-bottom:1rem; }
+.br-round{ display:flex; flex-direction:column; justify-content:space-around; gap:1rem; min-width:230px; flex-shrink:0; }
+.br-label{ font-family:var(--f-mono); font-size:.625rem; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-4); margin-bottom:.5rem; }
+.br-match{ background:var(--surface); border:1px solid var(--line); border-radius:var(--r); padding:.25rem; position:relative; transition:border-color var(--t1); cursor:pointer; }
+.br-match:hover{ border-color:var(--line-2); }
+.br-match::after{ content:''; position:absolute; right:-2.5rem; top:50%; width:2.5rem; height:1px; background:var(--line); }
+.br-round:last-child .br-match::after{ display:none; }
+.br-side{ display:flex; align-items:center; gap:.55rem; padding:.5rem .625rem; font-size:.8125rem; }
+.br-side + .br-side{ border-top:1px solid var(--line); }
+.br-side img{ width:18px; height:18px; object-fit:contain; }
+.br-side .nm{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.br-side .sc{ margin-left:auto; font-family:var(--f-mono); font-weight:600; }
+.br-win{ color:var(--ink); } .br-win .sc{ color:var(--gold); }
+.br-lose{ color:var(--ink-4); }
+.br-tbd{ color:var(--ink-4); font-style:italic; font-size:.75rem; }
+
+.groups{ display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:1rem; margin-top:2rem; }
+.group{ padding:1rem 1.125rem; }
+.group h4{ font-family:var(--f-mono); font-size:.6875rem; letter-spacing:.1em; color:var(--ink-4); margin-bottom:.75rem; text-transform:uppercase; }
+.group-row{ display:flex; align-items:center; gap:.55rem; padding:.4rem 0; font-size:.8125rem; border-top:1px solid var(--line); }
+.group-row:first-of-type{ border-top:0; }
+.group-row img{ width:18px; height:18px; object-fit:contain; }
+.group-row .p{ margin-left:auto; font-family:var(--f-mono); font-weight:600; }
+.group-q{ color:var(--ink); } .group-q .p{ color:var(--af-bosque); }
+.group-row:not(.group-q){ color:var(--ink-4); }
+
+.jnav{ display:flex; align-items:center; gap:.5rem; }
+.jnav b{ font-family:var(--f-mono); font-size:.8125rem; font-weight:500; min-width:112px; text-align:center; color:var(--ink-2); }
+
+.matches{ display:grid; grid-template-columns:repeat(auto-fill,minmax(330px,1fr)); gap:1rem; }
+.match{ padding:1.125rem 1.25rem 1rem; cursor:pointer; }
+.match-top{ display:flex; align-items:center; justify-content:space-between; gap:.5rem; margin-bottom:1rem; min-height:18px; }
+.match-side{ display:flex; align-items:center; gap:.6rem; padding:.4rem 0; }
+.match-side img{ width:26px; height:26px; object-fit:contain; flex-shrink:0; }
+.match-side .nm{ font-size:.875rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0; flex:0 1 auto; }
+/* Franja de color del club a la izquierda del escudo: identifica el equipo
+   antes de leer el nombre, sin teñir la tarjeta entera. */
+.ms-color{ width:3px; height:28px; border-radius:var(--r-full); flex-shrink:0; }
+.ms-pos{
+  font-family:var(--f-mono); font-size:.625rem; line-height:1; color:var(--ink-3);
+  border:1px solid var(--line-2); border-radius:var(--r-sm); padding:.25rem .38rem;
+  flex-shrink:0; background:rgba(255,255,255,.02);
+}
+.ms-div{ width:17px; height:17px; object-fit:contain; flex-shrink:0; opacity:.9; }
+.match-side .sc{ margin-left:auto; font-family:var(--f-mono); font-size:1.0625rem; font-weight:600; letter-spacing:-.03em; }
+.match-lose{ color:var(--ink-4); }
+.match-vs{ margin-left:auto; font-family:var(--f-mono); font-size:.75rem; color:var(--ink-4); }
+.match-foot{ margin-top:.875rem; padding-top:.75rem; border-top:1px solid var(--line); display:flex; align-items:center; justify-content:space-between; font-family:var(--f-mono); font-size:.625rem; letter-spacing:.08em; color:var(--ink-5); text-transform:uppercase; }
+
+.teams{ display:grid; grid-template-columns:repeat(auto-fill,minmax(255px,1fr)); gap:1rem; }
+.team{ padding:1.5rem; cursor:pointer; }
+.team-top{ display:flex; align-items:center; gap:.875rem; margin-bottom:1.5rem; }
+.team-top img{ width:42px; height:42px; object-fit:contain; }
+.team-top h3{ font-size:1rem; font-weight:550; letter-spacing:-.02em; }
+.team-top span{ font-family:var(--f-mono); font-size:.6875rem; color:var(--ink-4); }
+.team-stats{ display:flex; gap:1.5rem; }
+.team-stats div{ display:flex; flex-direction:column; gap:.1rem; }
+.team-stats b{ font-family:var(--f-mono); font-size:1.0625rem; font-weight:500; letter-spacing:-.03em; }
+.team-stats span{ font-size:.625rem; text-transform:uppercase; letter-spacing:.1em; color:var(--ink-5); }
+.team-accent{ position:absolute; top:0; left:0; right:0; height:2px; }
+
+.scorers{ border:1px solid var(--line); border-radius:var(--r-lg); overflow:hidden; background:var(--surface); }
+.sc-row{ display:grid; grid-template-columns:44px 1fr auto; align-items:center; gap:1rem; padding:.875rem 1.25rem; border-bottom:1px solid var(--line); cursor:pointer; transition:background var(--t1); }
+.sc-row:last-child{ border-bottom:0; }
+.sc-row:hover{ background:rgba(255,255,255,.035); }
+.sc-rank{ font-family:var(--f-mono); font-size:.875rem; color:var(--ink-4); }
+.sc-1 .sc-rank{ color:var(--gold); font-size:1.0625rem; font-weight:600; }
+.sc-2 .sc-rank{ color:#C8C8C8; } .sc-3 .sc-rank{ color:#CD8B5A; }
+/* Goleadores: misma gramática que la cronología — todo en una sola línea,
+   posición abreviada y afinidad reducida a un punto de color. */
+.sc-row{ height:56px; padding-block:0; }
+.sc-who{ display:flex; align-items:center; gap:.65rem; min-width:0; }
+.sc-who > img,.sc-who > .noimg{ width:32px; height:32px; border-radius:50%; object-fit:cover; background:var(--surface-3); flex-shrink:0; }
+.sc-name{ font-size:.9375rem; font-weight:450; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; }
+.sc-team{ display:inline-flex; align-items:center; gap:.4rem; font-size:.75rem; color:var(--ink-4); flex-shrink:0; margin-left:.25rem; }
+.sc-team img{ width:16px; height:16px; object-fit:contain; }
+.sc-team span{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:16ch; }
+.sc-who .ms-div{ width:15px; height:15px; }
+.sc-goals{ font-family:var(--f-mono); font-size:1.25rem; font-weight:600; letter-spacing:-.04em; }
+.sc-goals small{ font-size:.625rem; color:var(--ink-5); margin-left:.3rem; letter-spacing:.06em; }
+.sc-rest{ display:none; }
+.scorers.open .sc-rest{ display:block; }
+.sc-more{ display:flex; align-items:center; justify-content:center; gap:.5rem; width:100%; padding:1rem; font-size:.8125rem; color:var(--ink-3); border-top:1px solid var(--line); transition:background var(--t1), color var(--t1); }
+.sc-more:hover{ background:rgba(255,255,255,.035); color:var(--ink); }
+.sc-more i{ transition:transform var(--t2) var(--ease); }
+.scorers.open .sc-more i{ transform:rotate(180deg); }
+@media (max-width:700px){ .sc-team span{ display:none; } }
+@media (max-width:520px){ .sc-row{ grid-template-columns:30px 1fr auto; gap:.6rem; padding-inline:1rem; } .sc-pos{ display:none; } }
+
+/* Noticias a pantalla completa: la pieza editorial es la portada de la
+   comunidad, no una tarjeta más en un carril de 1480px. En móvil vuelve a
+   apilarse en una columna, donde el ancho completo no aporta nada. */
+.news-wrap{ width:100%; max-width:none; padding-inline:var(--pad-x); }
+.news{ display:grid; grid-template-columns:1.25fr 1fr; border:1px solid var(--line); border-radius:var(--r-xl); overflow:hidden; background:var(--surface); cursor:pointer; }
+.news-img{ position:relative; min-height:min(58svh,560px); }
+.news-img img{ width:100%; height:100%; object-fit:cover; }
+.news-img::after{ content:''; position:absolute; inset:0; background:linear-gradient(90deg,transparent 60%,rgba(0,0,0,.35)); }
+.news-body{ padding:clamp(2rem,3.5vw,3.5rem); display:flex; flex-direction:column; justify-content:center; }
+.news-body h3{ font-size:clamp(1.5rem,3vw,2.5rem); letter-spacing:-.035em; line-height:1.06; margin:1.25rem 0 1rem; max-width:22ch; }
+.news-body p{ font-size:clamp(.9375rem,1.15vw,1.0625rem); color:var(--ink-3); line-height:1.65; max-width:56ch; }
+.news-foot{ margin-top:2rem; font-family:var(--f-mono); font-size:.6875rem; color:var(--ink-5); letter-spacing:.06em; }
+.news-nav{ display:flex; gap:.5rem; }
+.news-filters{ display:flex; gap:.5rem; flex-wrap:wrap; }
+.filter{ height:30px; padding:0 .75rem; border-radius:99px; border:1px solid var(--line); font-size:.75rem; color:var(--ink-3); transition:all var(--t1); }
+.filter:hover{ border-color:var(--line-2); color:var(--ink-2); }
+.filter.on{ background:var(--ink); border-color:var(--ink); color:#000; font-weight:500; }
+@media (max-width:900px){ .news{ grid-template-columns:1fr; } .news-img{ min-height:230px; } .news-body{ padding:1.5rem; } .news-body h3{ max-width:none; } }
+
+/* ============================ LEYENDAS ============================
+   Retrato grande a sangre con luz de color propia por persona, y una ficha
+   con sus datos debajo. Antes eran dos tarjetas de 150px en blanco y negro:
+   parecían miniaturas de relleno, no un salón de la fama. */
+.legends{ display:grid; grid-template-columns:1fr 1fr; gap:1.25rem; }
+.legend-card{
+  position:relative; display:flex; flex-direction:column; overflow:hidden;
+  background:var(--surface); border:1px solid var(--line); border-radius:var(--r-xl);
+  transition:border-color var(--t3) var(--ease-io), transform var(--t3) var(--ease), box-shadow var(--t3);
+}
+.legend-card:hover{
+  transform:translateY(-4px);
+  border-color:color-mix(in srgb, var(--lc,#fff) 40%, transparent);
+  box-shadow:0 30px 70px -34px var(--lc,#000);
+}
+.legend-portrait{ position:relative; aspect-ratio:16/11; overflow:hidden; }
+.legend-portrait img{
+  width:100%; height:100%; object-fit:cover; object-position:center 22%;
+  filter:grayscale(.75) contrast(1.06); transform:scale(1.02);
+  transition:filter var(--t3) var(--ease), transform 900ms var(--ease);
+}
+.legend-card:hover .legend-portrait img{ filter:none; transform:scale(1.06); }
+.legend-vignette{
+  position:absolute; inset:0; pointer-events:none;
+  background:linear-gradient(0deg,var(--surface) 2%,rgba(0,0,0,.35) 45%,transparent 75%),
+             radial-gradient(ellipse 70% 60% at 50% 0%, color-mix(in srgb, var(--lc,#fff) 26%, transparent), transparent 70%);
+}
+.legend-rank{
+  position:absolute; top:1rem; left:1rem; z-index:2;
+  display:inline-flex; align-items:center; gap:.45rem; padding:.4rem .75rem;
+  border-radius:var(--r-full); background:rgba(0,0,0,.55); backdrop-filter:blur(10px);
+  border:1px solid color-mix(in srgb, var(--lc,#fff) 35%, transparent);
+  font-family:var(--f-mono); font-size:.625rem; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--lc,#fff);
+}
+.legend-body{ padding:clamp(1.5rem,2.5vw,2rem); display:flex; flex-direction:column; gap:.75rem; margin-top:-1.5rem; position:relative; z-index:1; }
+.legend-body .badge{ align-self:flex-start; }
+.legend-body h3{ font-size:clamp(1.5rem,2.6vw,2rem); letter-spacing:-.035em; }
+.legend-body p{ font-size:.9375rem; color:var(--ink-3); line-height:1.7; }
+.legend-quote{
+  font-size:clamp(1.0625rem,1.8vw,1.375rem); color:var(--ink); line-height:1.4;
+  padding-left:1rem; border-left:2px solid var(--lc,var(--gold));
+}
+.legend-stats{ display:flex; gap:.5rem; flex-wrap:wrap; margin-top:auto; padding-top:1rem; }
+.legend-stats > div{ flex:1; min-width:96px; padding:.75rem .875rem; border:1px solid var(--line); border-radius:var(--r); background:rgba(255,255,255,.02); }
+.legend-stats dt{ font-family:var(--f-mono); font-size:.5625rem; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-5); }
+.legend-stats dd{ margin-top:.3rem; font-size:.9375rem; font-weight:500; letter-spacing:-.02em; }
+@media (max-width:900px){ .legends{ grid-template-columns:1fr; } }
+
+/* ============================ STAFF ============================
+   Cada persona con su espacio: retrato en vertical, rol, club y luz propia.
+   El fundador ocupa una pieza doble con biografía, porque su papel no es
+   intercambiable con el resto. */
+.staff{ display:grid; grid-template-columns:repeat(3,1fr); gap:1.25rem; }
+.staff-card{
+  position:relative; overflow:hidden; display:flex; flex-direction:column;
+  background:var(--surface); border:1px solid var(--line); border-radius:var(--r-xl);
+  transition:border-color var(--t3) var(--ease-io), transform var(--t3) var(--ease), box-shadow var(--t3);
+}
+.staff-card:hover{
+  transform:translateY(-4px);
+  border-color:color-mix(in srgb, var(--sc,#fff) 38%, transparent);
+  box-shadow:0 26px 60px -32px var(--sc,#000);
+}
+.staff-photo{ position:relative; aspect-ratio:1; overflow:hidden; }
+.staff-photo img{
+  width:100%; height:100%; object-fit:cover; object-position:center 18%;
+  filter:grayscale(.85) contrast(1.05);
+  transition:filter var(--t3) var(--ease), transform 900ms var(--ease);
+}
+.staff-card:hover .staff-photo img{ filter:none; transform:scale(1.05); }
+.staff-vignette{
+  position:absolute; inset:0; pointer-events:none;
+  background:linear-gradient(0deg,var(--surface) 1%,rgba(0,0,0,.28) 40%,transparent 72%),
+             radial-gradient(ellipse 80% 55% at 50% 100%, color-mix(in srgb, var(--sc,#fff) 22%, transparent), transparent 72%);
+}
+.staff-info{ padding:0 clamp(1.25rem,2vw,1.625rem) clamp(1.375rem,2vw,1.75rem); margin-top:-2rem; position:relative; z-index:1; display:flex; flex-direction:column; gap:.5rem; }
+.staff-role{
+  align-self:flex-start; display:inline-flex; align-items:center; gap:.4rem;
+  padding:.3rem .65rem; border-radius:var(--r-full);
+  background:color-mix(in srgb, var(--sc,#fff) 14%, transparent);
+  border:1px solid color-mix(in srgb, var(--sc,#fff) 26%, transparent);
+  font-family:var(--f-mono); font-size:.5625rem; letter-spacing:.14em; text-transform:uppercase; color:var(--sc,#fff);
+}
+.staff-info h3{ font-size:1.125rem; letter-spacing:-.03em; }
+.staff-bio{ font-size:.875rem; color:var(--ink-3); line-height:1.7; max-width:52ch; }
+/* Escudo real del club a la izquierda del nombre, no un icono genérico. */
+.staff-club{ display:inline-flex; align-items:center; gap:.5rem; margin-top:.15rem; font-size:.8125rem; color:var(--ink-3); }
+.staff-crest{ width:20px; height:20px; display:grid; place-items:center; flex-shrink:0; }
+.staff-crest img{ width:100%; height:100%; object-fit:contain; }
+.staff-crest i{ color:var(--sc,var(--ink-5)); font-size:.9375rem; }
+
+/* Paleta por rol, no por persona: el color dice el cargo de un vistazo.
+   Fundador oro · Administrador naranja de marca · Moderador azul frío. */
+.rol-fundador{ --sc:#FFC94A; }
+.rol-admin{ --sc:#FF5100; }
+.rol-mod{ --sc:#5B8DEF; }
+/* El fundador: dos columnas y retrato apaisado */
+.staff-lead{ grid-column:span 3; flex-direction:row; align-items:stretch; }
+.staff-lead .staff-photo{ aspect-ratio:auto; width:min(38%,340px); flex-shrink:0; }
+.staff-lead .staff-vignette{ background:linear-gradient(90deg,transparent 40%,rgba(0,0,0,.3) 78%,var(--surface) 100%),radial-gradient(ellipse 60% 80% at 20% 50%, color-mix(in srgb, var(--sc,#fff) 22%, transparent), transparent 72%); }
+.staff-lead .staff-info{ margin-top:0; margin-left:-1.5rem; padding:clamp(1.75rem,3vw,2.5rem); justify-content:center; gap:.75rem; }
+.staff-lead .staff-info h3{ font-size:clamp(1.5rem,2.6vw,2rem); }
+.staff-role-lead{ font-size:.625rem; }
+@media (max-width:1000px){
+  .staff{ grid-template-columns:repeat(2,1fr); }
+  .staff-lead{ grid-column:span 2; }
+}
+@media (max-width:680px){
+  .staff{ grid-template-columns:1fr; }
+  .staff-lead{ grid-column:span 1; flex-direction:column; }
+  .staff-lead .staff-photo{ width:100%; aspect-ratio:16/10; }
+  .staff-lead .staff-vignette{ background:linear-gradient(0deg,var(--surface) 1%,rgba(0,0,0,.28) 40%,transparent 72%); }
+  .staff-lead .staff-info{ margin-left:0; margin-top:-2rem; }
+}
+
+.faq{ max-width:780px; }
+.faq-cat + .faq-cat{ margin-top:.5rem; }
+.faq-cat{ border:1px solid var(--line); border-radius:var(--r); overflow:hidden; background:var(--surface); }
+.faq-cat > button{ width:100%; display:flex; align-items:center; justify-content:space-between; padding:1.125rem 1.375rem; font-size:.9375rem; font-weight:500; letter-spacing:-.02em; }
+.faq-cat > button i{ color:var(--ink-4); transition:transform var(--t2) var(--ease); font-size:1rem; }
+.faq-cat.open > button i{ transform:rotate(45deg); }
+.faq-body{ display:grid; grid-template-rows:0fr; transition:grid-template-rows var(--t2) var(--ease); }
+.faq-cat.open .faq-body{ grid-template-rows:1fr; }
+.faq-body > div{ overflow:hidden; }
+.qa{ border-top:1px solid var(--line); }
+.qa > button{ width:100%; text-align:left; display:flex; gap:1rem; justify-content:space-between; padding:.9375rem 1.375rem; font-size:.875rem; color:var(--ink-2); }
+.qa > button:hover{ color:var(--ink); }
+.qa > button i{ color:var(--ink-5); flex-shrink:0; transition:transform var(--t2) var(--ease); }
+.qa.open > button i{ transform:rotate(45deg); }
+.qa-a{ display:grid; grid-template-rows:0fr; transition:grid-template-rows var(--t2) var(--ease); }
+.qa.open .qa-a{ grid-template-rows:1fr; }
+.qa-a > div{ overflow:hidden; }
+.qa-a p{ padding:0 1.375rem 1.125rem; font-size:.875rem; color:var(--ink-3); line-height:1.7; }
+
+/* ============================ FOOTER ============================ */
+.foot{ border-top:1px solid var(--line); padding-block:4rem 2rem; }
+.foot-grid{ display:grid; grid-template-columns:2fr 1fr 1fr 1fr; gap:2.5rem; }
+.foot-brand img{ height:26px; margin-bottom:1rem; }
+.foot-brand p{ font-size:.9375rem; color:var(--ink-3); max-width:34ch; }
+/* Redes: pastillas circulares con luz propia. Cada una toma el color de su
+   marca sólo en hover — en reposo la fila se mantiene monocroma. */
+.socials{ display:flex; gap:.625rem; margin-top:1.75rem; }
+.socials a{
+  position:relative; width:44px; height:44px; border-radius:50%;
+  display:grid; place-items:center; color:var(--ink-2); font-size:1.125rem;
+  background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));
+  border:1px solid var(--line-2);
+  transition:color var(--t2) var(--ease-io), transform var(--t2) var(--ease), border-color var(--t2), box-shadow var(--t2);
+}
+.socials a::before{
+  content:''; position:absolute; inset:-1px; border-radius:50%; pointer-events:none;
+  background:radial-gradient(circle at 50% 0%, var(--brand,#fff), transparent 70%);
+  opacity:0; transition:opacity var(--t2) var(--ease-io);
+}
+.socials a::after{ /* brillo superior tipo cristal */
+  content:''; position:absolute; inset:1px; border-radius:50%; pointer-events:none;
+  background:linear-gradient(180deg,rgba(255,255,255,.16),transparent 55%);
+}
+.socials a i{ position:relative; z-index:1; }
+.socials a:hover{
+  color:#fff; transform:translateY(-3px);
+  border-color:color-mix(in srgb, var(--brand,#fff) 55%, transparent);
+  box-shadow:0 10px 26px -10px var(--brand,rgba(255,255,255,.4));
+}
+.socials a:hover::before{ opacity:.32; }
+.s-discord{ --brand:#5865F2; } .s-x{ --brand:#FFFFFF; }
+.s-instagram{ --brand:#E1306C; } .s-tiktok{ --brand:#25F4EE; }
+.foot-col h4{ font-family:var(--f-mono); font-size:.625rem; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-5); margin-bottom:1rem; font-weight:500; }
+.foot-col a{ display:block; font-size:.875rem; color:var(--ink-3); padding:.3rem 0; transition:color var(--t1); }
+.foot-col a:hover{ color:var(--ink); }
+.foot-legal{ margin-top:3.5rem; padding-top:1.5rem; border-top:1px solid var(--line); }
+.foot-legal p{ font-size:.75rem; color:var(--ink-5); line-height:1.6; max-width:80ch; }
+@media (max-width:820px){ .foot-grid{ grid-template-columns:1fr 1fr; gap:2rem; } }
+
+/* ============================ OVERLAYS ============================ */
+.ov{ position:fixed; inset:0; z-index:800; background:rgba(0,0,0,.7); backdrop-filter:blur(6px); display:grid; place-items:start center; padding-top:12vh; opacity:0; pointer-events:none; transition:opacity var(--t2); }
+.ov.open{ opacity:1; pointer-events:auto; }
+.ov-panel{ width:min(92vw,600px); background:var(--bg-raised); border:1px solid var(--line-2); border-radius:var(--r-lg); box-shadow:0 30px 90px -20px rgba(0,0,0,.9); transform:translateY(-10px) scale(.99); opacity:0; transition:transform var(--t2) var(--ease), opacity var(--t2); overflow:hidden; }
+.ov.open .ov-panel{ transform:none; opacity:1; }
+.srch-in{ display:flex; align-items:center; gap:.75rem; padding:1rem 1.25rem; border-bottom:1px solid var(--line); }
+.srch-in i{ color:var(--ink-4); font-size:1.125rem; }
+.srch-in input{ flex:1; background:none; border:0; outline:0; font-size:.9375rem; letter-spacing:-.015em; }
+.srch-in input::placeholder{ color:var(--ink-4); }
+.srch-in kbd{ font-family:var(--f-mono); font-size:.625rem; color:var(--ink-4); border:1px solid var(--line-2); border-radius:4px; padding:.15rem .35rem; }
+.srch-tabs{ display:flex; gap:.25rem; padding:.625rem 1rem; border-bottom:1px solid var(--line); }
+.srch-tabs button{ height:28px; padding:0 .625rem; border-radius:5px; font-size:.75rem; color:var(--ink-4); }
+.srch-tabs button:hover{ color:var(--ink-2); background:rgba(255,255,255,.04); }
+.srch-tabs button.on{ background:var(--surface-3); color:var(--ink); }
+.srch-out{ max-height:52vh; overflow-y:auto; padding:.375rem; }
+.srch-item{ display:flex; align-items:center; gap:.75rem; padding:.625rem .875rem; border-radius:var(--r-sm); cursor:pointer; }
+.srch-item:hover{ background:rgba(255,255,255,.055); }
+.srch-item img,.srch-item .noimg{ width:26px; height:26px; object-fit:contain; border-radius:5px; flex-shrink:0; }
+.srch-item b{ font-size:.875rem; font-weight:450; display:block; }
+.srch-item em{ font-style:normal; color:var(--accent-2); }
+.srch-item span{ font-size:.75rem; color:var(--ink-4); }
+.srch-empty{ padding:2.5rem; text-align:center; color:var(--ink-4); font-size:.875rem; }
+
+/* Banderas en SVG recortadas en círculo: escalan nítidas a cualquier tamaño
+   y leen como icono de sistema, no como emoji. */
+.langs{ display:grid; grid-template-columns:1fr 1fr; gap:.25rem; padding:.5rem; max-height:60vh; overflow-y:auto; }
+.lang-item{ display:flex; align-items:center; gap:.7rem; padding:.6rem .75rem; border-radius:var(--r); font-size:.875rem; color:var(--ink-3); transition:background var(--t1), color var(--t1); }
+.lang-item:hover{ background:rgba(255,255,255,.055); color:var(--ink); }
+.lang-item.active{ background:var(--surface-3); color:var(--ink); }
+.lang-flag-circle{
+  position:relative; width:24px; height:24px; border-radius:50%; overflow:hidden; flex-shrink:0;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.16);
+}
+.lang-flag-circle img{ width:100%; height:100%; object-fit:cover; display:block; }
+.lang-item-code{ font-family:var(--f-mono); font-size:.75rem; letter-spacing:.04em; }
+.lang-item-name{ font-size:.8125rem; color:var(--ink-4); margin-left:auto; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.lang-item.active .lang-item-name{ color:var(--ink-3); }
+.lang-btn img{ width:20px; height:20px; border-radius:50%; object-fit:cover; box-shadow:inset 0 0 0 1px rgba(255,255,255,.18); }
+/* Mientras se traduce lo que no estaba en caché, el botón lo dice. */
+.lang-btn.lang-busy{ position:relative; }
+.lang-btn.lang-busy img{ opacity:.35; }
+.lang-btn.lang-busy::after{
+  content:''; position:absolute; left:.5rem; top:50%; width:14px; height:14px; margin-top:-7px;
+  border:1.5px solid var(--line-3); border-top-color:var(--accent); border-radius:50%;
+  animation:langSpin .7s linear infinite;
+}
+@keyframes langSpin{ to{ transform:rotate(360deg); } }
+
+/* ============================ OVERLAY DE CAMPEONES ============================ */
+.champ-panel{ width:min(94vw,760px); }
+.champs{ display:grid; gap:.625rem; padding:1rem; }
+.champ{
+  display:flex; align-items:center; gap:1rem; padding:1rem 1.125rem;
+  border:1px solid var(--line); border-radius:var(--r); background:var(--surface);
+  position:relative; overflow:hidden; cursor:pointer;
+  transition:border-color var(--t2), transform var(--t2) var(--ease);
+}
+.champ:hover{ border-color:var(--line-2); transform:translateX(3px); }
+.champ-wash{ position:absolute; inset:0; opacity:.22; pointer-events:none; }
+.champ > *{ position:relative; z-index:1; }
+.champ-crest{ width:52px; height:52px; object-fit:contain; flex-shrink:0; filter:drop-shadow(0 6px 14px rgba(0,0,0,.6)); }
+.champ-id{ min-width:0; }
+.champ-id b{ display:block; font-size:1.0625rem; font-weight:600; letter-spacing:-.025em; }
+.champ-id .pres{ display:flex; align-items:center; gap:.4rem; margin-top:.3rem; font-size:.8125rem; color:var(--ink-3); }
+.champ-id .pres i{ color:var(--ink-5); font-size:.875rem; }
+.champ-trophy{ margin-left:auto; display:flex; flex-direction:column; align-items:flex-end; gap:.35rem; flex-shrink:0; text-align:right; }
+.champ-trophy i{ font-size:1.25rem; color:var(--gold); }
+.champ-note{ padding:0 1rem 1.25rem; font-size:.75rem; color:var(--ink-5); line-height:1.6; }
+.tl-card[data-champs]{ cursor:pointer; }
+.tl-open{
+  display:inline-flex; align-items:center; gap:.45rem; margin-top:1.25rem;
+  font-family:var(--f-mono); font-size:.6875rem; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--gold); transition:gap var(--t1);
+}
+.tl-card:hover .tl-open{ gap:.7rem; }
+@media (max-width:520px){ .champ{ flex-wrap:wrap; } .champ-trophy{ margin-left:0; width:100%; align-items:flex-start; text-align:left; flex-direction:row; } }
+.ov-head{ display:flex; align-items:center; justify-content:space-between; padding:1rem 1.25rem; border-bottom:1px solid var(--line); }
+.ov-head h3{ font-size:.9375rem; font-weight:550; }
+
+/* ============================ SHEET (pantalla completa) ============================ */
+.sheet{ position:fixed; inset:0; z-index:850; background:var(--bg); opacity:0; visibility:hidden; transition:opacity var(--t2) var(--ease), visibility var(--t2); }
+.sheet.open{ opacity:1; visibility:visible; }
+.sheet-scroll{ position:absolute; inset:0; overflow-y:auto; overscroll-behavior:contain; }
+.sheet-bar{ position:sticky; top:0; z-index:10; display:flex; align-items:center; justify-content:space-between; padding:.875rem var(--pad-x); background:rgba(0,0,0,.72); backdrop-filter:blur(14px) saturate(180%); border-bottom:1px solid var(--line); }
+.sheet-bar .eyebrow{ font-size:.625rem; }
+.sheet-inner{ opacity:0; transform:translateY(12px); transition:opacity 500ms var(--ease) 60ms, transform 500ms var(--ease) 60ms; }
+.sheet.open .sheet-inner{ opacity:1; transform:none; }
+body.locked{ overflow:hidden; }
+
+.pl-hero{ position:relative; min-height:min(62svh,540px); display:flex; align-items:flex-end; overflow:hidden; border-bottom:1px solid var(--line); }
+.pl-hero-bg{ position:absolute; inset:0; }
+.pl-hero-bg::after{ content:''; position:absolute; inset:0; background:linear-gradient(0deg,#000 3%,rgba(0,0,0,.55) 40%,rgba(0,0,0,.25) 70%,rgba(0,0,0,.6)); }
+.pl-photo{ position:absolute; right:6%; top:0; bottom:0; width:min(46%,520px); }
+.pl-photo img{
+  width:100%; height:100%; object-fit:contain; object-position:bottom center;
+  filter:drop-shadow(0 30px 60px rgba(0,0,0,.6));
+  -webkit-mask-image:linear-gradient(0deg,transparent 0%,#000 16%);
+  mask-image:linear-gradient(0deg,transparent 0%,#000 16%);
+}
+.pl-photo .noimg{ width:100%; height:100%; display:grid; place-items:center; font-size:9rem; font-weight:700; color:rgba(255,255,255,.06); background:none; }
+.pl-hero-in{ position:relative; z-index:2; width:100%; padding:0 var(--pad-x) 3rem; }
+/* El dorsal es una marca de agua: vive en su propia línea, con su propia
+   caja, para que nunca colisione con el nombre (el solape negativo anterior
+   hacía que "1" y "Nero Night" se pisaran). */
+.pl-dorsal{ font-family:var(--f-mono); font-size:clamp(3rem,8vw,5.5rem); font-weight:600; letter-spacing:-.06em; line-height:1; color:rgba(255,255,255,.14); margin-bottom:.25rem; }
+.pl-name{ font-size:clamp(2.25rem,6vw,4.5rem); font-weight:700; letter-spacing:-.045em; line-height:1; }
+.pl-meta{ display:flex; align-items:center; gap:.75rem; flex-wrap:wrap; margin-top:1.25rem; }
+.pl-club{ display:inline-flex; align-items:center; gap:.5rem; font-size:.9375rem; color:var(--ink-2); }
+.pl-club img{ width:22px; height:22px; object-fit:contain; }
+.pl-stats{ display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); border-bottom:1px solid var(--line); }
+.pl-stat{ padding:2rem var(--pad-x); border-left:1px solid var(--line); }
+.pl-stat:first-child{ border-left:0; }
+.pl-stat b{ display:block; font-family:var(--f-mono); font-size:clamp(2rem,4.5vw,3.25rem); font-weight:500; letter-spacing:-.05em; line-height:1; }
+.pl-stat span{ display:block; margin-top:.5rem; font-size:.6875rem; text-transform:uppercase; letter-spacing:.12em; color:var(--ink-4); }
+.pl-body{ padding:clamp(2.5rem,5vw,4rem) var(--pad-x); display:grid; grid-template-columns:1fr 1fr; gap:clamp(2rem,5vw,4rem); max-width:1480px; margin:0 auto; }
+.sec-label{ font-family:var(--f-mono); font-size:.625rem; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-4); margin-bottom:1.25rem; }
+.tech{ border:1px solid var(--line); border-radius:var(--r); padding:1rem 1.125rem; background:var(--surface); }
+.tech + .tech{ margin-top:.5rem; }
+.tech-top{ display:flex; align-items:center; justify-content:space-between; gap:.75rem; }
+.tech b{ font-size:.9375rem; font-weight:500; letter-spacing:-.02em; }
+.tech p{ font-size:.8125rem; color:var(--ink-4); line-height:1.6; margin-top:.5rem; }
+/* ---- Historial de equipos del jugador (desplegable por club) ---- */
+.hist-item{ border:1px solid var(--line); border-radius:var(--r); background:var(--surface); overflow:hidden; transition:border-color var(--t2); }
+.hist-item + .hist-item{ margin-top:.5rem; }
+.hist-item:hover,.hist-item.open{ border-color:var(--line-2); }
+.hist-btn{ width:100%; display:flex; align-items:center; gap:.875rem; padding:.875rem 1rem; text-align:left; }
+.hist-btn > img,.hist-btn > .noimg{ width:30px; height:30px; object-fit:contain; flex-shrink:0; border-radius:var(--r-sm); }
+.hist-id{ min-width:0; }
+.hist-id b{ display:block; font-size:.9375rem; font-weight:500; letter-spacing:-.015em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.hist-id span{ display:block; font-family:var(--f-mono); font-size:.6875rem; color:var(--ink-4); margin-top:.15rem; }
+/* Clubes que cambiaron de nombre entre temporadas: manda el nombre de hoy
+   (el del escudo) y el de entonces queda como apunte. */
+.hist-antes{ font-style:normal; color:var(--ink-5); }
+.pl-stat-sub{ display:block; margin-top:.35rem; font-style:normal; font-family:var(--f-mono); font-size:.6875rem; color:var(--accent-2); letter-spacing:-.01em; }
+.hist-state{ margin-left:auto; display:inline-flex; align-items:center; gap:.4rem; font-size:.6875rem; font-family:var(--f-mono); letter-spacing:.06em; text-transform:uppercase; flex-shrink:0; }
+.hist-state i{ width:6px; height:6px; border-radius:50%; display:block; }
+.hist-on{ color:var(--af-bosque); } .hist-on i{ background:var(--af-bosque); box-shadow:0 0 8px var(--af-bosque); }
+.hist-off{ color:var(--ink-4); } .hist-off i{ background:var(--ink-4); }
+.hist-btn > .ph-caret-down{ color:var(--ink-5); flex-shrink:0; transition:transform var(--t2) var(--ease); }
+.hist-item.open .hist-btn > .ph-caret-down{ transform:rotate(180deg); }
+.hist-panel{ display:grid; grid-template-rows:0fr; transition:grid-template-rows var(--t2) var(--ease); }
+.hist-item.open .hist-panel{ grid-template-rows:1fr; }
+.hist-panel > div{ overflow:hidden; }
+.hist-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:.5rem; padding:0 1rem 1rem; }
+.hist-cell-half{ grid-column:span 1; }
+/* Sólo 1 de las 423 etapas del JSON trae asistencias o tarjetas; cuando
+   aparecen son tres celdas en dos columnas, así que la impar ocupa el ancho. */
+.hist-grid > .hist-cell:last-child:nth-child(odd):not(.hist-cell-wide){ grid-column:1/-1; }
+.hist-cell{ background:var(--bg-raised); border:1px solid var(--line); border-radius:var(--r-sm); padding:.75rem .5rem; text-align:center; }
+.hist-cell b{ display:block; font-family:var(--f-mono); font-size:1.25rem; font-weight:500; letter-spacing:-.04em; }
+.hist-cell span{ display:block; margin-top:.3rem; font-size:.5625rem; text-transform:uppercase; letter-spacing:.1em; color:var(--ink-5); }
+.hist-cell-wide{ grid-column:1/-1; text-align:left; padding:.75rem .875rem; display:flex; align-items:center; justify-content:space-between; gap:.75rem; }
+.hist-cell-wide b{ font-size:.875rem; }
+.hist-cell-wide span{ margin-top:0; }
+@media (max-width:900px){
+  .pl-photo{ position:relative; right:auto; width:100%; height:38svh; margin-inline:auto; }
+  .pl-hero{ display:block; min-height:0; }
+  .pl-hero-in{ padding-bottom:2rem; }
+  .pl-body{ grid-template-columns:1fr; }
+  .pl-stat{ border-left:0; border-top:1px solid var(--line); padding-block:1.5rem; }
+  .pl-stat:first-child{ border-top:0; }
+}
+
+.tm-hero{ position:relative; padding:clamp(2.5rem,6vw,5rem) var(--pad-x) clamp(2rem,4vw,3rem); border-bottom:1px solid var(--line); overflow:hidden; }
+.tm-hero-wash{ position:absolute; inset:0; opacity:.5; }
+.tm-hero-in{ position:relative; z-index:1; display:flex; align-items:center; gap:clamp(1.25rem,3vw,2.5rem); flex-wrap:wrap; max-width:1480px; margin:0 auto; }
+.tm-crest{ width:clamp(72px,10vw,116px); height:clamp(72px,10vw,116px); object-fit:contain; filter:drop-shadow(0 12px 30px rgba(0,0,0,.6)); }
+.tm-name{ font-size:clamp(2rem,5.5vw,4rem); font-weight:700; letter-spacing:-.045em; line-height:1; }
+.tm-sub{ display:flex; align-items:center; gap:.75rem; flex-wrap:wrap; margin-top:.875rem; font-size:.875rem; color:var(--ink-3); }
+.tm-stats{ display:grid; grid-template-columns:repeat(7,1fr); border-bottom:1px solid var(--line); }
+.tm-stat{ padding:1.5rem 1rem; text-align:center; border-left:1px solid var(--line); }
+.tm-stat:first-child{ border-left:0; }
+.tm-stat b{ display:block; font-family:var(--f-mono); font-size:1.5rem; font-weight:500; letter-spacing:-.04em; }
+.tm-stat span{ display:block; margin-top:.35rem; font-size:.625rem; text-transform:uppercase; letter-spacing:.1em; color:var(--ink-5); }
+@media (max-width:760px){ .tm-stats{ grid-template-columns:repeat(4,1fr); } .tm-stat:nth-child(5){ border-left:0; } .tm-stat:nth-child(n+5){ border-top:1px solid var(--line); } }
+.tm-body{ padding:clamp(2.5rem,5vw,4rem) var(--pad-x); max-width:1480px; margin:0 auto; display:grid; grid-template-columns:1.15fr .85fr; gap:clamp(2rem,5vw,4rem); align-items:start; }
+@media (max-width:1000px){ .tm-body{ grid-template-columns:1fr; } }
+.squad-row{ display:flex; align-items:center; gap:.75rem; padding:.625rem .75rem; border-radius:var(--r-sm); cursor:pointer; transition:background var(--t1); }
+.squad-row:hover{ background:rgba(255,255,255,.05); }
+.squad-row .num{ font-family:var(--f-mono); font-size:.75rem; color:var(--ink-5); width:22px; flex-shrink:0; }
+.squad-row > img,.squad-row > .noimg{ width:30px; height:30px; border-radius:50%; object-fit:cover; background:var(--surface-3); flex-shrink:0; }
+.squad-row .nm{ font-size:.875rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.squad-row .g{ margin-left:auto; font-family:var(--f-mono); font-size:.8125rem; color:var(--ink-3); flex-shrink:0; }
+.staff-line{ display:flex; align-items:center; justify-content:space-between; padding:.75rem 0; border-top:1px solid var(--line); font-size:.875rem; }
+.staff-line:first-of-type{ border-top:0; }
+.staff-line span{ color:var(--ink-4); }
+
+/* ============================ CAMPO / ALINEACIÓN ============================
+   Rediseño completo: césped con rayado de siega real, cal de líneas con
+   grosor coherente, iluminación de estadio (viñeta + foco cenital) y fichas
+   de jugador con foto, aro por posición y placa de nombre legible. */
+.pitch{
+  position:relative; aspect-ratio:68/104; border-radius:var(--r-lg); overflow:hidden;
+  border:1px solid var(--line-2);
+  background:
+    radial-gradient(ellipse 70% 55% at 50% 42%, rgba(150,255,180,.10), transparent 70%),
+    repeating-linear-gradient(180deg, rgba(255,255,255,.035) 0 8.33%, rgba(0,0,0,.03) 8.33% 16.66%),
+    linear-gradient(170deg,#12281A 0%,#0C1D12 45%,#081209 100%);
+  box-shadow:inset 0 0 90px rgba(0,0,0,.72), 0 24px 60px -28px rgba(0,0,0,.9);
+  --cal:rgba(255,255,255,.22);
+}
+.pitch::after{ /* viñeta de estadio */
+  content:''; position:absolute; inset:0; pointer-events:none;
+  background:radial-gradient(ellipse 78% 68% at 50% 46%, transparent 40%, rgba(0,0,0,.62) 100%);
+}
+.pitch-lines{ position:absolute; inset:0; }
+.pitch-lines::before{ content:''; position:absolute; inset:4.5% 5%; border:1.5px solid var(--cal); border-radius:2px; }
+.pitch-lines::after{ content:''; position:absolute; left:5%; right:5%; top:50%; height:1.5px; background:var(--cal); }
+/* áreas grandes + pequeñas, arriba y abajo */
+.pitch-box{ position:absolute; left:50%; transform:translateX(-50%); border:1.5px solid var(--cal); }
+.pb-top{ top:4.5%; width:58%; height:15%; border-top:0; }
+.pb-bot{ bottom:4.5%; width:58%; height:15%; border-bottom:0; }
+.pb-top-s{ top:4.5%; width:30%; height:6.5%; border-top:0; }
+.pb-bot-s{ bottom:4.5%; width:30%; height:6.5%; border-bottom:0; }
+.pitch-circle{ position:absolute; left:50%; top:50%; width:21%; aspect-ratio:1; border:1.5px solid var(--cal); border-radius:50%; transform:translate(-50%,-50%); }
+.pitch-circle::after{ content:''; position:absolute; left:50%; top:50%; width:5px; height:5px; border-radius:50%; background:var(--cal); transform:translate(-50%,-50%); }
+.pp{ position:absolute; transform:translate(-50%,-50%); display:flex; flex-direction:column; align-items:center; gap:.4rem; width:clamp(50px,18%,78px); z-index:2; transition:transform var(--t2) var(--ease); }
+.pp:hover{ transform:translate(-50%,-50%) scale(1.07); z-index:3; }
+.pp .tok{
+  position:relative; width:46px; height:46px; border-radius:50%;
+  background:var(--surface-2); border:2px solid var(--c,#fff); overflow:hidden;
+  box-shadow:0 8px 20px rgba(0,0,0,.6), 0 0 0 4px rgba(0,0,0,.35), 0 0 18px -4px var(--c,#fff);
+}
+.pp .tok img{ width:100%; height:100%; object-fit:cover; }
+.pp .tok .noimg{ width:100%; height:100%; font-size:1rem; font-weight:600; color:var(--ink-3); background:var(--surface-3); }
+/* El dorsal vivía en una chapita sobre el aro y a este tamaño no se leía.
+   Ahora va dentro de la placa, delante del nombre: el círculo se queda sólo
+   con la foto y el aro de color de la posición. */
+.pp .plate{
+  display:flex; align-items:baseline; gap:.28rem; max-width:100%;
+  padding:.18rem .5rem; border-radius:var(--r-full);
+  background:rgba(0,0,0,.66); backdrop-filter:blur(6px);
+  border:1px solid rgba(255,255,255,.10);
+  font-size:.6125rem; font-weight:500; letter-spacing:-.01em; color:rgba(255,255,255,.94);
+  overflow:hidden; white-space:nowrap;
+}
+.pp .plate .num{ font-family:var(--f-mono); font-size:.625rem; font-weight:700; color:var(--c,#fff); flex-shrink:0; }
+.pp .plate .nm{ overflow:hidden; text-overflow:ellipsis; }
+.p-por{ --c:var(--pos-por); } .p-def{ --c:var(--pos-def); }
+.p-med{ --c:var(--pos-med); } .p-del{ --c:var(--pos-del); }
+.pitch-legend{ display:flex; gap:1rem; flex-wrap:wrap; margin-top:1rem; font-size:.6875rem; color:var(--ink-4); font-family:var(--f-mono); }
+.pitch-legend span{ display:inline-flex; align-items:center; gap:.4rem; }
+.pitch-legend i{ width:7px; height:7px; border-radius:50%; display:block; }
+.pitch-form{ position:absolute; top:.75rem; left:.875rem; z-index:2; font-family:var(--f-mono); font-size:.6875rem; letter-spacing:.14em; color:rgba(255,255,255,.55); }
+@media (max-width:420px){ .pp{ width:62px; } .pp .tok{ width:38px; height:38px; } .pp .plate{ font-size:.5rem; } }
+
+.mt-hero{ padding:clamp(2.5rem,6vw,4.5rem) var(--pad-x); border-bottom:1px solid var(--line); position:relative; overflow:hidden; }
+/* Sistema híbrido de color: la base sigue siendo negra y cada mitad se tiñe
+   con el color del club correspondiente. Nunca color plano — sólo lavado. */
+.mt-split{ position:absolute; inset:0; }
+.mt-split::before,.mt-split::after{ content:''; position:absolute; top:0; bottom:0; width:56%; }
+.mt-split::before{ left:0;  background:radial-gradient(ellipse 90% 120% at 0% 50%, var(--cl,#fff), transparent 72%); opacity:.30; }
+.mt-split::after{ right:0; background:radial-gradient(ellipse 90% 120% at 100% 50%, var(--cv,#fff), transparent 72%); opacity:.30; }
+.mt-seam{ position:absolute; left:50%; top:0; bottom:0; width:1px; background:linear-gradient(180deg,transparent,var(--line-2) 30%,var(--line-2) 70%,transparent); }
+.mt-hero-in{ max-width:940px; margin:0 auto; position:relative; z-index:1; text-align:center; }
+.mt-team{ cursor:pointer; }
+.mt-bar{ width:44px; height:3px; border-radius:var(--r-full); margin-top:-.375rem; }
+.mt-divi{ display:inline-flex; align-items:center; gap:.4rem; font-family:var(--f-mono); font-size:.625rem; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-3); }
+.mt-divi .ms-div{ width:15px; height:15px; }
+.ev[data-player]{ cursor:pointer; transition:border-color var(--t1), background var(--t1); }
+.ev[data-player]:hover{ border-color:var(--line-2); background:var(--surface-2); }
+.mt-teams{ display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:clamp(1rem,4vw,3rem); margin-top:2rem; }
+.mt-team{ display:flex; flex-direction:column; align-items:center; gap:.875rem; text-align:center; }
+.mt-team img{ width:clamp(56px,9vw,86px); height:clamp(56px,9vw,86px); object-fit:contain; }
+.mt-team b{ font-size:clamp(.875rem,1.6vw,1.125rem); font-weight:500; letter-spacing:-.02em; }
+.mt-score{ font-family:var(--f-mono); font-size:clamp(2.5rem,7vw,4.5rem); font-weight:600; letter-spacing:-.05em; display:flex; align-items:center; gap:clamp(.5rem,2vw,1.25rem); }
+.mt-score .dash{ color:var(--ink-5); }
+.mt-pending{ font-family:var(--f-mono); font-size:clamp(1.25rem,3vw,2rem); color:var(--ink-4); letter-spacing:-.02em; }
+.mt-body{ padding:clamp(2rem,4vw,3.5rem) var(--pad-x) 5rem; max-width:900px; margin:0 auto; }
+/* ---------------------------- CRONOLOGÍA ----------------------------
+   Una fila = una línea. Monocroma: el único color es el punto de afinidad
+   (y el amarillo/rojo de las tarjetas, que ahí sí es información). La
+   posición va en abreviatura de 3 letras, no en palabra completa. */
+.ev{
+  display:flex; align-items:center; gap:.75rem; height:52px; padding:0 .875rem 0 .5rem;
+  border-bottom:1px solid var(--line); font-size:.9375rem; position:relative;
+}
+.ev:last-of-type{ border-bottom:0; }
+.ev-min{ font-family:var(--f-mono); font-size:.8125rem; color:var(--ink-4); width:38px; flex-shrink:0; text-align:right; font-variant-numeric:tabular-nums; }
+.ev-ic{ width:22px; display:grid; place-items:center; color:var(--ink-3); font-size:.875rem; flex-shrink:0; }
+.ev-face{ width:30px; height:30px; border-radius:50%; object-fit:cover; background:var(--surface-3); flex-shrink:0; }
+.ev-face.noimg{ font-size:.6875rem; }
+.ev-name{ font-size:.9375rem; font-weight:450; letter-spacing:-.015em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; }
+.ev-pos,.sc-pos{
+  font-family:var(--f-mono); font-size:.625rem; font-weight:500; letter-spacing:.06em;
+  color:var(--ink-4); border:1px solid var(--line-2); border-radius:var(--r-sm);
+  padding:.14rem .32rem; flex-shrink:0;
+}
+/* Punto de afinidad: color como único dato cromático de la fila */
+.af-dot{ width:7px; height:7px; border-radius:50%; flex-shrink:0; background:var(--afc,var(--ink-4)); box-shadow:0 0 8px var(--afc,transparent); }
+.ev-club{ margin-left:auto; display:inline-flex; align-items:center; gap:.45rem; font-size:.75rem; color:var(--ink-4); flex-shrink:0; }
+.ev-club img{ width:18px; height:18px; object-fit:contain; }
+.ev-card{ width:9px; height:12px; border-radius:2px; display:block; }
+.ev-empty{ padding:3rem 0; text-align:center; color:var(--ink-4); font-size:.875rem; }
+.ev-list{ border:1px solid var(--line); border-radius:var(--r-lg); background:var(--surface); overflow:hidden; }
+.ev[data-player]{ cursor:pointer; transition:background var(--t1); }
+.ev[data-player]:hover{ background:rgba(255,255,255,.035); }
+.mt-cards{ display:flex; gap:.75rem; flex-wrap:wrap; margin-top:2.5rem; }
+@media (max-width:620px){ .ev-club span{ display:none; } .ev-min{ width:32px; } .ev{ gap:.55rem; padding-right:.625rem; } }
+
+/* Icono de división (Superliga / Ascenso) siempre en blanco: sobre fondo
+   negro los iconos a color ensucian la fila y compiten con el escudo. */
+.ms-div{ filter:brightness(0) invert(1); opacity:.75; }
+.ms-div:hover{ opacity:1; }
+
+.noimg{ display:grid; place-items:center; background:var(--surface-3); color:var(--ink-5); }
+
+/* ============================ NOTICIA ABIERTA (pantalla completa) ============
+   El detalle de noticia era una columna de 780px centrada. Ahora usa el ancho
+   completo: portada a sangre y cuerpo en dos columnas (ficha + texto). Por
+   debajo de 1000px vuelve a una sola columna para no perder legibilidad. */
+.art-hero{ position:relative; min-height:min(56svh,520px); display:flex; align-items:flex-end; overflow:hidden; border-bottom:1px solid var(--line); }
+.art-hero-img{ position:absolute; inset:0; }
+.art-hero-img img{ width:100%; height:100%; object-fit:cover; }
+.art-hero-img::after{ content:''; position:absolute; inset:0; background:linear-gradient(0deg,#000 4%,rgba(0,0,0,.55) 45%,rgba(0,0,0,.25) 100%); }
+.art-hero-plain{ min-height:auto; padding-top:clamp(2rem,5vw,4rem); }
+.art-hero-in{ position:relative; z-index:1; width:100%; max-width:1480px; margin:0 auto; padding:clamp(2rem,5vw,4rem) var(--pad-x) clamp(1.75rem,3vw,2.75rem); }
+.art-title{ font-size:clamp(2rem,4.6vw,4rem); font-weight:700; letter-spacing:-.04em; line-height:1.03; margin:1.25rem 0 0; max-width:24ch; }
+.art-lede{ margin-top:1.25rem; font-size:clamp(1rem,1.35vw,1.25rem); color:var(--ink-2); line-height:1.55; max-width:62ch; }
+.art-body{ max-width:1480px; margin:0 auto; padding:clamp(2.5rem,5vw,4.5rem) var(--pad-x) 6rem; display:grid; grid-template-columns:260px 1fr; gap:clamp(2rem,5vw,4.5rem); align-items:start; }
+.art-side{ position:sticky; top:96px; display:flex; flex-direction:column; gap:1.25rem; }
+.art-meta{ display:flex; flex-direction:column; gap:.3rem; padding-bottom:1.25rem; border-bottom:1px solid var(--line); }
+.art-meta dt{ font-family:var(--f-mono); font-size:.625rem; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-5); }
+.art-meta dd{ font-size:.9375rem; color:var(--ink-2); margin-bottom:.75rem; }
+.art-text{ font-size:clamp(1rem,1.15vw,1.125rem); line-height:1.85; color:var(--ink-2); max-width:78ch; }
+.art-text p{ margin-bottom:1.5rem; white-space:pre-line; }
+.art-text p:first-of-type::first-letter{ float:left; font-family:var(--f-serif); font-style:italic; font-size:3.4em; line-height:.82; padding:.06em .12em 0 0; color:var(--ink); }
+/* A partir de 1400px el cuerpo pasa a dos columnas: así la noticia entra
+   entera de un vistazo en pantallas anchas en vez de dejar medio lienzo
+   vacío, sin estirar la línea de texto más allá de lo legible. */
+@media (min-width:1400px){
+  .art-text{ max-width:none; column-count:2; column-gap:clamp(2.5rem,4vw,4.5rem); column-rule:1px solid var(--line); }
+  .art-text p{ break-inside:avoid-column; }
+}
+@media (max-width:1000px){
+  .art-body{ grid-template-columns:1fr; gap:2rem; }
+  .art-side{ position:static; flex-direction:row; flex-wrap:wrap; gap:2rem; }
+  .art-title{ max-width:none; }
+}
+
+/* ============================ LEGAL (términos y privacidad) ============================ */
+.lg-hero{ position:relative; padding:clamp(6rem,12vw,9rem) var(--pad-x) clamp(2.5rem,5vw,4rem); border-bottom:1px solid var(--line); overflow:hidden; }
+.lg-hero::before{ content:''; position:absolute; left:50%; top:-40%; width:min(900px,120vw); height:520px; transform:translateX(-50%); background:radial-gradient(ellipse at center,rgba(255,81,0,.14),transparent 62%); filter:blur(40px); pointer-events:none; }
+.lg-hero-in{ position:relative; max-width:1480px; margin:0 auto; }
+.lg-title{ font-size:clamp(2.25rem,5vw,4rem); font-weight:700; letter-spacing:-.045em; line-height:1.02; margin-top:1.25rem; }
+.lg-sub{ margin-top:1.25rem; font-size:clamp(1rem,1.3vw,1.1875rem); color:var(--ink-2); max-width:60ch; line-height:1.6; }
+.lg-updated{ display:inline-flex; align-items:center; gap:.5rem; margin-top:1.75rem; padding:.4rem .75rem; border:1px solid var(--line-2); border-radius:var(--r-full); font-family:var(--f-mono); font-size:.6875rem; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-4); }
+.lg-body{ max-width:1480px; margin:0 auto; padding:clamp(2.5rem,5vw,4.5rem) var(--pad-x) 6rem; display:grid; grid-template-columns:260px 1fr; gap:clamp(2rem,5vw,4.5rem); align-items:start; }
+.lg-toc{ position:sticky; top:96px; display:flex; flex-direction:column; gap:.15rem; }
+.lg-toc-label{ font-family:var(--f-mono); font-size:.625rem; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-5); margin-bottom:.75rem; }
+.lg-toc a{ display:flex; gap:.7rem; padding:.5rem .75rem; border-radius:var(--r-sm); font-size:.875rem; color:var(--ink-3); transition:background var(--t1), color var(--t1); }
+.lg-toc a:hover{ background:rgba(255,255,255,.05); color:var(--ink); }
+.lg-toc a b{ font-family:var(--f-mono); font-size:.75rem; color:var(--ink-5); font-weight:500; }
+.lg-sections{ display:flex; flex-direction:column; gap:1rem; max-width:78ch; }
+.lg-card{ padding:clamp(1.5rem,3vw,2.25rem); scroll-margin-top:88px; }
+.lg-card h2{ display:flex; align-items:center; gap:.875rem; font-size:clamp(1.125rem,2vw,1.5rem); letter-spacing:-.03em; }
+.lg-card h2 .n{ display:grid; place-items:center; width:30px; height:30px; border-radius:50%; background:rgba(255,255,255,.06); border:1px solid var(--line-2); font-family:var(--f-mono); font-size:.75rem; color:var(--ink-3); flex-shrink:0; }
+.lg-card p{ margin-top:1rem; font-size:.9375rem; line-height:1.8; color:var(--ink-3); }
+.lg-card ul{ margin-top:1rem; display:flex; flex-direction:column; gap:.625rem; }
+.lg-card li{ display:flex; gap:.75rem; font-size:.9375rem; line-height:1.7; color:var(--ink-3); }
+.lg-card li i{ color:var(--ink-5); margin-top:.28rem; flex-shrink:0; }
+.lg-card a{ color:var(--accent-2); text-decoration:underline; text-underline-offset:3px; text-decoration-color:rgba(255,122,56,.35); }
+.lg-card a:hover{ text-decoration-color:var(--accent-2); }
+.lg-cta{ margin-top:1rem; display:flex; align-items:center; justify-content:space-between; gap:1.5rem; flex-wrap:wrap; padding:clamp(1.5rem,3vw,2.25rem); background:linear-gradient(120deg,rgba(255,81,0,.08),transparent 60%); }
+@media (max-width:1000px){ .lg-body{ grid-template-columns:1fr; } .lg-toc{ position:static; } }
+
+/* ============================ 404 ============================
+   404.html y terminos.html traen su propio bloque <style> con el resto de su
+   maquetación; aquí sólo vive lo que comparten con el resto del sitio. */
+.err-code{ font-family:var(--f-mono); font-size:.75rem; letter-spacing:.2em; color:var(--accent); text-transform:uppercase; }
+
+/* ============================ PLANTILLA POR POSICIÓN ============================ */
+.squad-group{ display:flex; align-items:center; gap:.65rem; margin:1.75rem 0 .375rem; font-family:var(--f-mono); font-size:.625rem; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-4); }
+.squad-group:first-child{ margin-top:0; }
+.squad-group i{ width:6px; height:6px; border-radius:50%; display:block; flex-shrink:0; }
+.squad-group::after{ content:''; flex:1; height:1px; background:var(--line); }
+.squad-row .af{ margin-left:.25rem; }
+@media (max-width:560px){ .squad-row .af span,.squad-row .chip{ display:none; } }
+
+</style>
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/bold/style.css">
+<style>
+  body{ min-height:100vh; display:flex; align-items:center; justify-content:center; text-align:center; padding:var(--sp-5); position:relative; overflow:hidden; }
+  .err-photo-wrap{ width:220px; height:220px; margin:0 auto var(--sp-6); position:relative; clip-path:var(--clip-card-lg); border:1px solid var(--border-strong); }
+  .err-photo-wrap img{ width:100%; height:100%; object-fit:cover; filter:grayscale(1) contrast(1.15) brightness(.75); mix-blend-mode:luminosity; }
+  .err-photo-wrap::after{ content:''; position:absolute; inset:0; background:radial-gradient(circle at 50% 40%, rgba(255,81,0,.35), rgba(10,0,0,.75) 75%); mix-blend-mode:multiply; }
+  .err-code{ font-family:var(--f-display); font-size:clamp(4rem,14vw,8rem); color:var(--energy); line-height:.9; }
+  .err-title{ font-family:var(--f-display); font-size:clamp(1.6rem,4vw,2.4rem); margin:var(--sp-3) 0 var(--sp-4); text-transform:uppercase; }
+  .err-text{ color:var(--ink-3); max-width:480px; margin:0 auto var(--sp-6); line-height:1.6; }
+  .err-credit{ font-size:.75rem; color:var(--ink-5); margin-top:var(--sp-6); }
+</style>
+</head>
+<body>
+  <div>
+    <div class="err-photo-wrap"><img src="assets/jugador-03.png" alt=""></div>
+    <div class="err-code mono">404</div>
+    <h1 class="err-title">Al Gonzalo ese le ganas fácil<br>pero aquí no has podido entrar</h1>
+    <p class="err-text">Esta página no existe en la Superliga Frontier. Vuelve a la clasificación antes de que te bajen a Ascenso.</p>
+    <a href="index.html" class="btn btn-primary"><i class="ph-bold ph-arrow-left"></i> Volver al inicio</a>
+    <p class="err-credit">Frase acuñada por Payo Aguao, ya parte del folclore de la liga.</p>
+  </div>
+</body>
+</html>

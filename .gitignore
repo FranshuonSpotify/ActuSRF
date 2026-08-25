@@ -4,4 +4,10 @@ Thumbs.db
 node_modules/
 
 # Artefacto de test-ciclo.js, se regenera al ejecutarlo
-propuesta-web/gestor/.prueba.json
+htdocs/gestor/.prueba.json
+
+# Repo vacio que traia htdocs/ (sin commits ni remoto). Renombrado, no borrado.
+htdocs/.git-vacio-sin-commits/
+
+# Contrasena real de la base de datos de IONOS. Nunca en el repo.
+htdocs/transferroom/config/credenciales.php

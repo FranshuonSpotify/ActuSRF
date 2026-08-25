@@ -1,0 +1,18 @@
+# Transfer Room — hace que https://superligafrontier.es/transferroom/ sirva
+# el contenido de la subcarpeta publico/ sin cambiar ninguna ruta relativa del
+# PHP (que asume que publico/ es la raíz servida).
+
+RewriteEngine On
+RewriteBase /transferroom/
+
+# Bloquea el acceso web directo a las carpetas internas (no son parte de la
+# raíz servida real, publico/, pero al subir todo junto quedan alcanzables
+# por URL si no se corta aquí).
+RewriteRule ^(config|dominio|infraestructura|db|02-datos_oficiales)(/|$) - [F,L]
+
+# Si la petición no es ya para algo dentro de publico/, redirigirla ahí.
+RewriteCond %{REQUEST_URI} !^/transferroom/publico/
+RewriteRule ^(.*)$ publico/$1 [L]
+
+# / (sin fichero) → login.php dentro de publico/
+DirectoryIndex login.php

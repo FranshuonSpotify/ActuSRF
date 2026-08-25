@@ -1,0 +1,97 @@
+/* ==========================================================================
+   TRANSFER ROOM — Tokens de diseño
+   CONSTITUCION.md Cap. XVI: SaaS premium (Linear/Notion/Vercel/Football
+   Manager/EA FC), identidad visual heredada de Superliga Frontier.
+   Paleta, tipografía y curvas de motion tomadas literalmente de
+   04-web-superliga/_fuente/styles.css — es el mismo producto, misma marca.
+   Añadido aquí: estados hover/active del acento, semánticos (éxito/aviso/
+   peligro/info), oro/plata/bronce y focus/disabled — que la web de
+   marketing no necesitaba y esta app sí (Cap. XVI, "Sistema de colores").
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Teko:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+:root{
+  /* ---- Fondo / superficie (idéntico a la web de marca) ---- */
+  --bg:#000000;
+  --bg-2:#0A0A0A;      /* Background Secondary */
+  --bg-3:#0E0E0E;      /* Background Tertiary */
+  --surface:#0E0E0E;   /* Surface Primary */
+  --surface-2:#141414; /* Surface Secondary */
+  --surface-3:#1C1C1C;
+
+  /* ---- Bordes (hairlines, nunca rellenos de color) ---- */
+  --line:rgba(255,255,255,.07);
+  --line-2:rgba(255,255,255,.12);
+  --line-3:rgba(255,255,255,.20);
+
+  /* ---- Texto ---- */
+  --ink:#EDEDED;        /* Text Primary */
+  --ink-2:#A1A1A1;      /* Text Secondary */
+  --ink-3:#7A7A7A;
+  --ink-4:#525252;
+  --ink-5:#2E2E2E;
+
+  /* ---- Acento de marca: naranja, único, nunca decorativo ---- */
+  --accent:#FF5100;         /* Primary Orange */
+  --accent-hover:#FF7A38;   /* Primary Orange Hover */
+  --accent-active:#E44700;  /* Primary Orange Active */
+  --accent-glow:rgba(255,81,0,.28);
+
+  /* ---- Semánticos (Cap. XVI): un solo significado por color en toda la app ---- */
+  --success:#3DDC9B;
+  --success-bg:rgba(61,220,155,.12);
+  --warning:#F2B134;
+  --warning-bg:rgba(242,177,52,.12);
+  --danger:#FF3B3B;
+  --danger-bg:rgba(255,59,59,.12);
+  --info:#3E7BFF;
+  --info-bg:rgba(62,123,255,.12);
+
+  /* ---- Franquicia / podio ---- */
+  --gold:#FFC94A;
+  --silver:#C8C8C8;
+  --bronze:#CD8B5A;
+
+  /* ---- Estado de interacción ---- */
+  --focus:var(--accent);
+  --disabled-ink:var(--ink-4);
+  --disabled-bg:rgba(255,255,255,.03);
+
+  /* ---- Tipografía ---- */
+  --f-sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --f-display:'Teko',var(--f-sans);
+  --f-mono:'JetBrains Mono',ui-monospace,monospace;
+
+  /* ---- Escala tipográfica (Cap. XVI: nunca tamaños arbitrarios) ---- */
+  --fs-display:clamp(2.25rem,4vw,3.25rem);
+  --fs-h1:clamp(1.75rem,2.6vw,2.25rem);
+  --fs-h2:1.5rem;
+  --fs-h3:1.1875rem;
+  --fs-h4:1rem;
+  --fs-body-lg:1.0625rem;
+  --fs-body:.9375rem;
+  --fs-body-sm:.8125rem;
+  --fs-caption:.75rem;
+  --fs-overline:.6875rem;
+
+  /* ---- Espaciado (Cap. XVI: escala fija, nunca márgenes al azar) ---- */
+  --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px;
+  --space-5:20px; --space-6:24px; --space-7:32px; --space-8:40px;
+  --space-9:48px; --space-10:64px;
+
+  /* ---- Radio ---- */
+  --r-sm:8px; --r:12px; --r-lg:16px; --r-full:999px;
+
+  /* ---- Motion: una sola curva y tres duraciones, coherente en toda la app ---- */
+  --ease:cubic-bezier(.16,1,.3,1);
+  --ease-io:cubic-bezier(.4,0,.2,1);
+  --t1:150ms; --t2:280ms; --t3:500ms;
+
+  /* ---- Layout ---- */
+  --pad-x:clamp(1.25rem,4vw,3rem);
+  --nav-h:56px;
+  --sidebar-w:76px;
+
+  color-scheme:dark;
+}
