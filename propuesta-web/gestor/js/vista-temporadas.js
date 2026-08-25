@@ -196,7 +196,12 @@ function bloqueActual(D){
     '<div style="font-family:var(--f-mono);font-size:.625rem;letter-spacing:.12em;color:var(--ink-3);margin-bottom:var(--g2)">'+
       'PALMARÉS QUE SE ARCHIVARÍA</div>'+
     (camp.length
-      ? '<div class="tabla-caja">'+camp.map(filaCampeon).join('')+'</div>'
+      ? '<div class="tabla-caja">'+camp.map(function(c){ return filaCampeon(c, -1); }).join('')+'</div>'+
+        (camp.some(function(c){ return c.dudoso; })
+          ? '<p class="mal" style="margin-top:var(--g3);font-size:.8125rem"><i class="ph-bold ph-warning"></i> '+
+            'Hay eliminatorias jugadas: el campeón por puntos casi seguro no es el de verdad. '+
+            'Al archivar podrás apuntar quién ganó de verdad.</p>'
+          : '')
       : '<p class="ayuda">Todavía no hay campeones que archivar.</p>')+
     (!finalCopa ? '<p class="ayuda" style="margin-top:var(--g3)"><i class="ph ph-info"></i> No hay ningún cruce con fase FINAL en la Copa, así que el palmarés no incluirá campeón de Copa.</p>'
      : !C.isFin(finalCopa) ? '<p class="ayuda" style="margin-top:var(--g3)"><i class="ph ph-info"></i> La final de Copa está pendiente: hasta que se marque como finalizada no habrá campeón de Copa.</p>' : '')+
@@ -204,13 +209,32 @@ function bloqueActual(D){
   '</div>';
 }
 
-function filaCampeon(c){
+/* `ti` es el índice de la temporada archivada, o -1 para la que está en
+   curso (que todavía no se puede editar porque aún no existe como entrada). */
+function filaCampeon(c, ti){
   var e = C.equipoPorId(c.e.id) || c.e;
   return '<div class="problema">'+
-    '<i class="ph-fill ph-trophy" style="color:var(--gold)"></i>'+
-    '<span style="color:var(--ink-3);min-width:150px">'+esc(c.comp)+'</span>'+
+    '<i class="ph-fill ph-trophy" style="color:'+(c.guardado?'var(--gold)':'var(--ink-4)')+'"></i>'+
+    '<span style="color:var(--ink-3);min-width:130px">'+esc(c.comp)+'</span>'+
     U.celdaEquipo(e, c.e.nombre)+
-    (c.marcador ? '<span class="mono" style="margin-left:auto;color:var(--ink-4);font-size:.75rem">'+esc(c.marcador)+'</span>' : '')+
+    (c.marcador ? '<span class="mono" style="margin-left:.75rem;color:var(--ink-3);font-size:.75rem">'+esc(c.marcador)+'</span>' : '')+
+    '<span style="margin-left:auto;display:flex;align-items:center;gap:.4rem">'+
+      (c.guardado
+        ? '<span class="pastilla pastilla-ok">apuntado</span>'
+        : (function(){
+            /* En Copa el derivado sale de la FINAL, no de los puntos: decir
+               «por puntos» ahí sería mentir sobre de dónde viene el dato. */
+            var deLaFinal = c.clave==='COPA';
+            var etq = deLaFinal ? 'de la final' : (c.dudoso ? 'por puntos · revisar' : 'por puntos');
+            var tit = deLaFinal
+              ? 'Sale de quién ganó el cruce marcado como FINAL'
+              : (c.dudoso
+                  ? 'Esta división tiene eliminatorias jugadas: el campeón por puntos casi seguro no es el de verdad'
+                  : 'Sale del que más puntos tiene, que es como lo calcula la web');
+            return '<span class="pastilla'+(c.dudoso&&!deLaFinal?' pastilla-mal':'')+'" title="'+tit+'">'+etq+'</span>';
+          })())+
+      (ti>=0 ? '<button class="ir" data-a="temporadas:campeon" data-i="'+ti+'" data-c="'+esc(c.clave)+'">Cambiar</button>' : '')+
+    '</span>'+
   '</div>';
 }
 
@@ -223,7 +247,7 @@ function tarjeta(t, i){
         '<p class="ayuda">'+esc(t.fecha||'')+' · '+((t.equipos||[]).length)+' clubes · '+np+' partidos</p></div>'+
     '</div>'+
     (camp.length
-      ? '<div class="tabla-caja" style="margin-bottom:var(--g4)">'+camp.map(filaCampeon).join('')+'</div>'
+      ? '<div class="tabla-caja" style="margin-bottom:var(--g4)">'+camp.map(function(c){ return filaCampeon(c, i); }).join('')+'</div>'
       : '<p class="ayuda" style="margin-bottom:var(--g4)">Sin campeones registrados: la web no la mostrará en el palmarés.</p>')+
     '<div style="display:flex;gap:.4rem;flex-wrap:wrap">'+
       '<button class="btn btn-secondary btn-sm" data-a="temporadas:renombrar" data-i="'+i+'">Renombrar</button>'+
@@ -236,6 +260,48 @@ function tarjeta(t, i){
    ACCIONES
    -------------------------------------------------------------------------- */
 var A = {
+  /* Apuntar el campeón a mano. Hace falta porque el derivado es «el que más
+     puntos tiene», y con play-off el campeón es quien gana la final. */
+  campeon: function(el){
+    var ti = Number(el.dataset.i), clave = el.dataset.c;
+    var t = d().historial_temporadas[ti];
+    if(!t) return;
+    var comp = C.COMPETICIONES.filter(function(x){ return x.clave===clave; })[0];
+    var actual = (t.campeones||[]).filter(function(x){ return x.comp===clave; })[0];
+    var der = C.campeonDerivado(t, clave);
+    /* Los equipos que se ofrecen son los de ESA temporada, no los de hoy: un
+       club pudo desaparecer o cambiar de división desde entonces. */
+    var eqs = (t.equipos||[]).filter(function(e){ return clave==='COPA' || e.division===clave; })
+      .sort(function(a,b){ return String(a.nombre).localeCompare(String(b.nombre),'es'); });
+
+    U.modal({
+      titulo:'Campeón de '+comp.nombre,
+      cuerpo:
+        '<p class="ayuda" style="margin-bottom:var(--g4)">'+esc(t.nombre||'')+'. '+
+          (der ? 'Por puntos saldría <b>'+esc(der.e.nombre)+'</b>. ' : '')+
+          'Si la competición se decidió en una final, apunta aquí a quien la ganó.</p>'+
+        U.campo('Campeón', '<select class="inp" id="camp-eq">'+
+          '<option value="">— calcularlo por puntos —</option>'+
+          eqs.map(function(e){
+            return '<option value="'+esc(e.nombre)+'"'+(actual&&actual.equipo===e.nombre?' selected':'')+'>'+esc(e.nombre)+'</option>';
+          }).join('')+'</select>')+
+        '<div class="g-hueco"></div>'+
+        U.campo('Marcador de la final', '<input class="inp" id="camp-marc" value="'+esc(actual?actual.marcador||'':'')+'" placeholder="opcional, p. ej. 2-1">',
+          'Se enseña al lado del campeón.'),
+      pie:[
+        {txt:'Cancelar', fn:U.cerrarModal},
+        {txt:'Guardar', cls:'btn-primary', fn:function(){
+          var nom = document.getElementById('camp-eq').value;
+          var marc = (document.getElementById('camp-marc').value||'').trim();
+          var e = nom ? (t.equipos||[]).filter(function(x){ return x.nombre===nom; })[0] : null;
+          C.fijarCampeon(t, clave, e, marc);
+          U.cerrarModal(); U.cambio();
+          U.aviso(e ? 'Campeón de '+comp.nombre+': '+e.nombre+'.' : 'Vuelve a calcularse por puntos.', 'ok');
+        }}
+      ]
+    });
+  },
+
   cmpQue: function(el){ cmp.que = el.dataset.v; U.refrescar(); },
   cmpSel: function(el){ cmp[el.dataset.lado] = Number(el.value); U.refrescar(); },
 

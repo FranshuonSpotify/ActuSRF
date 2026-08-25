@@ -327,7 +327,17 @@ function plantilla(e){
       '<h3 style="font-size:.9375rem">Plantilla</h3>'+
       '<span class="pastilla">'+js.length+' jugadores</span>'+
       '<span class="pastilla'+(tit===11?' pastilla-ok':(tit>11?' pastilla-mal':' pastilla-ojo'))+'">'+tit+' titulares</span>'+
-      '<button class="btn btn-secondary btn-sm" style="margin-left:auto" data-a="equipos:importar"><i class="ph ph-upload-simple"></i> Importar CSV</button>'+
+      (function(){
+        /* Cuántas fichas de ESTE club no cuadran con los partidos. Se enseña
+           siempre, cuadre o no: saber que cuadra también es información. */
+        var difs = C.diferenciasGoles(d()).filter(function(x){ return x.e===e; });
+        return '<span class="pastilla'+(difs.length?' pastilla-ojo':' pastilla-ok')+'" '+
+          'title="Goles de la ficha frente a los goles que le dan los partidos">'+
+          (difs.length ? difs.length+' sin cuadrar' : 'goles al día')+'</span>';
+      })()+
+      '<button class="btn btn-secondary btn-sm" style="margin-left:auto" data-a="equipos:recalcular">'+
+        '<i class="ph ph-calculator"></i> Recalcular goles</button>'+
+      '<button class="btn btn-secondary btn-sm" data-a="equipos:importar"><i class="ph ph-upload-simple"></i> Importar CSV</button>'+
       '<button class="btn btn-primary btn-sm" data-a="equipos:nuevoJugador"><i class="ph-bold ph-plus"></i> Añadir jugador</button>'+
     '</div>'+
     (js.length ? '<div class="tabla-scroll"><table class="tabla"><thead><tr>'+
@@ -731,6 +741,39 @@ var A = {
     editarJugador(jugadorAbierto);
   },
   importar: function(){ abrirImportador(); },
+
+  /* Recalcula los goles de este club desde los eventos de los partidos.
+     Enseña qué va a cambiar antes de tocar nada: es lo que separa un botón
+     útil de uno que da miedo pulsar. */
+  recalcular: function(){
+    var e = club();
+    var difs = C.diferenciasGoles(d()).filter(function(x){ return x.e===e; });
+    if(!difs.length) return U.aviso('Los goles de «'+e.nombre+'» ya cuadran con los partidos.', 'ok');
+    U.modal({
+      titulo:'Recalcular los goles de '+e.nombre,
+      ancho:true,
+      cuerpo:'<p class="ayuda" style="margin-bottom:var(--g4)">'+difs.length+
+        (difs.length===1?' ficha no coincide':' fichas no coinciden')+' con los goles de los partidos. '+
+        'Los goles marcados con otra camiseta cuentan igual: son del jugador.</p>'+
+        '<div class="tabla-caja"><table class="tabla"><thead><tr>'+
+          '<th>Jugador</th><th class="num">Ficha</th><th class="num">Partidos</th><th class="num">Cambio</th>'+
+        '</tr></thead><tbody>'+difs.map(function(x){
+          var dif = x.ahora-x.antes;
+          return '<tr><td>'+esc(x.j.nombre||'sin nombre')+'</td>'+
+            '<td class="num" style="color:var(--ink-3)">'+x.antes+'</td>'+
+            '<td class="num" style="font-weight:600">'+x.ahora+'</td>'+
+            '<td class="num" style="color:'+(dif>0?'#6FD98A':'#FF7B7B')+'">'+(dif>0?'+':'')+dif+'</td></tr>';
+        }).join('')+'</tbody></table></div>',
+      pie:[
+        {txt:'Cancelar', fn:U.cerrarModal},
+        {txt:'Aplicar a '+(difs.length===1?'1 ficha':'las '+difs.length+' fichas'), cls:'btn-primary', fn:function(){
+          difs.forEach(function(x){ x.j.goles = x.ahora; });
+          U.cerrarModal(); U.cambio();
+          U.aviso(difs.length+' fichas actualizadas desde los partidos.', 'ok');
+        }}
+      ]
+    });
+  },
 
   usarFormacionReal: function(){
     var e = club(), tit = (e.jugadores||[]).filter(function(j){ return j.titular; });

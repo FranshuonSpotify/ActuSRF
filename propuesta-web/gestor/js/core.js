@@ -936,6 +936,41 @@ function traspasar(d, jugador, origen, destino, opciones){
 }
 
 /* --------------------------------------------------------------------------
+   RECALCULAR LOS GOLES DE LOS JUGADORES
+
+   El campo `goles` de cada ficha debería ser el número de goles que le
+   atribuyen los eventos de los partidos. Se puede desincronizar de mil formas:
+   editando el marcador sin tocar los goleadores, corrigiendo un nombre, o
+   traspasando a alguien.
+
+   `soloDiferencias:false` recorre TODAS las fichas, también las que se quedan
+   a cero: si un jugador tenía goles y sus eventos desaparecieron, hay que
+   bajarlo, no dejarlo con la cifra vieja.
+
+   Los goles cuentan para el jugador aunque los marcara con otra camiseta: son
+   suyos, y así es como los suma la web en su ranking.
+   -------------------------------------------------------------------------- */
+function diferenciasGoles(d){
+  var prev=D; D=d;
+  try {
+    var mapa=statsJugadoresCalculadas();
+    var out=[];
+    (d.equipos||[]).forEach(function(e){
+      (e.jugadores||[]).forEach(function(j){
+        var real=eventosDe(mapa,j).goles;
+        if((j.goles||0)!==real) out.push({j:j, e:e, antes:j.goles||0, ahora:real});
+      });
+    });
+    return out;
+  } finally { D=prev; }
+}
+function recalcularGoles(d){
+  var difs=diferenciasGoles(d);
+  difs.forEach(function(x){ x.j.goles = x.ahora; });
+  return difs;
+}
+
+/* --------------------------------------------------------------------------
    7. NORMALIZACIÓN
    Se ejecuta antes de cada guardado. Nunca destruye un dato: cuando dos
    campos dicen lo mismo se propaga el que exista, y si los dos existen y
@@ -1132,24 +1167,69 @@ function instantaneaTemporada(d, nombre){
     config: JSON.parse(JSON.stringify(d.config))
   };
 }
-/* Campeones de una entrada archivada, con el mismo criterio que palmares():
-   por puntos, no por orderStandings(). Se replica tal cual para que el gestor
-   enseñe exactamente el palmarés que enseñará la web. */
-function campeones(t){
-  function champ(div){
-    return (t.equipos||[]).filter(function(e){ return e.division===div; })
-      .sort(function(a,b){ return (b.pts||0)-(a.pts||0)||((b.gf-b.gc)-(a.gf-a.gc))||(b.gf-a.gf); })[0]||null;
-  }
-  var out=[];
-  var s=champ('SUPERLIGA'); if(s) out.push({comp:'Superliga Frontier',e:s});
-  var a=champ('ASCENSO');   if(a) out.push({comp:'Ascenso Frontier',e:a});
-  var fin=(t.partidos_copa||[]).filter(function(p){ return p.fase==='FINAL'&&isFin(p); })[0];
-  if(fin){
+/* CAMPEONES DE UNA TEMPORADA
+
+   Hay dos formas de saber quién ganó, y no dan lo mismo:
+
+   - DERIVADO: el que más puntos tiene. Es lo que hace palmares() de app.js
+     hoy, y por tanto lo que la web enseña.
+   - GUARDADO: el campeón apuntado a mano en `t.campeones`.
+
+   En una liga con play-off el campeón NO es el primero de la fase regular,
+   es quien gana la final. El derivado se equivoca en cuanto haya
+   eliminatorias, y por eso hace falta poder apuntarlo.
+
+   Si hay campeones guardados mandan ellos; si no, se deriva como siempre.
+   Cada entrada dice de dónde viene, para que la interfaz pueda avisar. */
+var COMPETICIONES=[
+  {clave:'SUPERLIGA', nombre:'Superliga Frontier'},
+  {clave:'ASCENSO',   nombre:'Ascenso Frontier'},
+  {clave:'COPA',      nombre:'Copa Fútbol Frontier'}
+];
+function campeonDerivado(t, clave){
+  if(clave==='COPA'){
+    var fin=(t.partidos_copa||[]).filter(function(p){ return p.fase==='FINAL'&&isFin(p); })[0];
+    if(!fin) return null;
     var wn=gl(fin)>gv(fin)?fin.local:(gv(fin)>gl(fin)?fin.visitante:winnerOf(fin));
     var ce=(t.equipos||[]).find(function(e){ return e.nombre===wn; });
-    if(ce) out.push({comp:'Copa Fútbol Frontier',e:ce,marcador:fin.local+' '+gl(fin)+'-'+gv(fin)+' '+fin.visitante});
+    return ce ? {e:ce, marcador:fin.local+' '+gl(fin)+'-'+gv(fin)+' '+fin.visitante} : null;
   }
+  var e=(t.equipos||[]).filter(function(x){ return x.division===clave; })
+    .sort(function(a,b){ return (b.pts||0)-(a.pts||0)||((b.gf-b.gc)-(a.gf-a.gc))||(b.gf-a.gf); })[0];
+  return e ? {e:e} : null;
+}
+/* ¿Hay eliminatorias jugadas en esa división? Entonces el campeón por puntos
+   es sospechoso y hay que decirlo en vez de darlo por bueno. */
+function tieneEliminatorias(t, clave){
+  if(clave==='COPA') return false;
+  var ms=(clave==='ASCENSO'?t.partidos_ascenso:t.partidos_liga)||[];
+  return ms.some(function(p){ return p.fase && isFin(p); });
+}
+function campeones(t){
+  var guardados=Array.isArray(t.campeones)?t.campeones:[];
+  var out=[];
+  COMPETICIONES.forEach(function(c){
+    var g=guardados.filter(function(x){ return x.comp===c.clave; })[0];
+    if(g && g.equipo){
+      var e=(t.equipos||[]).find(function(x){ return x.id===g.equipo_id; })
+         || (t.equipos||[]).find(function(x){ return x.nombre===g.equipo; })
+         || {nombre:g.equipo, id:g.equipo_id};
+      out.push({comp:c.nombre, clave:c.clave, e:e, marcador:g.marcador||'', guardado:true});
+      return;
+    }
+    var der=campeonDerivado(t, c.clave);
+    if(der) out.push({comp:c.nombre, clave:c.clave, e:der.e, marcador:der.marcador||'',
+                      guardado:false, dudoso:tieneEliminatorias(t, c.clave)});
+  });
   return out;
+}
+/* Apunta o borra el campeón de una competición dentro de una temporada. */
+function fijarCampeon(t, clave, equipo, marcador){
+  if(!Array.isArray(t.campeones)) t.campeones=[];
+  t.campeones=t.campeones.filter(function(x){ return x.comp!==clave; });
+  if(equipo) t.campeones.push({comp:clave, equipo:equipo.nombre, equipo_id:equipo.id, marcador:marcador||''});
+  if(!t.campeones.length) delete t.campeones;
+  return t;
 }
 
 /* calcScorers necesita D para findPlayer; en validación se trabaja sobre el
@@ -1316,6 +1396,7 @@ SFG.core={
   TIPOS_EVENTO:TIPOS_EVENTO, TIPOS_EDITABLES:TIPOS_EDITABLES, TIPO_LABEL:TIPO_LABEL,
   esNoJugado:esNoJugado, contarCamposSinUso:contarCamposSinUso, limpiarCamposSinUso:limpiarCamposSinUso, CAMPOS_TABLA:CAMPOS_TABLA, CLAVES:CLAVES,
   instantaneaTemporada:instantaneaTemporada, campeones:campeones, cerrarTemporada:cerrarTemporada,
+  COMPETICIONES:COMPETICIONES, campeonDerivado:campeonDerivado, fijarCampeon:fijarCampeon,
   traspasar:traspasar, moverEnCuadro:moverEnCuadro,
   generarCalendario:generarCalendario, generarCopa:generarCopa, azar:azar, barajar:barajar,
   equipo:equipo, equipoPorId:equipoPorId, pool:pool,
@@ -1324,7 +1405,7 @@ SFG.core={
   parseDetalles:parseDetalles, serializarDetalles:serializarDetalles, textosDerivados:textosDerivados,
   findPlayer:findPlayer, calcScorers:calcScorers,
   tablaCalculada:tablaCalculada, desajustesTabla:desajustesTabla, statsJugadoresCalculadas:statsJugadoresCalculadas,
-  eventosDe:eventosDe,
+  eventosDe:eventosDe, diferenciasGoles:diferenciasGoles, recalcularGoles:recalcularGoles,
   distancia:distancia, parecido:parecido, analizarNombres:analizarNombres,
   renombrarEnEventos:renombrarEnEventos, renombrarJugador:renombrarJugador,
   normalizar:normalizar, validarEsquema:validarEsquema, completarEsquema:completarEsquema, validarIntegridad:validarIntegridad
