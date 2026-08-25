@@ -84,20 +84,24 @@ function kpis(ms){
     return Math.abs(C.gl(b)-C.gv(b))-Math.abs(C.gl(a)-C.gv(a));
   })[0];
 
+  var noJug = ms.filter(C.esNoJugado).length;
   return '<div class="rejilla rejilla-4">'+
-    kpi(goles, 'Goles')+
-    kpi(media, 'Media por partido')+
-    kpi(mejorJor?('J'+mejorJor):'—', mejorJor?porJor[mejorJor]+' goles, la jornada más loca':'Sin jornadas')+
-    kpi(masGoleador?C.abbr3(masGoleador,(C.equipo(masGoleador)||{}).abreviatura):'—', 'Más goleador'+(masGoleador?' · '+gf[masGoleador]:''), masGoleador)+
-    kpi(menosGoleado?C.abbr3(menosGoleado,(C.equipo(menosGoleado)||{}).abreviatura):'—', 'Menos goleado'+(menosGoleado?' · '+gc[menosGoleado]:''), menosGoleado)+
-    kpi(masGoleado?C.abbr3(masGoleado,(C.equipo(masGoleado)||{}).abreviatura):'—', 'Más goleado'+(masGoleado?' · '+gc[masGoleado]:''), masGoleado)+
-    kpi(mayor?(C.gl(mayor)+'-'+C.gv(mayor)):'—', mayor?'Mayor goleada · '+mayor.local+' vs '+mayor.visitante:'—', mayor?mayor.local+' – '+mayor.visitante:'')+
+    U.kpi({valor:goles, etiqueta:'Goles', icono:'ph ph-target', destacado:true,
+           delta:0, deltaTexto:media+' por partido'})+
+    U.kpi({valor:ms.length, etiqueta:'Partidos jugados', icono:'ph-bold ph-soccer-ball',
+           delta:noJug?-noJug:null, deltaTexto:noJug?noJug+' no disputados':null,
+           titulo:'Los no disputados se resolvieron con victoria administrativa'})+
+    U.kpi({valor:mejorJor?('J'+mejorJor):'—', etiqueta:'Jornada con más goles', icono:'ph ph-fire',
+           delta:mejorJor?0:null, deltaTexto:mejorJor?porJor[mejorJor]+' goles':null})+
+    U.kpi({valor:masGoleador?C.abbr3(masGoleador,(C.equipo(masGoleador)||{}).abreviatura):'—',
+           etiqueta:'Más goleador', icono:'ph ph-trophy', titulo:masGoleador,
+           delta:masGoleador?0:null, deltaTexto:masGoleador?gf[masGoleador]+' a favor':null})+
+    U.kpi({valor:menosGoleado?C.abbr3(menosGoleado,(C.equipo(menosGoleado)||{}).abreviatura):'—',
+           etiqueta:'Menos goleado', icono:'ph ph-shield-check', titulo:menosGoleado,
+           delta:menosGoleado?0:null, deltaTexto:menosGoleado?gc[menosGoleado]+' en contra':null})+
+    U.kpi({valor:mayor?(C.gl(mayor)+'–'+C.gv(mayor)):'—', etiqueta:'Mayor goleada', icono:'ph ph-lightning',
+           titulo:mayor?mayor.local+' – '+mayor.visitante:''})+
   '</div>';
-}
-function kpi(valor, etiqueta, titulo){
-  return '<div class="card" style="padding:var(--g4)"'+(titulo?' title="'+esc(titulo)+'"':'')+'>'+
-    '<div class="mono" style="font-size:1.5rem;font-weight:600;letter-spacing:-.03em">'+esc(valor)+'</div>'+
-    '<div class="ayuda" style="margin-top:.15rem">'+esc(etiqueta)+'</div></div>';
 }
 
 /* --- Goleadores ------------------------------------------------------- */

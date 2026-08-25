@@ -9,6 +9,21 @@ var SFG = window.SFG, C = SFG.core, U = SFG.ui;
 var esc = C.esc;
 
 var abierta = null;      // índice de la noticia en edición
+var resAbierta = null;   // índice de la reseña en edición
+
+/* Las reseñas de la portada viven hoy CODIFICADAS dentro de app.js, en un
+   array `QUOTES` marcado como «Contenido de ejemplo». No están en el archivo
+   de datos, así que desde aquí no se pueden cambiar todavía.
+
+   Se guardan en `config.resenas`, que es aditivo y no molesta a nadie, y la
+   pantalla dice con todas las letras que la web no las leerá hasta aplicar
+   un parche de tres líneas en `renderQuotes()`. Prefiero eso a un editor que
+   parezca funcionar y no cambie nada de lo que se ve. */
+function resenas(){
+  var c = d().config;
+  if(!Array.isArray(c.resenas)) c.resenas = [];
+  return c.resenas;
+}
 
 function d(){ return SFG.d(); }
 
@@ -288,6 +303,98 @@ function fmt(el){
   if(!f[el.dataset.comp]) f[el.dataset.comp] = {};
   return f[el.dataset.comp];
 }
+
+/* --------------------------------------------------------------------------
+   RESEÑAS DE LA PORTADA
+   -------------------------------------------------------------------------- */
+function pintarResenas(el){
+  var rs = resenas();
+  el.innerHTML =
+    U.cabecera('Reseñas', 'Las citas de manager que salen en la portada',
+      '<button class="btn btn-primary btn-sm" data-a="resenas:nueva"><i class="ph-bold ph-plus"></i> Nueva reseña</button>')+
+
+    '<div class="card" style="padding:var(--g5);margin-bottom:var(--g5);border-color:rgba(255,201,74,.3)">'+
+      '<div style="display:flex;gap:var(--g3);align-items:flex-start">'+
+        '<i class="ph-bold ph-warning" style="color:var(--gold);font-size:1.25rem;flex-shrink:0;margin-top:.1rem"></i>'+
+        '<div><b style="font-size:.9375rem">La web todavía no lee estas reseñas</b>'+
+        '<p class="ayuda" style="margin-top:.25rem">Hoy están escritas a mano dentro de '+
+          '<span class="mono">_fuente/app.js</span>, en un array <span class="mono">QUOTES</span> '+
+          'marcado como «Contenido de ejemplo». Lo que guardes aquí va a '+
+          '<span class="mono">config.resenas</span> y queda listo, pero la portada seguirá enseñando las de siempre '+
+          'hasta que se aplique un cambio de tres líneas en <span class="mono">renderQuotes()</span> para que las lea del archivo. '+
+          '<b>Ese cambio toca la web pública, así que no lo he hecho sin preguntar.</b></p></div>'+
+      '</div></div>'+
+
+    (rs.length
+      ? '<div class="rejilla" style="--min:300px">'+rs.map(tarjetaResena).join('')+'</div>'
+      : '<div class="vacio">Sin reseñas propias. Las tres de la portada son las de ejemplo de app.js.</div>');
+}
+function tarjetaResena(r, i){
+  var nota = Math.max(0, Math.min(10, Number(r.n)||0));
+  return '<article class="card" style="padding:var(--g5)">'+
+    '<div style="display:flex;align-items:center;gap:var(--g3);margin-bottom:var(--g3)">'+
+      '<span class="mono" style="font-size:1.5rem;font-weight:600;letter-spacing:-.03em">'+nota.toFixed(1)+
+        '<span style="font-size:.75rem;color:var(--ink-3)">/10</span></span>'+
+      '<span class="pastilla" style="margin-left:auto">#'+(i+1)+'</span></div>'+
+    '<div style="height:4px;border-radius:2px;background:var(--surface-3);overflow:hidden;margin-bottom:var(--g4)">'+
+      '<div style="height:100%;width:'+(nota*10)+'%;background:var(--accent)"></div></div>'+
+    '<p style="font-size:.8125rem;color:var(--ink-2);line-height:1.55;margin-bottom:var(--g3);'+
+      'display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden">'+esc(r.t||'')+'</p>'+
+    '<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:var(--g3)">'+
+      (/^(https?:|data:|assets\/)/.test(r.i||'')
+        ? '<img src="'+esc(r.i)+'" alt="" class="escudo escudo-lg" style="border-radius:50%;object-fit:cover" referrerpolicy="no-referrer">'
+        : '<span class="escudo escudo-lg noimg" style="border-radius:50%">?</span>')+
+      '<div style="min-width:0"><b style="font-size:.8125rem;display:block">'+esc(r.a||'Sin autor')+'</b>'+
+        '<span class="ayuda">'+esc(r.s||'')+'</span></div></div>'+
+    '<div style="display:flex;gap:.4rem">'+
+      '<button class="btn btn-secondary btn-sm" data-a="resenas:editar" data-i="'+i+'">Editar</button>'+
+      '<button class="btn btn-secondary btn-sm" data-a="resenas:borrar" data-i="'+i+'">Eliminar</button>'+
+    '</div></article>';
+}
+function editarResena(i){
+  resAbierta = i;
+  var r = resenas()[i];
+  U.modal({
+    titulo: r.a || 'Nueva reseña',
+    ancho: true,
+    cuerpo:
+      U.campo('Cita', '<textarea class="inp" data-c="resenas:campo" data-k="t" style="min-height:120px">'+esc(r.t||'')+'</textarea>',
+        'Sin comillas: la web se las pone.')+
+      '<div class="g-hueco"></div>'+
+      '<div class="rejilla rejilla-2">'+
+        U.campo('Autor', '<input class="inp" value="'+esc(r.a||'')+'" data-c="resenas:campo" data-k="a">')+
+        U.campo('Debajo del nombre', '<input class="inp" value="'+esc(r.s||'')+'" data-c="resenas:campo" data-k="s">')+
+      '</div>'+
+      '<div class="g-hueco"></div>'+
+      '<div class="rejilla rejilla-2">'+
+        U.campo('Nota sobre 10',
+          '<input class="inp inp-mono" type="number" min="0" max="10" step="0.1" value="'+(Number(r.n)||0)+'" data-c="resenas:nota">',
+          'La web dibuja una barra que crece hasta esta nota.')+
+        U.campoImagen('Foto', r.i||'', 'resenas:foto')+
+      '</div>',
+    pie:[{txt:'Hecho', cls:'btn-primary', fn:function(){ U.cerrarModal(); }}],
+    alCerrar:function(){ resAbierta = null; U.refrescar(); }
+  });
+}
+
+var AR = {
+  nueva: function(){
+    resenas().push({t:'', a:'', s:'', i:'', n:9});
+    U.cambio();
+    editarResena(resenas().length-1);
+  },
+  editar: function(el){ editarResena(Number(el.dataset.i)); },
+  borrar: function(el){
+    var i = Number(el.dataset.i), r = resenas()[i];
+    U.confirmar({titulo:'Eliminar reseña', texto:'Se borrará la cita de «'+(r.a||'sin autor')+'».', ok:'Eliminar', peligro:true})
+      .then(function(si){ if(si){ resenas().splice(i,1); U.cambio(); U.aviso('Reseña eliminada.','ok'); } });
+  },
+  campo: function(el){ resenas()[resAbierta][el.dataset.k] = el.value; SFG.io.marcarSucio(); },
+  nota:  function(el){ resenas()[resAbierta].n = Math.max(0, Math.min(10, Number(el.value)||0)); SFG.io.marcarSucio(); },
+  foto:  function(el){ resenas()[resAbierta].i = el.value; SFG.io.marcarSucio(); }
+};
+
+U.registrar('resenas', {acciones:AR, render:pintarResenas});
 
 U.registrar('noticias', {
   acciones: AN,

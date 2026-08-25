@@ -40,13 +40,16 @@ function pintarResumen(el){
       'Temporada '+(D.config.temporada||'—')+' · jornada '+(D.config.jornada_actual||'—'))+
 
     '<div class="rejilla rejilla-4">'+
-      [[act.length,'Clubes activos'], [jug,'Jugadores'], [fin.length+'/'+todos.length,'Partidos jugados'],
-       [goles,'Goles'], [D.noticias.length,'Noticias'], [D.agentes_libres.length,'Agentes libres']]
-      .map(function(k){
-        return '<div class="card" style="padding:var(--g4)">'+
-          '<div class="mono" style="font-size:1.75rem;font-weight:600;letter-spacing:-.03em">'+esc(k[0])+'</div>'+
-          '<div class="ayuda" style="margin-top:.15rem">'+esc(k[1])+'</div></div>';
-      }).join('')+
+      U.kpi({valor:fin.length+'/'+todos.length, etiqueta:'Partidos jugados', icono:'ph-bold ph-soccer-ball',
+             destacado:true, delta:pendientes.length?-pendientes.length:null,
+             deltaTexto:pendientes.length?pendientes.length+' pendientes':null,
+             titulo:'Pendientes hasta la jornada '+jor})+
+      U.kpi({valor:goles, etiqueta:'Goles', icono:'ph ph-target',
+             delta:fin.length?0:null, deltaTexto:fin.length?(goles/fin.length).toFixed(2)+' por partido':null})+
+      U.kpi({valor:act.length, etiqueta:'Clubes activos', icono:'ph ph-shield'})+
+      U.kpi({valor:jug, etiqueta:'Jugadores', icono:'ph ph-users'})+
+      U.kpi({valor:D.noticias.length, etiqueta:'Noticias', icono:'ph ph-newspaper'})+
+      U.kpi({valor:D.agentes_libres.length, etiqueta:'Agentes libres', icono:'ph ph-arrows-left-right'})+
     '</div>'+
 
     (integridad.err.length || desajustes.length ? '<div class="g-hueco"></div>'+alertas(integridad, desajustes) : '')+

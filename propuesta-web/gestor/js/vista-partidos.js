@@ -15,7 +15,7 @@
 var SFG = window.SFG, C = SFG.core, U = SFG.ui;
 var esc = C.esc;
 
-var st = {comp:'liga', j:null};        // competición y jornada visibles
+var st = {comp:'liga', j:null, vista:'regular'};   // competición, jornada y qué se está mirando
 var copaFase = '';                     // filtro de fase en el cuadro
 var edit = null;                       // {comp, idx, ev} mientras el editor está abierto
 var TODAS = '*';                       // valor del selector para «todas las jornadas»
@@ -62,8 +62,16 @@ function pintar(el){
      se trataba igual que null y el selector volvia solo a la ultima. */
   if(st.j==null || (st.j!==TODAS && js.indexOf(st.j)<0)) st.j = js.length ? js[js.length-1] : TODAS;
   var todos = lista(st.comp);
-  var vis = todos.map(function(p,i){ return {p:p,i:i}; })
-    .filter(function(o){ return st.j===TODAS || o.p.jornada===st.j; });
+  var elim = todos.map(function(p,i){ return {p:p,i:i}; }).filter(function(o){ return !C.esRegular(o.p); });
+  if(!elim.length) st.vista = 'regular';
+
+  /* Las eliminatorias no son una jornada mas: o se miran las jornadas o se
+     miran ellas, nunca mezcladas en la misma tabla. Antes salian en las dos
+     cosas a la vez, duplicadas. */
+  var vis = st.vista==='elim'
+    ? elim
+    : todos.map(function(p,i){ return {p:p,i:i}; })
+        .filter(function(o){ return C.esRegular(o.p) && (st.j===TODAS || o.p.jornada===st.j); });
 
   var pend = vis.filter(function(o){ return !C.isFin(o.p); }).length;
 
@@ -79,7 +87,15 @@ function pintar(el){
           return '<button class="btn btn-sm '+(st.comp===c[0]?'btn-primary':'btn-secondary')+'" data-a="partidos:comp" data-v="'+c[0]+'">'+c[1]+'</button>';
         }).join('')+
       '</div>'+
-      (js.length ? '<span style="display:flex;align-items:center;gap:.25rem;margin-left:var(--g3)">'+
+      (elim.length
+        ? '<div style="display:flex;gap:.25rem;margin-left:var(--g3)">'+
+            [['regular','Jornadas'],['elim','Eliminatorias · '+elim.length]].map(function(v){
+              return '<button class="btn btn-sm '+(st.vista===v[0]?'btn-accent':'btn-secondary')+
+                '" data-a="partidos:vista" data-v="'+v[0]+'">'+v[1]+'</button>';
+            }).join('')+
+          '</div>'
+        : '')+
+      (js.length && st.vista==='regular' ? '<span style="display:flex;align-items:center;gap:.25rem;margin-left:var(--g3)">'+
         '<button class="btn btn-secondary btn-sm" data-a="partidos:jorMenos" aria-label="Jornada anterior"><i class="ph ph-caret-left"></i></button>'+
         '<select class="inp inp-sm" style="width:auto" data-c="partidos:jor">'+
           '<option value="'+TODAS+'"'+(st.j===TODAS?' selected':'')+'>Todas las jornadas</option>'+
@@ -90,13 +106,108 @@ function pintar(el){
       '<span class="ayuda" style="margin-left:auto">'+vis.length+' partidos'+(pend?' · '+pend+' sin resultado':'')+'</span>'+
     '</div>'+
 
-    avisoEliminatorias(todos)+
-    (vis.length ? tablaPartidos(vis, st.comp) : '<div class="vacio">No hay partidos en esta vista.</div>')+
+    (st.vista==='elim' ? cabeceraElim(elim) : '')+
+    (vis.length ? tablaPartidos(vis, st.comp)
+      : '<div class="vacio">'+(st.vista==='elim'?'No hay eliminatorias.':'No hay partidos en esta jornada.')+'</div>')+
     '<div class="g-hueco"></div>'+
-    moverJornada();
+    (st.vista==='regular' ? crearEnfrentamiento()+moverJornada() : '');
 
-  montarCalendario();
+  if(st.vista==='regular'){ montarCalendario(); montarCrear(); }
 }
+
+/* Cabecera del modo eliminatorias: dice qué son y cuántas hay de cada fase,
+   para que se vea la estructura del cuadro sin tener que leer la tabla. */
+function cabeceraElim(elim){
+  var porFase = {};
+  elim.forEach(function(o){ porFase[o.p.fase] = (porFase[o.p.fase]||0)+1; });
+  var orden = C.FASES_LIGA.filter(function(f){ return porFase[f]; })
+    .concat(Object.keys(porFase).filter(function(f){ return C.FASES_LIGA.indexOf(f)<0; }));
+  return '<div class="elim-bloque" style="padding:var(--g4) var(--g5)">'+
+    '<div class="elim-tit"><i class="ph-bold ph-tree-structure"></i> Fuera del calendario regular</div>'+
+    '<p class="ayuda">Estos partidos <b>no reparten puntos</b>: la clasificación los ignora. '+
+      'La web muestra la etiqueta de la fase en lugar de «Jornada N».</p>'+
+    '<div style="display:flex;gap:.35rem;flex-wrap:wrap;margin-top:var(--g3)">'+
+      orden.map(function(f){ return '<span class="pastilla pastilla-ojo">'+esc(f)+' · '+porFase[f]+'</span>'; }).join('')+
+    '</div></div>';
+}
+
+/* --------------------------------------------------------------------------
+   CREAR ENFRENTAMIENTOS ARRASTRANDO
+   Se arrastra un club sobre otro y sale el partido. Es la forma natural de
+   montar una jornada desde cero: pensar en parejas, no en filas de tabla.
+   -------------------------------------------------------------------------- */
+function crearEnfrentamiento(){
+  var div = st.comp==='ascenso' ? 'ASCENSO' : 'SUPERLIGA';
+  var eqs = d().equipos.filter(function(e){ return e.division===div && !e.archivado; })
+    .sort(function(a,b){ return a.nombre.localeCompare(b.nombre,'es'); });
+  if(eqs.length<2) return '';
+  var jorDestino = (st.j===TODAS||!st.j) ? (jornadas(st.comp).slice(-1)[0]||'1') : st.j;
+
+  return '<div class="card" style="padding:var(--g5);margin-top:var(--g5)">'+
+    '<div style="display:flex;align-items:center;gap:var(--g3);margin-bottom:.35rem;flex-wrap:wrap">'+
+      '<h3 style="font-size:.9375rem">Crear enfrentamiento</h3>'+
+      '<span class="ayuda" style="margin-left:auto">a la jornada '+
+        '<input class="inp inp-sm inp-num" id="crear-jor" value="'+esc(jorDestino)+'"></span>'+
+    '</div>'+
+    '<p class="ayuda" style="margin-bottom:var(--g4)">Arrastra un club sobre otro y se crea el partido: el primero juega en casa. '+
+      'Sin ratón, usa los dos desplegables de abajo.</p>'+
+    '<div class="crear-pista" id="crear-pista">'+
+      eqs.map(function(e){
+        return '<div class="dnd-ficha crear-eq" data-nombre="'+esc(e.nombre)+'" role="button" tabindex="0" '+
+            'aria-label="'+esc(e.nombre)+'">'+
+          U.escudo(e,'sm')+'<span class="nm">'+esc(C.abbr3(e.nombre,e.abreviatura))+'</span></div>';
+      }).join('')+
+    '</div>'+
+    '<div style="display:flex;gap:.35rem;align-items:flex-end;margin-top:var(--g4);flex-wrap:wrap">'+
+      U.campo('Local', U.selectEquipos('', 'class="inp inp-sm" id="crear-local"'))+
+      '<span style="color:var(--ink-5);padding-bottom:.6rem">–</span>'+
+      U.campo('Visitante', U.selectEquipos('', 'class="inp inp-sm" id="crear-visitante"'))+
+      '<button class="btn btn-primary btn-sm" data-a="partidos:crearManual">Crear</button>'+
+    '</div></div>';
+}
+function montarCrear(){
+  var pista = document.getElementById('crear-pista');
+  if(!pista) return;
+  /* Soltar un club encima de otro crea el partido. El propio contenedor es la
+     zona: lo que importa es sobre QUIÉN se suelta, no dónde queda. */
+  SFG.dnd.sortable({
+    grupo:'crear', item:'.crear-eq', contenedores:[pista],
+    alSoltar:function(dd){
+      var hijos = Array.prototype.slice.call(pista.querySelectorAll('.crear-eq'));
+      var i = hijos.indexOf(dd.item);
+      /* El vecino sobre el que ha caído: el de al lado en el sentido del
+         movimiento. Si se suelta en el mismo sitio no hay pareja. */
+      var vecino = hijos[i-1] || hijos[i+1];
+      if(!vecino) return U.refrescar();
+      crearPartido(dd.item.dataset.nombre, vecino.dataset.nombre);
+    }
+  });
+}
+function crearPartido(local, visitante){
+  if(!local || !visitante || local===visitante) return U.refrescar();
+  var j = (document.getElementById('crear-jor')||{}).value || st.j || '1';
+  var ya = lista(st.comp).some(function(p){
+    return p.jornada===String(j) && ((p.local===local&&p.visitante===visitante)||(p.local===visitante&&p.visitante===local));
+  });
+  U.confirmar({
+    titulo:'Crear '+local+' – '+visitante,
+    html:'Se añade a la <b>jornada '+esc(String(j))+'</b> como pendiente, con '+esc(local)+' en casa.'+
+      (ya ? '<br><br><b style="color:var(--gold)">Esos dos ya se enfrentan en esa jornada.</b> Se creará otro partido igual.' : ''),
+    ok:'Crear'
+  }).then(function(si){
+    if(!si) return U.refrescar();
+    lista(st.comp).push(nuevoPartidoLiga(local, visitante, String(j)));
+    st.j = String(j);
+    U.cambio();
+    U.aviso(local+' – '+visitante+' creado en la jornada '+j+'.', 'ok');
+  });
+}
+function nuevoPartidoLiga(local, visitante, jornada){
+  return {jornada:jornada, fecha:'', estado:'PENDIENTE', local:local, visitante:visitante,
+          goles_l:0, goles_v:0, detalles:' / '};
+}
+
+
 
 /* --------------------------------------------------------------------------
    CALENDARIO ARRASTRABLE
@@ -160,26 +271,6 @@ function montarCalendario(){
       U.cambio();
     }
   });
-}
-
-/* Explicación de las fases, sólo cuando hay alguna: en una liga sin
-   eliminatorias todavía es ruido. */
-function avisoEliminatorias(todos){
-  var elim = todos.filter(function(p){ return !C.esRegular(p); });
-  if(!elim.length) return '';
-  var porFase = {};
-  elim.forEach(function(p){ porFase[p.fase] = (porFase[p.fase]||0)+1; });
-  return '<div class="card" style="padding:var(--g4);margin-bottom:var(--g4);border-color:rgba(255,81,0,.25)">'+
-    '<div style="display:flex;gap:var(--g3);align-items:flex-start">'+
-      '<i class="ph-bold ph-tree-structure" style="color:var(--accent);font-size:1.1rem;flex-shrink:0"></i>'+
-      '<div><b style="font-size:.8125rem">'+elim.length+' partidos de eliminatoria</b>'+
-        '<p class="ayuda" style="margin-top:.15rem">No reparten puntos: la clasificación regular los ignora. '+
-        'La web muestra la etiqueta de la fase en lugar de «Jornada N».</p>'+
-        '<div style="display:flex;gap:.35rem;flex-wrap:wrap;margin-top:.5rem">'+
-          Object.keys(porFase).map(function(f){ return '<span class="pastilla pastilla-ojo">'+esc(f)+' · '+porFase[f]+'</span>'; }).join('')+
-        '</div>'+
-      '</div>'+
-    '</div></div>';
 }
 
 function tablaPartidos(vis, comp){
@@ -829,6 +920,11 @@ var A = {
   jorMenos:  function(){ mueveJornada(-1); },
   jorMas:    function(){ mueveJornada(1); },
   nuevo:     function(){ nuevoPartido(st.comp); },
+  vista:     function(el){ st.vista = el.dataset.v; lote = {}; U.refrescar(); },
+  crearManual: function(){
+    crearPartido((document.getElementById('crear-local')||{}).value,
+                 (document.getElementById('crear-visitante')||{}).value);
+  },
 
   lote:      function(el){
     lote[el.dataset.i] = el.checked;

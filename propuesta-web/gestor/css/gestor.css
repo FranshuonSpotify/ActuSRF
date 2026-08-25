@@ -561,3 +561,192 @@ table.tabla input[type=checkbox]{
 table.tabla td.acc:has(input[type=checkbox]),
 table.tabla th.acc:has(input[type=checkbox]){ padding:.5rem .6rem; }
 table.tabla tr:has(input[type=checkbox]:checked) td{ background:rgba(255,81,0,.06); }
+
+/* ==========================================================================
+   REDISEÑO — lenguaje de las referencias sobre la paleta de la Superliga
+
+   De las referencias se toman las DECISIONES DE FORMA, no sus colores:
+   tarjetas muy redondeadas, píldora rellena en la navegación activa,
+   indicadores con su variación al lado, gráficos con relleno degradado y
+   movimiento corto. El color sigue siendo el Design System v3 —negro real y
+   ámbar #FF5100 con cuentagotas—, porque CLAUDE.md lo fija como no
+   negociable y la web pública tiene que parecer la misma casa.
+   ========================================================================== */
+
+:root{
+  --r-card:20px;                 /* las referencias redondean más que la web */
+  --glow:0 0 0 1px rgba(255,81,0,.18), 0 18px 46px -22px var(--accent-glow);
+}
+
+/* ---------------------------------------------------------------- ESCUDOS
+   Tamaño propio, siempre. Sin esto un escudo dentro de un contenedor sin
+   regla se pinta al tamaño natural del archivo del CDN. */
+.escudo{
+  width:22px; height:22px; flex-shrink:0; object-fit:contain;
+  border-radius:5px; display:inline-block; vertical-align:middle;
+}
+.escudo-sm{ width:16px; height:16px; }
+.escudo-lg{ width:34px; height:34px; }
+span.escudo.noimg{
+  display:inline-grid; place-items:center; line-height:1;
+  font-size:.5rem; font-weight:700; letter-spacing:-.02em;
+  background:var(--surface-3); color:var(--ink-2); overflow:hidden;
+}
+span.escudo-sm.noimg{ font-size:.4375rem; }
+span.escudo-lg.noimg{ font-size:.6875rem; }
+/* Los contenedores que ya medían el escudo siguen mandando sobre el defecto. */
+.eq-cel .escudo{ width:22px; height:22px; }
+.br-eq .escudo{ width:18px; height:18px; }
+.cine-lado .escudo{ width:24px; height:24px; }
+.tv-eq .escudo{ width:clamp(20px,2.2vw,30px); height:clamp(20px,2.2vw,30px); }
+.tv-lado .escudo{ width:44px; height:44px; }
+
+/* ---------------------------------------------------------------- TARJETAS */
+.card{ border-radius:var(--r-card); }
+/* Elevación al pasar por encima, corta y sólo donde hay algo que pulsar. */
+.card.pulsable{ cursor:pointer; }
+.card.pulsable:hover{ transform:translateY(-2px); border-color:var(--line-2); }
+
+/* ------------------------------------------------------------ INDICADORES
+   Cifra grande, etiqueta debajo y la variación al lado, como en las
+   referencias. La tarjeta destacada lleva el lavado ámbar; una sola por
+   pantalla, que el acento es raro por definición. */
+.kpi{
+  position:relative; overflow:hidden;
+  padding:var(--g4) var(--g4) var(--g3);
+  background:var(--surface); border:1px solid var(--line);
+  border-radius:var(--r-card);
+  transition:border-color var(--t2) var(--ease-io), transform var(--t2) var(--ease);
+}
+.kpi:hover{ border-color:var(--line-2); }
+.kpi-on{ border-color:rgba(255,81,0,.28); box-shadow:var(--glow); }
+.kpi-on::before{
+  content:''; position:absolute; inset:0; pointer-events:none;
+  background:radial-gradient(ellipse 80% 120% at 12% 0%, var(--accent-glow), transparent 62%);
+}
+.kpi > *{ position:relative; }
+.kpi-ico{
+  display:inline-grid; place-items:center; width:30px; height:30px;
+  border-radius:9px; background:var(--surface-3); color:var(--ink-2);
+  font-size:.875rem; margin-bottom:var(--g3);
+}
+.kpi-on .kpi-ico{ background:rgba(255,81,0,.16); color:var(--accent-2); }
+.kpi-val{
+  font-size:1.625rem; font-weight:600; letter-spacing:-.04em; line-height:1.05;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+.kpi-pie{ display:flex; align-items:center; gap:.4rem; margin-top:.35rem; flex-wrap:wrap; }
+.kpi-etq{ font-size:.6875rem; color:var(--ink-3); }
+.kpi-delta{
+  display:inline-flex; align-items:center; gap:.15rem;
+  font-family:var(--f-mono); font-size:.625rem; font-weight:500;
+  padding:.1rem .35rem; border-radius:var(--r-full);
+}
+.kpi-delta.sube{ background:rgba(70,180,95,.14); color:#6FD98A; }
+.kpi-delta.baja{ background:rgba(255,59,59,.14); color:#FF7B7B; }
+.kpi-delta.igual{ background:var(--surface-3); color:var(--ink-3); }
+
+/* ------------------------------------------------------------- NAVEGACIÓN
+   Píldora rellena en el elemento activo, como las referencias. Sustituye al
+   fondo gris tenue, que a 15 secciones no se veía. */
+.g-nav a{ border-radius:var(--r-full); }
+.g-nav a.on{
+  background:var(--accent); color:#fff; font-weight:600;
+  box-shadow:0 6px 18px -8px var(--accent-glow);
+}
+.g-nav a.on i{ color:#fff; opacity:1; }
+.g-nav a.on .cnt{ color:rgba(255,255,255,.72); }
+.g-nav a.on .mal{ color:#fff; }
+.g-marca{ border-bottom-color:transparent; }
+
+/* Buscador dentro de la barra lateral, como en las referencias, en vez de
+   escondido detrás de un botón de la barra superior. */
+.g-buscar{
+  display:flex; align-items:center; gap:.5rem; width:100%;
+  height:34px; padding:0 .6rem; margin-bottom:var(--g2);
+  background:var(--surface); border:1px solid var(--line);
+  border-radius:var(--r-full); color:var(--ink-4);
+  font-size:.75rem; cursor:pointer; text-align:left;
+  transition:border-color var(--t1), color var(--t1);
+}
+.g-buscar:hover{ border-color:var(--line-2); color:var(--ink-2); }
+.g-buscar kbd{
+  margin-left:auto; font-family:var(--f-mono); font-size:.5625rem;
+  padding:.1rem .3rem; border-radius:4px;
+  background:var(--surface-3); border:1px solid var(--line); color:var(--ink-3);
+}
+
+/* -------------------------------------------------------------- CABECERAS */
+.g-cab h1{ font-size:clamp(1.375rem,2.4vw,1.875rem); }
+
+/* --------------------------------------------------------------- GRÁFICOS
+   Los rótulos de las series se salían del margen derecho porque el ancho era
+   fijo y el nombre no. Ahora el SVG deja aire y el texto se recorta con
+   elipsis desde JS. */
+.grafico{ width:100%; overflow-x:auto; overflow-y:hidden; }
+.grafico svg{ display:block; min-width:520px; }
+.grafico-alto svg{ min-width:680px; }
+
+/* ---------------------------------------------------------------- PÍLDORAS
+   Punto de color delante, como los estados de las referencias. */
+.pastilla{ border-radius:var(--r-full); padding:.2rem .5rem; }
+.pastilla-ok::before, .pastilla-mal::before, .pastilla-ojo::before{
+  content:''; width:5px; height:5px; border-radius:50%; background:currentColor; flex-shrink:0;
+}
+
+/* ------------------------------------------------------------- MOVIMIENTO
+   Corto y con sentido: las tarjetas entran una detrás de otra al cambiar de
+   sección, para que se lea el orden. Nada de decoración. */
+@keyframes g-sube{ from{ opacity:0; transform:translateY(8px); } }
+.g-vista > .seccion.on > .card,
+.g-vista > .seccion.on > .rejilla > .card,
+.g-vista > .seccion.on > .rejilla > .kpi{
+  animation:g-sube var(--t3) var(--ease) backwards;
+}
+.g-vista > .seccion.on > .rejilla > :nth-child(1){ animation-delay:0ms; }
+.g-vista > .seccion.on > .rejilla > :nth-child(2){ animation-delay:40ms; }
+.g-vista > .seccion.on > .rejilla > :nth-child(3){ animation-delay:80ms; }
+.g-vista > .seccion.on > .rejilla > :nth-child(4){ animation-delay:120ms; }
+.g-vista > .seccion.on > .rejilla > :nth-child(5){ animation-delay:160ms; }
+.g-vista > .seccion.on > .rejilla > :nth-child(6){ animation-delay:200ms; }
+
+/* La cifra de un indicador cambia con una transición de color, no de tamaño:
+   mover el número haría saltar la rejilla entera. */
+.kpi-val{ transition:color var(--t2) var(--ease-io); }
+
+@media (prefers-reduced-motion:reduce){
+  .g-vista > .seccion.on > .card,
+  .g-vista > .seccion.on > .rejilla > .card,
+  .g-vista > .seccion.on > .rejilla > .kpi{ animation:none; }
+  .card.pulsable:hover{ transform:none; }
+}
+
+/* ------------------------------------------------- ELIMINATORIAS APARTE
+   Un play-off no es una jornada más: se separa visualmente del calendario
+   regular para que no se lea como parte de él. */
+.elim-bloque{
+  border:1px solid rgba(255,81,0,.22); border-radius:var(--r-card);
+  background:linear-gradient(180deg, rgba(255,81,0,.05), transparent 40%);
+  padding:var(--g5); margin-bottom:var(--g5);
+}
+.elim-tit{
+  display:flex; align-items:center; gap:.5rem; margin-bottom:var(--g4);
+  font-family:var(--f-mono); font-size:.6875rem; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--accent-2);
+}
+.elim-tit::after{ content:''; flex:1; height:1px; background:rgba(255,81,0,.2); }
+
+/* ------------------------------------------------- CREAR ENFRENTAMIENTOS
+   Los clubes se colocan en una pista y se sueltan unos sobre otros. Las
+   fichas son pequeñas a propósito: hay que ver toda la división a la vez
+   para pensar en emparejamientos, no de tres en tres. */
+.crear-pista{
+  display:flex; flex-wrap:wrap; gap:.35rem;
+  padding:var(--g3); min-height:64px;
+  border:1px dashed var(--line-2); border-radius:var(--r-card);
+  background:var(--surface);
+}
+.crear-pista.dnd-encima{ border-color:var(--accent); background:rgba(255,81,0,.05); }
+.crear-eq{ padding:.3rem .5rem; min-height:30px; gap:.35rem; }
+.crear-eq .nm{ font-family:var(--f-mono); font-size:.6875rem; letter-spacing:-.01em; }
+.crear-eq:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }

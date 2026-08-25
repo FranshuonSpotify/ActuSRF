@@ -23,9 +23,20 @@ function d(){ return SFG.d(); }
    AYUDANTES DE SVG
    -------------------------------------------------------------------------- */
 function svg(w, h, cuerpo, extra){
-  /* viewBox + width 100%: escala solo en cualquier ancho sin media queries. */
+  /* viewBox + width 100%: escala solo en cualquier ancho sin media queries.
+     El ancho mínimo lo pone .grafico en CSS, que además da el desplazamiento
+     horizontal: sin él, en pantalla estrecha el texto se apelmazaba hasta
+     ser ilegible en vez de poder desplazarse. */
   return '<svg viewBox="0 0 '+w+' '+h+'" width="100%" style="display:block;overflow:visible'+(extra||'')+'" '+
     'role="img" preserveAspectRatio="xMidYMid meet">'+cuerpo+'</svg>';
+}
+/* Recorta un rótulo a lo que quepa de verdad en los píxeles disponibles.
+   Antes se cortaba a 14 caracteres a ojo y los nombres largos se salían del
+   margen derecho del gráfico. */
+function recorta(texto, px, tam){
+  var max = Math.max(3, Math.floor(px/(tam*0.58)));
+  texto = String(texto||'');
+  return texto.length<=max ? texto : texto.slice(0, max-1)+'…';
 }
 function txt(x, y, s, opciones){
   opciones = opciones || {};
@@ -113,12 +124,13 @@ function evolucion(){
       'stroke-linejoin="round" stroke-linecap="round" opacity=".9"><title>'+esc(e.nombre)+'</title></polyline>';
     /* Punto final más grueso: es donde el ojo busca quién es quién. */
     cuerpo += '<circle cx="'+px(s.length-1)+'" cy="'+py(s[s.length-1])+'" r="3.5" fill="'+col+'"/>';
-    cuerpo += txt(W-mD+8, py(s[s.length-1])+3, C.abbr3(e.nombre, e.abreviatura)+'  '+e.nombre.slice(0,14),
+    cuerpo += txt(W-mD+8, py(s[s.length-1])+3,
+      C.abbr3(e.nombre, e.abreviatura)+'  '+recorta(e.nombre, mD-30, 9),
       {color:col, tam:9, peso:600});
   });
 
   return tarjeta(cabecera+
-    '<div style="overflow-x:auto">'+svg(W, H, cuerpo)+'</div>'+
+    '<div class="grafico grafico-alto">'+svg(W, H, cuerpo)+'</div>'+
     '<p class="ayuda" style="margin-top:var(--g3)">Puesto tras cada jornada, recalculado con la fórmula de la web. '+
     'Sólo cuentan los partidos de jornada regular: las eliminatorias no mueven la tabla.</p>');
 }
@@ -172,7 +184,7 @@ function heatmap(){
   return tarjeta(
     '<h3 style="font-size:.9375rem;margin-bottom:.35rem">Goles por jornada</h3>'+
     '<p class="ayuda" style="margin-bottom:var(--g4)">Cuanto más intenso, más goles. Las celdas huecas son jornadas sin jugar. Máximo: '+max+' goles.</p>'+
-    '<div style="overflow-x:auto">'+svg(W, H, cuerpo)+'</div>');
+    '<div class="grafico">'+svg(W, H, cuerpo)+'</div>');
 }
 
 /* --------------------------------------------------------------------------

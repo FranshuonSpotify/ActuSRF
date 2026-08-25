@@ -31,11 +31,6 @@
 
   <span class="sep"></span>
 
-  <button class="btn btn-secondary btn-sm" id="b-buscar" disabled>
-    <i class="ph ph-magnifying-glass"></i> Buscar
-    <span class="mono" style="font-size:.625rem;color:var(--ink-4);margin-left:.35rem">Ctrl K</span>
-  </button>
-
   <button class="btn-icon" data-a="prefs:ayuda" aria-label="Atajos y accesibilidad" title="Atajos y accesibilidad (?)"><i class="ph ph-question"></i></button>
 
   <span class="g-estado" id="estado" data-e="vacio" aria-live="polite">
@@ -47,6 +42,10 @@
 </header>
 
 <nav class="g-nav" id="nav" aria-label="Secciones del gestor">
+  <button class="g-buscar" id="b-buscar" disabled>
+    <i class="ph ph-magnifying-glass" aria-hidden="true"></i> Buscar…
+    <kbd>Ctrl K</kbd>
+  </button>
   <span class="grupo">Competición</span>
   <a href="#resumen"  data-s="resumen"><i class="ph ph-squares-four"></i> Resumen</a>
   <a href="#equipos"  data-s="equipos"><i class="ph ph-shield"></i> Equipos <span class="cnt" id="n-equipos"></span></a>
@@ -59,6 +58,7 @@
   <a href="#redes" data-s="redes"><i class="ph ph-image-square"></i> Redes</a>
   <span class="grupo">Contenido</span>
   <a href="#noticias" data-s="noticias"><i class="ph ph-newspaper"></i> Noticias <span class="cnt" id="n-noticias"></span></a>
+  <a href="#resenas" data-s="resenas"><i class="ph ph-quotes"></i> Reseñas <span class="cnt" id="n-resenas"></span></a>
   <a href="#config"   data-s="config"><i class="ph ph-sliders"></i> Configuración</a>
   <span class="grupo">Archivo</span>
   <a href="#temporadas" data-s="temporadas"><i class="ph ph-archive"></i> Temporadas <span class="cnt" id="n-temporadas"></span></a>
@@ -98,6 +98,7 @@
   <section class="seccion" id="s-graficos"></section>
   <section class="seccion" id="s-redes"></section>
   <section class="seccion" id="s-noticias"></section>
+  <section class="seccion" id="s-resenas"></section>
   <section class="seccion" id="s-config"></section>
   <section class="seccion" id="s-temporadas"></section>
   <section class="seccion" id="s-datos"></section>

@@ -883,3 +883,107 @@ el Design System v3 como no negociable.
   errores de integridad, y es idempotente.
 - El caso de un gol con la camiseta anterior se separa de los sospechosos, y
   vuelve a serlo si se le quita el historial que lo respalda.
+
+---
+
+## Rediseño de interfaz y correcciones de uso
+
+### Partidos no jugados: los 31, marcados
+
+Los 31 partidos finalizados con goles y sin ningún goleador —11 de Liga, 16 de
+Ascenso, 4 de Copa— son **exactamente 3-0 o 0-3**, la firma de la victoria
+administrativa. Marcados en el archivo con `no_jugado`, respetando el
+marcador. El script comprobó antes de escribir que clasificación, marcadores y
+goleadores quedaban idénticos.
+
+**La cobertura de goleadores pasa del 57% al 99%** (126 de 127). El archivo
+estaba prácticamente completo; lo que fallaba era mi forma de contarlo.
+
+> Queda **un solo gol** sin goleador de verdad: `Colegio Poderosa Fe 0-3
+> Servicio Secreto` tiene dos goleadores anotados para tres goles.
+
+### El fallo de los escudos
+
+`escudo()` devolvía un `<img>` **sin clase ni tamaño** y confiaba en que cada
+contenedor lo midiera. Donde no había regla —los grupos de Copa, el árbol de
+traspasos, las estadísticas— se pintaba al tamaño natural del archivo del CDN,
+que son cientos de píxeles.
+
+Arreglado en el componente, no en cada contenedor: el escudo **siempre** sale
+con su clase (`.escudo`, con variantes `sm` y `lg`). Un componente no puede
+depender de que alguien se acuerde de medirlo desde fuera.
+
+### Gráficos que se salían
+
+- **Rótulos de la evolución**: se cortaban a 14 caracteres a ojo y los nombres
+  largos se salían del margen derecho. Ahora se recortan a los píxeles que hay
+  de verdad, con elipsis.
+- **Ancho mínimo y desplazamiento**: los gráficos llevan `.grafico`, que les da
+  un mínimo y scroll horizontal propio. En pantalla estrecha el texto se
+  apelmazaba hasta ser ilegible en vez de poder desplazarse.
+
+### Rediseño, siguiendo las referencias
+
+De las referencias se toman las **decisiones de forma**, no sus colores. El
+color sigue siendo el Design System v3 —negro real y ámbar `#FF5100` con
+cuentagotas— porque `CLAUDE.md` §2.3 lo fija como no negociable y la web
+pública tiene que parecer la misma casa. Las referencias proponían verde sobre
+azul oscuro o Fira Sans; eso no ha entrado.
+
+Lo que sí:
+
+- **Píldora rellena en la navegación activa**, como la referencia 1. Sustituye
+  al fondo gris tenue, que con 16 secciones no se distinguía.
+- **Buscador dentro de la barra lateral** con su `Ctrl K` a la vista, en vez de
+  escondido detrás de un botón de la barra superior. Está en tres de las
+  cuatro referencias.
+- **Indicadores con su variación al lado**: componente `U.kpi()` con cifra
+  grande, icono, etiqueta y una píldora de diferencia en verde o rojo. Uno solo
+  por pantalla lleva el lavado ámbar y el resplandor, como la tarjeta destacada
+  de la referencia 2 — el acento es raro por definición.
+- **Tarjetas más redondeadas** (`--r-card: 20px`) y elevación corta al pasar
+  por encima, sólo donde hay algo que pulsar.
+- **Píldoras de estado con punto de color** delante.
+- **Movimiento**: las tarjetas entran escalonadas al cambiar de sección, para
+  que se lea el orden. Nada de decoración, y desactivado entero con reducción
+  de movimiento.
+
+### Funcionalidades nuevas
+
+**Crear enfrentamientos arrastrando.** Una pista con todos los clubes de la
+división; se suelta uno sobre otro y sale el partido, con el primero en casa.
+Las fichas son pequeñas a propósito: hay que ver la división entera a la vez
+para pensar en emparejamientos. Alternativa sin ratón con dos desplegables.
+
+**Eliminatorias separadas de las jornadas.** Un conmutador «Jornadas ·
+Eliminatorias» que sólo aparece si hay alguna. En modo jornadas la tabla
+muestra **sólo** partidos regulares; en modo eliminatorias, sólo ellas,
+agrupadas por fase y con la advertencia de que no reparten puntos.
+
+> Al probarlo salieron **en los dos sitios a la vez**, duplicadas. El primer
+> intento las ponía en un bloque aparte pero seguía listándolas en la tabla de
+> su jornada. Ahora son dos vistas excluyentes: verificado con 66 filas
+> regulares que no se mueven al añadir una final.
+
+**Editor de reseñas de portada.** Las citas de manager viven hoy **escritas a
+mano dentro de `app.js`**, en un array `QUOTES` marcado como «Contenido de
+ejemplo». No están en el archivo de datos.
+
+> El editor guarda en `config.resenas`, que es aditivo y no molesta a nadie, y
+> **la pantalla avisa de que la web todavía no las lee**. Para que las lea hace
+> falta cambiar tres líneas de `renderQuotes()` en `_fuente/app.js`, y eso toca
+> la web pública: **no lo he hecho sin preguntar**, como manda `CLAUDE.md` §7.
+
+### Un fallo mío grave, corregido
+
+La primera versión de «marcar como no jugado» **ponía 3-0 al marcar**. Eso
+volteó resultados reales —los partidos que había ganado el visitante pasaban a
+victoria local— y Zanark Domain perdió 3 puntos. El marcador de la victoria
+administrativa **ya está en los datos** y puede ser para cualquiera de los dos
+lados. Corregido: marcar no toca el marcador.
+
+### Verificación
+
+`node propuesta-web/gestor/test-core.js` — 27 comprobaciones. Las 16 secciones
+pintan, 0 errores de JavaScript, 0 críticos de integridad. En Copa, **32
+escudos y ninguno sin clase de tamaño**.

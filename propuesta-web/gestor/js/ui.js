@@ -75,6 +75,7 @@ function contadores(){
   $('n-partidos').textContent = d.partidos_liga.length + d.partidos_ascenso.length;
   $('n-copa').textContent = d.partidos_copa.length;
   $('n-noticias').textContent = d.noticias.length;
+  $('n-resenas').textContent = (d.config.resenas||[]).length || '';
   $('n-temporadas').textContent = d.historial_temporadas.length || '';
   $('n-traspasos').textContent = d.agentes_libres.length || '';
   $('n-papelera').textContent = d.equipos.filter(function(e){ return e.archivado; }).length || '';
@@ -443,10 +444,36 @@ acciones.ui.restaurar = function(el){
    -------------------------------------------------------------------------- */
 /* Escudo de club con recambio: la mitad de los escudos son URLs externas que
    pueden no cargar, y un hueco roto es peor que unas iniciales. */
-function escudo(e){
+/* El escudo SIEMPRE sale con su clase de tamaño. Antes salía como un <img>
+   desnudo y confiaba en que el contenedor lo dimensionara: donde no había
+   regla —los grupos de Copa, el árbol de traspasos— se pintaba al tamaño
+   natural del archivo del CDN, que son cientos de píxeles. Un componente no
+   puede depender de que alguien se acuerde de medirlo desde fuera.
+   `tam` acepta 'sm' | 'md' | 'lg'. */
+function escudo(e, tam){
+  var cls = 'escudo'+(tam?' escudo-'+tam:'');
   if(e && /^https?:\/\//.test(e.escudo||''))
-    return '<img src="'+esc(e.escudo)+'" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.replaceWith(Object.assign(document.createElement(\'span\'),{className:\'noimg\',textContent:this.dataset.ab}))" data-ab="'+esc(C.abbr3(e.nombre,e.abreviatura))+'">';
-  return '<span class="noimg">'+esc(C.abbr3(e?e.nombre:'?', e&&e.abreviatura))+'</span>';
+    return '<img class="'+cls+'" src="'+esc(e.escudo)+'" alt="" loading="lazy" referrerpolicy="no-referrer" '+
+      'onerror="this.replaceWith(Object.assign(document.createElement(\'span\'),{className:\''+cls+' noimg\',textContent:this.dataset.ab}))" '+
+      'data-ab="'+esc(C.abbr3(e.nombre,e.abreviatura))+'">';
+  return '<span class="'+cls+' noimg">'+esc(C.abbr3(e?e.nombre:'?', e&&e.abreviatura))+'</span>';
+}
+
+/* Tarjeta de indicador con variación, al estilo de las referencias: cifra
+   grande, etiqueta pequeña y, si hay con qué compararlo, la diferencia. */
+function kpi(cfg){
+  var d = cfg.delta;
+  var signo = d==null ? '' : (d>0?'sube':(d<0?'baja':'igual'));
+  return '<div class="kpi'+(cfg.destacado?' kpi-on':'')+'"'+(cfg.titulo?' title="'+esc(cfg.titulo)+'"':'')+'>'+
+    (cfg.icono?'<span class="kpi-ico"><i class="'+cfg.icono+'"></i></span>':'')+
+    '<div class="kpi-val mono">'+esc(cfg.valor)+'</div>'+
+    '<div class="kpi-pie">'+
+      '<span class="kpi-etq">'+esc(cfg.etiqueta)+'</span>'+
+      (d!=null ? '<span class="kpi-delta '+signo+'">'+
+        (d>0?'<i class="ph-bold ph-trend-up"></i>':(d<0?'<i class="ph-bold ph-trend-down"></i>':''))+
+        (d>0?'+':'')+esc(cfg.deltaTexto!=null?cfg.deltaTexto:d)+'</span>' : '')+
+    '</div>'+
+  '</div>';
 }
 function celdaEquipo(e, nombre){
   return '<span class="eq-cel">'+escudo(e)+'<span>'+esc(nombre!=null?nombre:(e?e.nombre:'—'))+'</span></span>';
@@ -539,7 +566,7 @@ SFG.ui = {
   registrar:registrar, irA:irA, refrescar:refrescar, cambio:cambio, contadores:contadores,
   aviso:aviso, modal:modal, cerrarModal:cerrarModal, confirmar:confirmar,
   acciones:acciones, esc:esc,
-  escudo:escudo, celdaEquipo:celdaEquipo, selectEquipos:selectEquipos, campo:campo, campoImagen:campoImagen, cabecera:cabecera,
+  escudo:escudo, kpi:kpi, celdaEquipo:celdaEquipo, selectEquipos:selectEquipos, campo:campo, campoImagen:campoImagen, cabecera:cabecera,
   guardar:guardar
 };
 
