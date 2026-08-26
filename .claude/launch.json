@@ -7,6 +7,13 @@
       "runtimeArgs": ["-m", "http.server", "8123"],
       "port": 8123,
       "url": "http://localhost:8123"
+    },
+    {
+      "name": "web",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "http.server", "8124", "--directory", "htdocs"],
+      "port": 8124,
+      "url": "http://localhost:8124"
     }
   ]
 }

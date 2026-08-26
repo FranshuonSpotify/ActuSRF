@@ -1,6 +1,12 @@
 Options -Indexes
 AddDefaultCharset UTF-8
 
+# 404.html existía en el sitio pero nunca estaba enganchado como página de
+# error real: una URL rota devolvía el 404 por defecto del servidor, no el
+# diseño de la marca. La ruta es absoluta porque Apache sirve este mismo
+# fichero para CUALQUIER URL inexistente, a cualquier profundidad.
+ErrorDocument 404 /404.html
+
 <IfModule mod_headers.c>
     Header always set X-Content-Type-Options "nosniff"
     Header always set X-Frame-Options "SAMEORIGIN"
