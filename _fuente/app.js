@@ -1886,7 +1886,15 @@ window.addEventListener('load',function(){ setTimeout(function(){ var p=$('pre')
    2,5 s por si el IntersectionObserver no llega a disparar (pestaña en
    segundo plano, renderizador sin componer, navegador raro): una animación
    de entrada nunca puede dejar la página en blanco. */
-document.documentElement.classList.add('anim');
+/* Sin esto, quien pide "reducir movimiento" en el sistema operativo recibía
+   igualmente el fundido+deslizamiento de CADA sección de la web: el CSS ya
+   tenía preparado un estado sin animación (el de "el script no ha cargado"),
+   pero nunca se conectaba a la preferencia real del visitante, sólo a si el
+   script corría o no. Ahora, si la pide, el contenido sale visible de golpe
+   por la misma vía que ya existía para eso. */
+if(!matchMedia('(prefers-reduced-motion: reduce)').matches){
+  document.documentElement.classList.add('anim');
+}
 var revealIO=null, revealFailsafe=null;
 function revealAll(){ document.querySelectorAll('.rv:not(.in)').forEach(function(el){ el.classList.add('in'); }); }
 function observeReveals(){
