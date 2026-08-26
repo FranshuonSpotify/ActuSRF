@@ -79,6 +79,8 @@ function pintar(el){
     U.cabecera('Partidos', 'Calendario y resultados de Liga y Ascenso',
       '<button class="btn btn-secondary btn-sm" data-a="partidos:simular"><i class="ph ph-flask"></i> Simular jornada</button>'+
       '<button class="btn btn-secondary btn-sm" data-a="partidos:recalcular"><i class="ph ph-calculator"></i> Recalcular clasificación</button>'+
+      '<button class="btn btn-secondary btn-sm" data-a="partidos:recalcularGoles"><i class="ph ph-soccer-ball"></i> Recalcular goles de jugador</button>'+
+      '<button class="btn btn-secondary btn-sm" data-a="partidos:nuevaElim"><i class="ph ph-tree-structure"></i> Añadir eliminatoria</button>'+
       '<button class="btn btn-primary btn-sm" data-a="partidos:nuevo"><i class="ph-bold ph-plus"></i> Añadir partido</button>')+
 
     '<div class="g-filtros">'+
@@ -754,6 +756,29 @@ function nuevoPartido(comp){
   lista(comp).push(p);
   U.cambio();
 }
+/* Antes, crear un play-off/play-in exigía dos pasos: crear una jornada
+   regular y luego cambiarle la fase a mano en su fila. Y ni siquiera eso
+   funcionaba a la primera, porque la pestaña «Eliminatorias» sólo aparece
+   cuando YA existe una: con cero, no había dónde ir a crear la primera.
+   Este botón crea el partido ya con fase puesta y salta directo a esa vista. */
+function nuevaEliminatoria(comp){
+  var usadas = lista(comp).filter(function(p){ return !C.esRegular(p); }).map(function(p){ return p.fase; });
+  var fase = C.FASES_LIGA.filter(function(f){ return usadas.indexOf(f)<0; })[0] || C.FASES_LIGA[0];
+  /* Necesita jornada aunque su tarjeta muestre la fase, no «Jornada N»: es lo
+     que usa Resultados para tener una pestaña donde enseñarla (ver el aviso
+     de partidos:campo más abajo). Se le da la siguiente libre, jornadas
+     regulares y otras eliminatorias incluidas, para no chocar con ninguna. */
+  var todas = lista(comp).map(function(p){ return parseInt(p.jornada)||0; }).concat(0);
+  var p = {
+    jornada: String(Math.max.apply(null, todas)+1),
+    fecha:'', estado:'PENDIENTE', local:'', visitante:'',
+    goles_l:0, goles_v:0, detalles:' / ', fase: fase
+  };
+  lista(comp).push(p);
+  st.vista = 'elim';
+  U.cambio();
+  U.aviso('«'+fase+'» creado. Ponle equipos y resultado.', 'ok');
+}
 function borrarPartido(comp, i){
   var p = lista(comp)[i];
   /* En Copa, borrar un cruce mueve los índices de todos los siguientes y
@@ -920,6 +945,7 @@ var A = {
   jorMenos:  function(){ mueveJornada(-1); },
   jorMas:    function(){ mueveJornada(1); },
   nuevo:     function(){ nuevoPartido(st.comp); },
+  nuevaElim: function(){ nuevaEliminatoria(st.comp); },
   vista:     function(el){ st.vista = el.dataset.v; lote = {}; U.refrescar(); },
   crearManual: function(){
     crearPartido((document.getElementById('crear-local')||{}).value,
@@ -1023,6 +1049,40 @@ var A = {
     var n = cascada();
     U.cambio();
     U.aviso(n ? n+' valores de clasificación corregidos.' : 'La clasificación ya cuadraba con los partidos.', n?'ok':'info');
+  },
+
+  /* Lo mismo que «Recalcular goles» de la ficha de club (equipos:recalcular),
+     pero para TODOS los equipos a la vez: aquí es donde se editan los goles
+     de los partidos, así que es donde más falta hace verlo de golpe en vez de
+     club a club. Enseña qué va a cambiar antes de tocar nada. */
+  recalcularGoles:function(){
+    var difs = C.diferenciasGoles(d());
+    if(!difs.length) return U.aviso('Los goles de todos los jugadores ya cuadran con los partidos.', 'ok');
+    U.modal({
+      titulo:'Recalcular goles de jugador',
+      ancho:true,
+      cuerpo:'<p class="ayuda" style="margin-bottom:var(--g4)">'+difs.length+
+        (difs.length===1?' ficha no coincide':' fichas no coinciden')+' con los goles de los partidos, en '+
+        (new Set(difs.map(function(x){ return x.e; })).size)+' club(es). '+
+        'Los goles marcados con otra camiseta cuentan igual: son del jugador.</p>'+
+        '<div class="tabla-caja"><table class="tabla"><thead><tr>'+
+          '<th>Jugador</th><th>Club</th><th class="num">Ficha</th><th class="num">Partidos</th><th class="num">Cambio</th>'+
+        '</tr></thead><tbody>'+difs.map(function(x){
+          var dif = x.ahora-x.antes;
+          return '<tr><td>'+esc(x.j.nombre||'sin nombre')+'</td><td style="color:var(--ink-3)">'+esc(x.e.nombre)+'</td>'+
+            '<td class="num" style="color:var(--ink-3)">'+x.antes+'</td>'+
+            '<td class="num" style="font-weight:600">'+x.ahora+'</td>'+
+            '<td class="num" style="color:'+(dif>0?'#6FD98A':'#FF7B7B')+'">'+(dif>0?'+':'')+dif+'</td></tr>';
+        }).join('')+'</tbody></table></div>',
+      pie:[
+        {txt:'Cancelar', fn:U.cerrarModal},
+        {txt:'Aplicar a '+(difs.length===1?'1 ficha':'las '+difs.length+' fichas'), cls:'btn-primary', fn:function(){
+          difs.forEach(function(x){ x.j.goles = x.ahora; });
+          U.cerrarModal(); U.cambio();
+          U.aviso(difs.length+' fichas actualizadas desde los partidos.', 'ok');
+        }}
+      ]
+    });
   },
 
   campo: function(el){
