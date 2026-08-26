@@ -361,7 +361,16 @@ function initJornadas(){
 function renderMatches(){
   var pool=poolOf(curComp), list;
   if(curComp==='copa') list=pool.slice();
-  else { var j=jornadas[jIdx]; list=pool.filter(function(p){ return p.jornada===j; }); $('j-label').textContent=T('jornada','Jornada')+' '+(j||'·'); }
+  else {
+    var j=jornadas[jIdx];
+    list=pool.filter(function(p){ return p.jornada===j; });
+    /* Un hueco de "jornada" hecho de eliminatorias (todas sus partidos llevan
+       fase) se etiqueta con esa fase, no con "Jornada N": el número es sólo
+       un hueco técnico para que Resultados tenga dónde listarlas, nunca algo
+       que el visitante deba leer. */
+    var esElim = list.length && list.every(function(p){ return p.fase; });
+    $('j-label').textContent = esElim ? esc(faseName(list[0].fase)) : T('jornada','Jornada')+' '+(j||'·');
+  }
 
   $('matches').innerHTML = list.map(function(p){
     var i=pool.indexOf(p);
@@ -1203,9 +1212,9 @@ window.renderFaq=renderFaq;
    automática (.quote footer b), nunca se localizaba: salía en español en los
    10 idiomas (audit Tarea 2.3). */
 var QUOTES=[
-  {t:'Llevo tres ligas distintas probadas y esta es la única donde perder no se siente como una excusa de mala suerte del rival.',a:'superliga',s:'Contenido de ejemplo',i:'assets/franshu.png',n:9.2},
+  {t:'Gracias a esta liga podemos seguir disfrutando el juego y crear una comunidad del juego de nuestras infancias además de todo el trabajo que hay detrás de ella.',a:'superliga',s:'Contenido de ejemplo',i:'assets/totti_alcresise.png',n:9.5},
   {t:'El tope salarial cambia la mentalidad completamente. No puedes fichar la solución fácil: tienes que jugar mejor.',a:'ascenso',s:'Contenido de ejemplo',i:'assets/gabrii.png',n:8.7},
-  {t:'Dejé Victory Road hace meses. Volví solo por esta liga y no me arrepiento.',a:'exjugador',s:'Contenido de ejemplo',i:'assets/totti_alcresise.png',n:9.5}
+  {t:'Llevo tres ligas distintas probadas y esta es la única donde perder no se siente como una excusa de mala suerte del rival.',a:'exjugador',s:'Contenido de ejemplo',i:'assets/payo-aguao.png',n:9.2}
 ];
 function renderQuotes(){
   /* QUOTES es el respaldo: si el archivo trae reseñas propias mandan ellas, con

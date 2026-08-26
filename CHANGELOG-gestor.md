@@ -1124,3 +1124,35 @@ previas.
 
 Verificación: `node test-core.js` (27 OK) y `node test-ciclo.js` (7 OK) tras
 los cambios.
+
+---
+
+## La web mostraba «Jornada 16» (o peor) en el selector de eliminatorias
+
+Alejandro reportó dos capturas: el selector de Resultados decía **«Jornada
+16»** en un partido de play-off, y al cambiar el campo de jornada a mano por
+el nombre de la fase, salía **«Jornada Partido por el Play In»** — la palabra
+"Jornada" se antepone siempre, sin mirar si el partido lleva fase.
+
+**No era un problema del dato.** Cada tarjeta de partido ya mostraba la fase
+correctamente (`p.fase?faseName(p.fase):'Jornada '+p.jornada`); el fallo
+estaba sólo en la etiqueta de arriba del navegador `←  ·  →`, que nunca miraba
+`p.fase` y siempre componía `"Jornada "+jornada`.
+
+**Arreglado en `app.js`** (`renderMatches()`, ~línea 361): si todos los
+partidos de ese hueco de navegación llevan `fase`, la etiqueta pasa a ser el
+nombre de esa fase (`Semifinales`, `Final`…), sin el prefijo "Jornada" ni el
+número técnico. Una jornada regular sigue diciendo "Jornada N" igual que
+siempre.
+
+> Verificado navegando con las flechas del selector: `Final → Semifinales →
+> Play In → Partido por el Play In → Jornada 11`, en ese orden.
+
+**Efecto secundario, limpiado en `datos_oficiales.json`:** al no tener aún
+este arreglo, Alejandro había escrito a mano el nombre de la fase en el campo
+`jornada` de tres partidos (`"Partido por el Play In"`, `"Play In"`,
+`"Semifinales"` ×2) como intento de que se viera bien. Ahora que la etiqueta
+sale sola de `fase`, ese campo vuelve a ser sólo el hueco técnico que necesita
+Resultados para agrupar: renumerado a `12/13/14/14/15`, continuando después de
+la jornada 11 regular. Ningún dato de resultado, marcador ni fase se ha
+tocado; sólo ese campo en los 5 partidos de play-off de Superliga.
