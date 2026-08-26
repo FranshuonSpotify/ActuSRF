@@ -1062,3 +1062,30 @@ del repo y ahora es un dato que se edita desde fuera.
 - **Cuál de los dos `datos_oficiales.json` manda.** El de la raíz era la fuente
   de verdad hasta ahora; el de `htdocs/` es más nuevo y es el que sirve la web.
   Lo decide Alejandro.
+
+---
+
+## Fallo: el gestor rechazaba `htdocs/datos_oficiales.json` al abrirlo
+
+Error mostrado: *"El archivo no tiene la forma esperada: · clasificacion_copa
+existe pero no es una lista."*
+
+**No era un problema del archivo.** `clasificacion_copa` nunca la lee ni la
+escribe el gestor — ni tampoco `app.js`. El validador de la Fase 1 asumió que
+era una lista porque en la copia vieja de `propuesta-web/` estaba vacía o
+tenía esa forma. En el archivo real de `htdocs/` es un objeto agrupado por
+letra de grupo (`{A:[...], B:[...], C:[...], D:[...]}`), coherente con que la
+Copa ahora tiene fase de grupos.
+
+Y era **peor que un rechazo al abrir**: la misma lista (`CLAVES_ARRAY`) se
+usaba también para normalizar el archivo ya cargado, forzando `d[k]=[]` en
+cualquier clave que no fuera un array. Si se hubiera relajado sólo la
+validación de apertura sin tocar esa segunda línea, cargar el archivo bueno
+habría **vaciado igualmente `clasificacion_copa` en memoria** en cuanto se
+guardara.
+
+**Arreglado en `js/core.js`:** `clasificacion_copa` sale de `CLAVES_ARRAY` y se
+trata como una clave desconocida más — se conserva tal cual llegue, sin exigirle
+forma. Verificado con el archivo real: `validarEsquema` no da error,
+`completarEsquema` y `normalizar` la dejan byte a byte igual (`A`,`B`,`C`,`D`
+intactos), y los 27+7 checks de `test-core.js`/`test-ciclo.js` siguen en verde.

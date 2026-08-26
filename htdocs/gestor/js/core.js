@@ -1079,7 +1079,12 @@ function limpiarCamposSinUso(d){
    sólo los usa el gestor, pero son parte del esquema y se preservan. */
 var CLAVES=['config','equipos','partidos_liga','partidos_ascenso','partidos_copa',
             'historial','noticias','historial_temporadas','agentes_libres','clasificacion_copa'];
-var CLAVES_ARRAY=CLAVES.filter(function(k){ return k!=='config'; });
+/* clasificacion_copa queda fuera de CLAVES_ARRAY: el gestor no la lee ni la
+   escribe, y en el archivo real es un objeto {letra_de_grupo: [tabla]}, no una
+   lista. Exigirle forma de array rechazaba el archivo bueno al abrirlo y,
+   peor, la habria sobrescrito con [] al normalizar (mas abajo). Se conserva
+   tal cual llegue, como una clave desconocida mas. */
+var CLAVES_ARRAY=CLAVES.filter(function(k){ return k!=='config'&&k!=='clasificacion_copa'; });
 
 function validarEsquema(d){
   var err=[], avi=[];
