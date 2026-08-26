@@ -1156,3 +1156,63 @@ sale sola de `fase`, ese campo vuelve a ser sólo el hueco técnico que necesita
 Resultados para agrupar: renumerado a `12/13/14/14/15`, continuando después de
 la jornada 11 regular. Ningún dato de resultado, marcador ni fase se ha
 tocado; sólo ese campo en los 5 partidos de play-off de Superliga.
+
+---
+
+## Auditoría UX/accesibilidad de la web pública: dos hallazgos reales, arreglados
+
+A petición de Alejandro ("mejora mucho también el htdocs"), auditoría con las
+reglas de `ui-ux-pro-max` sobre `htdocs/` completo, manteniendo el lenguaje
+visual v3 actual (decisión de Alejandro: auditoría + arreglos concretos, no
+rediseño). Dos hallazgos reales, no cosméticos:
+
+**`prefers-reduced-motion` no se comprobaba en ningún sitio de la web
+principal.** `app.js` activaba `html.anim` —el interruptor de TODOS los
+fundidos y deslizamientos de sección de la web, en las 9 pantallas— de forma
+incondicional, sin mirar la preferencia del sistema operativo del visitante.
+El CSS ya tenía preparado el estado sin animación (pensado originalmente sólo
+para "el script no ha cargado"), simplemente nunca se conectaba a la señal
+real. Corregido en `app.js`: `html.anim` sólo se activa si
+`matchMedia('(prefers-reduced-motion: reduce)').matches` es falso: con la
+preferencia activa, cada sección sale visible de golpe por la misma vía que
+ya existía.
+
+Aparte, tres animaciones en bucle infinito (punto "en directo", pista de
+scroll del hero, anillo del hito en curso de la línea temporal) seguían
+moviéndose sin parar pese a esa preferencia — sólo el preloader estaba
+cubierto. Añadidas al final de `styles.css` (con nota de por qué tienen que
+ir ahí y no donde estaba el bloque del preloader: en CSS, con igual
+especificidad, gana la regla que aparece más tarde en la hoja).
+
+> Verificado en un navegador con `prefers-reduced-motion:reduce` activo por
+> defecto: `html.anim` no se añade, las secciones `.rv` salen con opacidad 1
+> sin transición, y las tres animaciones en bucle devuelven `animationName:
+> "none"`.
+
+**Seis piezas de contenido real en `--ink-5` (1,55:1 de contraste sobre
+negro — muy por debajo del 4,5:1 de WCAG AA).** No es un fallo nuevo del
+sistema de tokens: `--ink-5` está pensado para adorno puro (el número "01" de
+las reglas, el signo de cita gigante, iconos), pero seis sitios lo usaban en
+texto que el visitante necesita leer y que no se repite en ningún otro sitio
+con más contraste: el aviso legal del pie (`.foot-legal p`, en TODAS las
+páginas), el estado del partido (`.match-foot`, "Pendiente"/"Finalizado"),
+la fecha de la noticia (`.news-foot`), la nota del palmarés (`.champ-note`),
+el club anterior en el historial de traspasos (`.hist-antes`) y el dorsal en
+la plantilla (`.squad-row .num`). Subidos a `--ink-3` (4,89:1, pasa AA).
+
+> Deliberadamente NO tocados: los micro-rótulos bajo una cifra grande
+> (`.metric span`, `.team-stats span`, `.tm-stat span`…) siguen en su tono
+> apagado — es una convención consistente en toda la web (la cifra que
+> importa va en tono claro, la etiqueta debajo es secundaria) y cambiar sólo
+> algunos habría roto esa consistencia sin arreglar nada que el visitante no
+> pudiera ya leer en el número de al lado.
+
+También arreglado, encontrado de camino: el 404 (ver entrada anterior)
+arrastraba tokens de un sistema de diseño anterior ya retirado
+(`--energy`, `--sp-5`…, ninguno definido hoy) — confirmado que no queda
+ninguna referencia a esos tokens en el resto de `htdocs/` (`grep` sin
+resultados).
+
+Verificación: `node test-core.js` (27 OK) sigue en verde — estos cambios son
+sólo de la web pública, no tocan el gestor. Sin scroll horizontal en 375px ni
+en escritorio en `index.html` ni `terminos.html`.
