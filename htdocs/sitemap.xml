@@ -5,8 +5,6 @@
   <url>
     <loc>https://superligafrontier.es/</loc>
     <lastmod>2026-08-08</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>1.0</priority>
 
     <xhtml:link rel="alternate" hreflang="es" href="https://superligafrontier.es/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://superligafrontier.es/?lang=en" />
@@ -20,6 +18,11 @@
     <xhtml:link rel="alternate" hreflang="sr" href="https://superligafrontier.es/?lang=sr" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://superligafrontier.es/" />
 
+  </url>
+
+  <url>
+    <loc>https://superligafrontier.es/terminos.html</loc>
+    <lastmod>2026-08-26</lastmod>
   </url>
 
 </urlset>

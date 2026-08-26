@@ -4,3 +4,6 @@
 *.log
 Thumbs.db
 .DS_Store
+/node_modules
+/_fuente/.last-datos-hash
+/_fuente/cron.log

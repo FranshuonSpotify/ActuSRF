@@ -1,6 +1,21 @@
 Options -Indexes
 AddDefaultCharset UTF-8
 
+# Cada idioma declarado en el hreflang del <head> y en sitemap.xml (es/en/pt/
+# it/fr/ja/ko/pl/bg/sr) usa la URL "/?lang=XX", pero hasta ahora esa URL
+# devolvía siempre el mismo index.html en español: un rastreador que no
+# ejecuta JS (la mayoría de los de IA) veía 10 URLs declaradas como
+# alternativas de idioma con el mismo contenido crudo. _fuente/build.js ahora
+# pre-renderiza un {lang}.html real por idioma (con dict.js/faq-dict.js, las
+# mismas traducciones que ya usaba el sitio en cliente); esta regla sirve ese
+# fichero SIN cambiar la URL visible, así que sitemap/hreflang siguen valiendo
+# tal cual están.
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{QUERY_STRING} (^|&)lang=(en|pt|it|fr|ja|ko|pl|bg|sr)(&|$)
+    RewriteRule ^$ %2.html [L]
+</IfModule>
+
 # 404.html existía en el sitio pero nunca estaba enganchado como página de
 # error real: una URL rota devolvía el 404 por defecto del servidor, no el
 # diseño de la marca. La ruta es absoluta porque Apache sirve este mismo
@@ -20,3 +35,14 @@ ErrorDocument 404 /404.html
 <FilesMatch "\.(env|log)$">
     Require all denied
 </FilesMatch>
+
+# datos_oficiales.json cambia cada vez que se guarda desde el gestor: sin esta
+# cabecera el navegador puede servir una copia cacheada sin comprobar primero
+# si hay una versión nueva. "no-cache" (no "no-store") sigue dejando que el
+# ETag/Last-Modified ya presentes ahorren la descarga completa cuando el
+# archivo no ha cambiado — ver el fetch() de app.js, que pide lo mismo.
+<IfModule mod_headers.c>
+    <Files "datos_oficiales.json">
+        Header set Cache-Control "no-cache"
+    </Files>
+</IfModule>

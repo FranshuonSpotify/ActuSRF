@@ -1,0 +1,70 @@
+# Mantiene index.html + los 9 {idioma}.html siempre al día en los 10 idiomas,
+# aunque datos_oficiales.json se edite directamente en IONOS (sin pasar por
+# el gestor ni por un PC con Node). Cada vez que corre:
+#   1. Descarga de IONOS el datos_oficiales.json actual (la fuente de verdad
+#      real vive en el hosting, no en este repo).
+#   2. Ejecuta el MISMO _fuente/build.js que se usa en local — sin
+#      reimplementar nada, así que la calidad (traducciones + transliteración
+#      de nombres a otros alfabetos) es idéntica a un build local.
+#   3. Sube a IONOS solo los ficheros que hayan cambiado.
+#
+# Requiere 3 secrets del repo (Settings -> Secrets and variables -> Actions):
+#   FTP_SERVER    el host FTP de IONOS (el mismo que usas en tu cliente FTP)
+#   FTP_USERNAME  tu usuario FTP de IONOS
+#   FTP_PASSWORD  tu contraseña FTP de IONOS
+# Se escriben directamente en la web de GitHub; nadie más los ve ni quedan
+# en el código.
+
+name: Reconstruir y publicar
+
+on:
+  schedule:
+    - cron: '*/20 * * * *'   # cada 20 minutos
+  workflow_dispatch: {}       # botón "Run workflow" para forzarlo a mano
+  push:
+    branches: [main]          # también al subir cambios de código (dict.js, etc.)
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar el repositorio
+        uses: actions/checkout@v4
+
+      - name: Instalar Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Instalar dependencias (jsdom)
+        run: npm ci
+
+      - name: Descargar datos_oficiales.json actual de IONOS
+        run: |
+          curl -sf --ftp-ssl \
+            --user "${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }}" \
+            "ftp://${{ secrets.FTP_SERVER }}/datos_oficiales.json" \
+            -o datos_oficiales.json
+
+      - name: Reconstruir index.html y los 9 idiomas
+        run: node _fuente/build.js
+
+      - name: Publicar los cambios en IONOS
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftps
+          local-dir: ./
+          server-dir: ./
+          dangerous-clean-slate: false
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/.github/**
+            **/node_modules/**
+            **/node_modules/
+            _fuente/.last-datos-hash
+            _fuente/cron.log
+            config/secrets.php
