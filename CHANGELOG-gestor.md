@@ -1089,3 +1089,38 @@ trata como una clave desconocida más — se conserva tal cual llegue, sin exigi
 forma. Verificado con el archivo real: `validarEsquema` no da error,
 `completarEsquema` y `normalizar` la dejan byte a byte igual (`A`,`B`,`C`,`D`
 intactos), y los 27+7 checks de `test-core.js`/`test-ciclo.js` siguen en verde.
+
+---
+
+## Partidos: recalcular goles de jugador y crear eliminatorias sin rodeo
+
+Dos fallos de uso reportados por Alejandro.
+
+**No había botón de recalcular goles en Partidos.** Existía sólo en la ficha
+de cada club (`equipos:recalcular`, uno por vez), pero es en Partidos donde se
+editan los goleadores, así que es donde más falta hacía verlo de golpe.
+Añadido **«Recalcular goles de jugador»** junto a «Recalcular clasificación»:
+reutiliza `core.diferenciasGoles(d())` ya existente (sin filtrar por club) y
+enseña la misma tabla de antes/después/cambio por jugador antes de aplicar.
+
+> Verificado rompiendo un gol a propósito (0→7), comprobando que la tabla del
+> modal lo señala con `-7`, y que «Aplicar» lo deja en 0.
+
+**Crear un partido de play-off exigía dos pasos que ni siquiera funcionaban a
+la primera:** crear una jornada regular y luego, en su fila, cambiar el
+desplegable de fase. El problema real es peor que un rodeo: **la pestaña
+«Eliminatorias» sólo aparece cuando ya existe alguna** (`if(!elim.length)
+st.vista='regular'`), así que con cero eliminatorias no había ni dónde ir a
+crear la primera.
+
+Añadido **«Añadir eliminatoria»**: crea el partido ya con una fase de
+`FASES_LIGA` puesta (la primera que no esté en uso todavía), con la siguiente
+jornada libre para que Resultados tenga dónde mostrarlo, y salta directo a la
+vista Eliminatorias. Un clic, no dos, y funciona con cero eliminatorias
+previas.
+
+> Verificado creando dos seguidas: la primera sale «PARTIDO POR EL PLAY IN»
+> jornada 12, la segunda «PLAY IN» jornada 13 — sin chocar fase ni jornada.
+
+Verificación: `node test-core.js` (27 OK) y `node test-ciclo.js` (7 OK) tras
+los cambios.
