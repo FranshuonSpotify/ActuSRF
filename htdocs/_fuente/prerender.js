@@ -76,6 +76,7 @@ async function prerender(html, datosPath, lang){
   await new Promise(function(r){ setTimeout(r, 0); });
 
   sincronizarFaqSchema(dom.window.document);
+  actualizarDateModified(dom.window.document);
   if (lang) autoreferenciarUrl(dom.window.document, lang);
 
   const resultado = dom.window.document.documentElement.outerHTML;
@@ -129,6 +130,23 @@ function sincronizarFaqSchema(document){
    canonicalizan a "/", se le está diciendo a Google que solo indexe la
    española y descarte el resto como duplicados — justo lo contrario de lo
    que hreflang pretende declarar. */
+/* La recencia es una señal de autoridad real para citación en IA (auditoría
+   GEO: contenido de menos de 3 meses tiene ~3x más probabilidad de ser
+   citado). El dato ya existe -- es el momento del build -- así que basta con
+   escribirlo en el WebPage del JSON-LD en cada regeneración, sin mantener
+   nada a mano. */
+function actualizarDateModified(document){
+  const scriptTag = document.querySelector('script[type="application/ld+json"]');
+  if (!scriptTag) return;
+  let data;
+  try { data = JSON.parse(scriptTag.textContent); } catch(e){ return; }
+  const nodos = data['@graph'] || (Array.isArray(data) ? data : [data]);
+  const webPage = nodos.find(function(n){ return n['@type']==='WebPage'; });
+  if (!webPage) return;
+  webPage.dateModified = new Date().toISOString();
+  scriptTag.textContent = JSON.stringify(data, null, 2);
+}
+
 function autoreferenciarUrl(document, lang){
   const url = 'https://superligafrontier.es/?lang='+lang;
   const canon = document.querySelector('link[rel="canonical"]');

@@ -1188,7 +1188,15 @@ var FAQ=[
     ['¿Y en la tabla de goleadores?','Por goles marcados. Cuando varios jugadores empatan, se ordenan alfabéticamente entre ellos: quién marcó antes en el calendario no es un criterio deportivo.'],
     ['¿Qué pasa si una eliminatoria acaba en empate?','Se resuelve en penaltis, y el resultado de la tanda queda reflejado en el detalle del partido.'],
     ['¿Con qué frecuencia se juega?','Tres jornadas semanales, con horarios flexibles para adaptarse a la disponibilidad de los managers.'],
-    ['¿Qué pasa si un manager no puede jugar su partido?','Se reprograma dentro de la jornada siempre que sea posible. Si aun así no se juega, el staff decide según el reglamento de incomparecencias.']
+    ['¿Qué pasa si un manager no puede jugar su partido?','Se reprograma dentro de la jornada siempre que sea posible. Si aun así no se juega, el staff decide según el reglamento de incomparecencias.'],
+    /* Pasaje largo (GEO): las dos preguntas cortas de arriba sobre campeón y
+       ascenso/descenso se mantienen para búsquedas puntuales; ésta las junta
+       en un solo bloque autocontenido de ~150 palabras para consultas del
+       tipo "cómo funciona todo el formato". No introduce ningún dato nuevo,
+       solo lo reformula junto — ver auditoría GEO de esta sesión. Sin
+       traducción propia en faq-dict.js todavía: cae al español en los otros
+       9 idiomas hasta que se traduzca. */
+    ['¿Cómo funciona el formato completo de la Superliga Frontier, de la liga regular al campeón?','La Superliga Frontier decide su campeón en dos fases. La liga regular fija las posiciones de los 20 equipos. Los 6 primeros disputan la fase final: 5º contra 6º, el ganador juega el Play In contra el 4º (local por mejor clasificación), y ese ganador entra al Play Off junto al 1º, 2º y 3º — de ahí sale el campeón. Al mismo tiempo, el resultado de la liga regular decide el ascenso y el descenso entre divisiones: los tres primeros del Ascenso Frontier suben a la Superliga, y los tres últimos de la Superliga bajan al Ascenso. Ambos mecanismos comparten la misma tabla de clasificación, por lo que jugar por el título y jugar por no descender son, durante buena parte de la temporada, la misma pelea.']
   ]},
   {c:'La web y los datos',items:[
     ['¿Cada cuánto se actualizan los datos?','Después de cada jornada. Clasificación, resultados, goleadores y fichas salen todos del mismo archivo de datos oficial de la liga.'],

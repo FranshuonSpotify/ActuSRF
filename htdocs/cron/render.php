@@ -324,6 +324,31 @@ function sf_renderScorers(array $equipos, array $matches, int $top = 10): string
     return $html;
 }
 
+/* ---------------------------- Schema ---------------------------- */
+
+/* Actualiza (o añade, si falta) "dateModified" en el nodo WebPage del
+   JSON-LD -- señal de recencia real para citación en IA. Cirugía de texto
+   igual que sf_setInnerHtmlById, no un parse+reserialize del bloque entero,
+   para no arriesgar el resto del schema. */
+function sf_actualizarDateModified(string &$html): bool {
+    $iso = (new DateTimeImmutable('now'))->format(DateTimeImmutable::ATOM);
+    $marker = '"@id": "https://superligafrontier.es/#webpage",';
+    $pos = strpos($html, $marker);
+    if ($pos === false) return false;
+    $searchWindowEnd = strpos($html, '"@type"', $pos + strlen($marker));
+    $window = $searchWindowEnd !== false ? substr($html, $pos, $searchWindowEnd - $pos) : substr($html, $pos, 500);
+
+    if (strpos($window, '"dateModified"') !== false) {
+        $newWindow = preg_replace('/"dateModified":\s*"[^"]*"/', '"dateModified": "'.$iso.'"', $window, 1);
+        $html = substr($html, 0, $pos).$newWindow.substr($html, $pos + strlen($window));
+        return true;
+    }
+
+    $insertAt = $pos + strlen($marker);
+    $html = substr($html, 0, $insertAt)."\n            \"dateModified\": \"".$iso.'",'.substr($html, $insertAt);
+    return true;
+}
+
 /* ---------------------------- Orquestación ---------------------------- */
 
 /* Reemplaza el contenido de un elemento por su id dentro de un string HTML,
@@ -390,6 +415,7 @@ function sf_actualizarTablas(string $path, array $datos): bool {
     $cambiado = sf_setInnerHtmlById($html, 'scorers', sf_renderScorers($equipos, $partidosLiga)) || $cambiado;
     $cambiado = sf_setInnerHtmlById($html, 'bracket-copa', sf_renderCopa($partidosCopa, $equiposPorNombre)) || $cambiado;
     sf_setInnerHtmlById($html, 'groups-copa', sf_renderGruposCopa($partidosCopa, $equiposPorNombre));
+    if ($cambiado) sf_actualizarDateModified($html);
 
     if (!$cambiado || $html === $original) return false;
     return file_put_contents($path, $html) !== false;
