@@ -102,7 +102,7 @@ function avatar(url,cls,alt){
   return '<span class="noimg '+cls+'">'+esc(((alt||'?').trim()[0]||'?').toUpperCase())+'</span>';
 }
 function crest(e,size){
-  if(e&&isHttp(e.escudo)) return '<img src="'+esc(e.escudo)+'" alt="" loading="lazy">';
+  if(e&&isHttp(e.escudo)) return '<img src="'+esc(e.escudo)+'" alt="'+esc(e.nombre||'')+'" loading="lazy">';
   return '<span class="noimg" style="width:'+(size||22)+'px;height:'+(size||22)+'px;border-radius:6px;font-size:.55rem;flex-shrink:0">'+esc(abbr3(e?e.nombre:'?'))+'</span>';
 }
 
@@ -156,7 +156,14 @@ function compBadge(comp){
 
 /* ---------------------------- carga ---------------------------- */
 document.addEventListener('DOMContentLoaded', function(){
-  fetch('datos_oficiales.json?t='+Date.now())
+  /* "no-cache" (no "no-store"): el navegador SIEMPRE revalida con el
+     servidor antes de usar una copia, así que los datos nunca salen
+     desactualizados — pero si el ETag/Last-Modified no ha cambiado, el
+     servidor responde 304 y no hay que volver a bajar 1,5MB. El
+     "?t="+Date.now() de antes forzaba una descarga completa siempre,
+     porque cada URL con timestamp distinto es un recurso nuevo para la
+     caché: parecía "forzar datos frescos" pero solo forzaba tráfico. */
+  fetch('datos_oficiales.json', { cache:'no-cache' })
     .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
     .then(function(d){ normalizarImagenesDatos(d); bd = Object.assign(bd, d); window.bd = bd; renderAll(); })
     .catch(function(e){
@@ -667,7 +674,7 @@ function openTeam(id){
          posiciones de banda se salían del césped en el diseño anterior */
       var x=n===1?50:10+i*(80/(n-1));
       var tok=isHttp(j.foto)
-        ? '<img src="'+esc(j.foto)+'" alt="" loading="lazy" referrerpolicy="no-referrer">'
+        ? '<img src="'+esc(j.foto)+'" alt="'+esc(X(j.nombre))+'" loading="lazy" referrerpolicy="no-referrer">'
         : '<span class="noimg">'+esc(((X(j.nombre)||'?').trim()[0]||'?').toUpperCase())+'</span>';
       pitch+='<div class="pp p-'+pos.toLowerCase()+'" style="left:'+x.toFixed(1)+'%;top:'+yOf[pos]+'%" data-team="'+esc(e.id)+'" data-player="'+esc(encodeURIComponent(j.nombre))+'" title="'+esc(X(j.nombre))+'">'+
         '<span class="tok">'+tok+'</span>'+
@@ -707,7 +714,7 @@ function openTeam(id){
     '<header class="tm-hero">'+
       '<div class="tm-hero-wash" style="background:radial-gradient(ellipse 70% 100% at 12% 0%, '+esc(c1)+'55, transparent 70%),radial-gradient(ellipse 60% 90% at 60% 10%, '+esc(c2)+'33, transparent 70%)"></div>'+
       '<div class="tm-hero-in">'+
-        (isHttp(e.escudo)?'<img class="tm-crest" src="'+esc(e.escudo)+'" alt="">':'')+
+        (isHttp(e.escudo)?'<img class="tm-crest" src="'+esc(e.escudo)+'" alt="'+esc(X(e.nombre))+'">':'')+
         '<div><h1 class="tm-name">'+esc(X(e.nombre))+'</h1>'+
           '<div class="tm-sub">'+(e.division==='SUPERLIGA'?'<span class="badge badge-superliga">'+esc(T('comp.superliga','Superliga Frontier'))+'</span>':'<span class="badge badge-ascenso">'+esc(T('comp.ascenso','Ascenso Frontier'))+'</span>')+
           '<span>'+esc(abbr3(e.nombre,e.abreviatura))+'</span>'+(e.ciudad?'<span>·</span><span>'+esc(e.ciudad)+'</span>':'')+
@@ -811,7 +818,7 @@ function openPlayer(teamId,nameEnc){
     '<header class="pl-hero">'+
       '<div class="pl-hero-bg" style="background:radial-gradient(ellipse 65% 80% at 72% 25%, '+hex+'40, transparent 68%),radial-gradient(ellipse 50% 60% at 10% 90%, '+hex+'18, transparent 70%)"></div>'+
       '<div class="pl-photo">'+(isHttp(j.foto)
-        ? '<img src="'+esc(j.foto)+'" alt="" referrerpolicy="no-referrer">'
+        ? '<img src="'+esc(j.foto)+'" alt="'+esc(X(j.nombre))+'" referrerpolicy="no-referrer">'
         : '<span class="noimg">'+esc((X(j.nombre)||'?').trim()[0])+'</span>')+'</div>'+
       '<div class="pl-hero-in">'+
         '<div class="pl-dorsal">'+esc(j.dorsal||'·')+'</div>'+
@@ -936,7 +943,7 @@ function newsSlide(){
   var n=newsList[newsIdx], el=$('news-slide');
   if(!n){ el.innerHTML='<p class="muted">'+T('empty.noticias','Sin noticias.')+'</p>'; return; }
   el.innerHTML='<article class="news spotlight" data-news="'+newsIdx+'">'+
-    '<div class="news-img">'+(isHttp(n.imagen)?'<img src="'+esc(n.imagen)+'" alt="" referrerpolicy="no-referrer">':'<span class="noimg" style="width:100%;height:100%"></span>')+'</div>'+
+    '<div class="news-img">'+(isHttp(n.imagen)?'<img src="'+esc(n.imagen)+'" alt="'+esc(n.titulo||'')+'" referrerpolicy="no-referrer">':'<span class="noimg" style="width:100%;height:100%"></span>')+'</div>'+
     '<div class="news-body"><span class="badge" style="align-self:flex-start;color:'+esc(n.color||'#FFC94A')+'">'+esc(n.tag||'')+'</span>'+
       '<h3>'+esc(n.titulo)+'</h3><p>'+esc(n.resumen)+'</p>'+
       '<div class="news-foot">'+esc(n.autor||'')+' · '+esc(n.fecha||'')+'</div>'+
@@ -951,7 +958,7 @@ function openNews(i){
   $('sheet-news-body').innerHTML=
     '<article class="art">'+
       '<header class="art-hero'+(hasImg?'':' art-hero-plain')+'">'+
-        (hasImg?'<div class="art-hero-img"><img src="'+esc(n.imagen)+'" alt="" referrerpolicy="no-referrer"></div>':'')+
+        (hasImg?'<div class="art-hero-img"><img src="'+esc(n.imagen)+'" alt="'+esc(n.titulo||'')+'" referrerpolicy="no-referrer"></div>':'')+
         '<div class="art-hero-in">'+
           '<span class="badge" style="color:'+esc(n.color||'#FFC94A')+'">'+esc(n.tag||T('sheet.news','Noticia'))+'</span>'+
           '<h1 class="art-title">'+esc(n.titulo)+'</h1>'+
@@ -985,7 +992,7 @@ function renderStaffClubs(){
     var ic=el.querySelector('.staff-crest');
     if(!ic) return;
     ic.innerHTML = e&&isHttp(e.escudo)
-      ? '<img src="'+esc(e.escudo)+'" alt="" loading="lazy">'
+      ? '<img src="'+esc(e.escudo)+'" alt="'+esc(X(e.nombre))+'" loading="lazy">'
       : '<i class="ph-bold ph-shield-chevron"></i>';
   });
 }
@@ -1084,7 +1091,7 @@ function openChamps(idx,label){
     var pres=PRESIDENTES[c.e.nombre];
     return '<div class="champ"'+(live?' data-team="'+esc(live.id)+'"':'')+'>'+
       '<span class="champ-wash" style="background:radial-gradient(ellipse 80% 130% at 0% 50%,'+esc(wash(live||c.e,c1))+',transparent 68%)"></span>'+
-      (isHttp(c.e.escudo)?'<img class="champ-crest" src="'+esc(c.e.escudo)+'" alt="" loading="lazy">':'<span class="champ-crest noimg">'+esc(abbr3(c.e.nombre))+'</span>')+
+      (isHttp(c.e.escudo)?'<img class="champ-crest" src="'+esc(c.e.escudo)+'" alt="'+esc(X(c.e.nombre))+'" loading="lazy">':'<span class="champ-crest noimg">'+esc(abbr3(c.e.nombre))+'</span>')+
       '<div class="champ-id">'+
         '<b>'+esc(X(c.e.nombre))+'</b>'+
         '<span class="pres"><i class="ph-bold ph-user-circle"></i>'+esc(pres||c.e.gerente||'·')+'</span>'+
@@ -1137,7 +1144,7 @@ function doSearch(q){
     /* Equipos y jugadores: nombre propio + abreviatura de posición, nunca se
        traducen (data-no-tr). Noticias: el tag SÍ debe traducirse, se deja tal cual. */
     return '<div class="srch-item" data-si="'+i+'"'+(r.noTr?' data-no-tr':'')+'>'+
-      (isHttp(r.img)?'<img src="'+esc(r.img)+'" alt="" referrerpolicy="no-referrer">':'<span class="noimg">'+esc((r.label||'?').trim()[0])+'</span>')+
+      (isHttp(r.img)?'<img src="'+esc(r.img)+'" alt="'+esc(r.label||'')+'" referrerpolicy="no-referrer">':'<span class="noimg">'+esc((r.label||'?').trim()[0])+'</span>')+
       '<div style="min-width:0"><b>'+hl(r.label,q)+'</b><span>'+esc(r.sub)+'</span></div></div>';
   }).join('');
 }

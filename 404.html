@@ -25,7 +25,10 @@
    5. Profundidad real: glow radial, spotlight que sigue al cursor, capas.
    ========================================================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Teko:wght@500;600;700&family=Fraunces:ital,opsz,wght@1,9..144,300;1,9..144,400&family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+JP:wght@400;500;700&family=Noto+Sans+KR:wght@400;500;700&display=swap');
+/* Las fuentes de Google se cargan como <link> en shell.html, no con @import
+   aquí dentro: un @import obliga al navegador a bajar y parsear todo este
+   CSS antes de darse cuenta de que hacen falta más fuentes, añadiendo una
+   vuelta de red entera antes de empezar a pedirlas. */
 
 :root{
   /* Ancho de la barra de scroll del navegador, medido en tiempo real por JS
