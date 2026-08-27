@@ -1023,14 +1023,18 @@ window.renderStaffClubs=renderStaffClubs;
 /* ==========================================================================
    HISTORIA — antigüedad automática y palmarés por temporada
    ========================================================================== */
-/* La liga se fundó en enero de 2026. El "7 meses de recorrido" estaba escrito
+/* La liga se fundó en enero de 2026. El "X meses de recorrido" estaba escrito
    a mano y caducaba solo: aquí se calcula cada vez que se carga la página y
-   pasa a años en cuanto se cumplen doce meses. */
+   pasa a años en cuanto se cumplen doce meses.
+   El aniversario mensual cae el día 26 (no el 1): el contador sube ese día,
+   no antes. Por eso se suma 1 al llegar o pasar el 26, en vez de restar 1
+   antes de esa fecha como haría un cálculo de "meses completos" normal. */
 var FUNDACION=new Date(2026,0,1);
+var ANIVERSARIO_DIA=26;
 function antiguedad(now){
   now=now||new Date();
   var m=(now.getFullYear()-FUNDACION.getFullYear())*12+(now.getMonth()-FUNDACION.getMonth());
-  if(now.getDate()<FUNDACION.getDate()) m--;
+  if(now.getDate()>=ANIVERSARIO_DIA) m++;
   if(m<1) return T('edad.inicio','Recién nacida');
   // japonés y coreano no separan con espacio: "7か月の歩み", no "7 か月 の歩み"
   var lang=window.sfGetLang?sfGetLang():'es', s=(lang==='ja'||lang==='ko')?'':' ';
