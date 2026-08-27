@@ -46,3 +46,16 @@ ErrorDocument 404 /404.html
         Header set Cache-Control "no-cache"
     </Files>
 </IfModule>
+
+# _fuente/build.js funde CSS y JS DENTRO de cada .html (no hay app.js/styles.css
+# sueltos que el navegador pueda versionar por nombre de archivo). Sin cabecera
+# propia, index.html/en.html/etc. quedan a merced de la caché heurística del
+# navegador (o de un proxy del operador móvil, que cachea agresivamente HTML
+# sobre datos móviles) y un visitante puede quedarse viendo una versión vieja
+# de la página — con su JS viejo incluido — después de cada despliegue, sin
+# enterarse. Mismo criterio que datos_oficiales.json: revalidar siempre.
+<IfModule mod_headers.c>
+    <FilesMatch "\.html$">
+        Header set Cache-Control "no-cache"
+    </FilesMatch>
+</IfModule>

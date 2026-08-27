@@ -124,7 +124,13 @@
         }
 
         function sfGetLang() {
-            return localStorage.getItem('sf_lang') || 'es';
+            /* localStorage.getItem lanza en Safari con "Navegación privada" (y
+               en otros navegadores con el almacenamiento bloqueado). Esta
+               función se llama muy pronto en la carga de la página, así que
+               un throw aquí sin capturar podía interrumpir el resto del
+               script — incluida toda la lógica de idioma que viene después —
+               solo en el móvil de quien navegara así. */
+            try { return localStorage.getItem('sf_lang') || 'es'; } catch (e) { return 'es'; }
         }
         /* ?lang=en tiene prioridad sobre lo guardado: es la URL que apuntan los
            hreflang y la que se comparte en redes. */
@@ -750,8 +756,12 @@
             var dict = SF_I18N[code] || SF_I18N.es;
             /* El idioma se persiste ANTES de recorrer el DOM: sfATApply() lee
                sfGetLang() para decidir si traduce, y si se guardaba al final
-               veía todavía el idioma anterior y no traducía nada. */
-            localStorage.setItem('sf_lang', code);
+               veía todavía el idioma anterior y no traducía nada. try/catch:
+               si localStorage está bloqueado (navegación privada de Safari,
+               por ejemplo), esto no debe impedir que se aplique el idioma al
+               resto de la página — solo que no se recuerde para la próxima
+               visita. */
+            try { localStorage.setItem('sf_lang', code); } catch (e) {}
             document.documentElement.setAttribute('lang', code);
             /* Sólo 28 de las 136 claves data-i18n del HTML existen en el
                diccionario heredado. Antes, cada una de las 108 restantes pedía
