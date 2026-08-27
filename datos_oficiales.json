@@ -52499,7 +52499,14 @@
                     ]
                 },
                 "resenas": []
-            }
+            },
+            "campeones": [
+                {
+                    "comp": "SUPERLIGA",
+                    "equipo": "Zanark Domain",
+                    "marcador": "Zanark Domain 3-1 Servicio Secreto"
+                }
+            ]
         }
     ],
     "agentes_libres": [
