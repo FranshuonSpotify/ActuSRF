@@ -79,6 +79,18 @@ async function prerender(html, datosPath, lang){
   actualizarDateModified(dom.window.document);
   if (lang) autoreferenciarUrl(dom.window.document, lang);
 
+  // app.js mide --sbw con innerWidth-clientWidth para que .hero-photo sangre
+  // bajo la barra de scroll de verdad (ver styles.css). jsdom no hace layout
+  // real: clientWidth siempre da 0, así que esa resta escupe el innerWidth
+  // completo (1024) y ese valor absurdo queda grabado en el HTML estático.
+  // En el navegador real, antes de que fijar() lo corrija en el primer
+  // frame, ese --sbw:1024px empuja .hero-photo 1024px fuera de la caja y
+  // fuerza un layout viewport enorme en móvil: la página arranca "haciendo
+  // zoom" para caber, y al deshacer el zoom a mano el contenido queda
+  // descuadrado. Se resetea a 0 (el valor por defecto real en móvil) antes
+  // de servir el HTML; fijar() lo recalcula bien en cuanto carga JS.
+  dom.window.document.documentElement.style.setProperty('--sbw', '0px');
+
   const resultado = dom.window.document.documentElement.outerHTML;
   dom.window.close();
 

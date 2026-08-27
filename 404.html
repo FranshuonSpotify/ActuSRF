@@ -576,7 +576,8 @@ html:not(.anim) .q-bar i{ width:var(--w,0%); transition:none; }
 .sec{ scroll-margin-top:76px; }
 .block-head{ display:flex; align-items:flex-end; justify-content:space-between; gap:2rem; flex-wrap:wrap; margin-bottom:2rem; }
 
-.seg{ display:inline-flex; padding:3px; background:var(--surface); border:1px solid var(--line); border-radius:var(--r-sm); gap:2px; }
+.seg{ display:inline-flex; padding:3px; background:var(--surface); border:1px solid var(--line); border-radius:var(--r-sm); gap:2px; max-width:100%; min-width:0; overflow-x:auto; scrollbar-width:none; }
+.seg::-webkit-scrollbar{ display:none; }
 .seg button{ height:32px; padding:0 .875rem; border-radius:4px; font-size:.8125rem; font-weight:450; color:var(--ink-3); transition:background var(--t1),color var(--t1); white-space:nowrap; }
 .seg button:hover{ color:var(--ink-2); }
 .seg button.on{ background:var(--surface-3); color:var(--ink); }

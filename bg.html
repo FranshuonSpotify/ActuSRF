@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="bg" style="--sbw: 1024px;" class="anim"><head>
+<html lang="bg" style="--sbw: 0px;" class="anim"><head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 
@@ -639,7 +639,8 @@ html:not(.anim) .q-bar i{ width:var(--w,0%); transition:none; }
 .sec{ scroll-margin-top:76px; }
 .block-head{ display:flex; align-items:flex-end; justify-content:space-between; gap:2rem; flex-wrap:wrap; margin-bottom:2rem; }
 
-.seg{ display:inline-flex; padding:3px; background:var(--surface); border:1px solid var(--line); border-radius:var(--r-sm); gap:2px; }
+.seg{ display:inline-flex; padding:3px; background:var(--surface); border:1px solid var(--line); border-radius:var(--r-sm); gap:2px; max-width:100%; min-width:0; overflow-x:auto; scrollbar-width:none; }
+.seg::-webkit-scrollbar{ display:none; }
 .seg button{ height:32px; padding:0 .875rem; border-radius:4px; font-size:.8125rem; font-weight:450; color:var(--ink-3); transition:background var(--t1),color var(--t1); white-space:nowrap; }
 .seg button:hover{ color:var(--ink-2); }
 .seg button.on{ background:var(--surface-3); color:var(--ink); }
@@ -1512,7 +1513,7 @@ body.locked{ overflow:hidden; }
           }
         ]
       },
-      "dateModified": "2026-08-26T19:15:19.312Z"
+      "dateModified": "2026-08-27T14:58:38.695Z"
     },
     {
       "@type": "FAQPage",
@@ -1843,7 +1844,7 @@ body.locked{ overflow:hidden; }
      asocie a la pestaña (silenciar la pestaña lo calla) y preload="none"
      para que los 2 MB no pesen en la carga inicial. -->
 <!-- El src lo asigna app.js al azar entre las 3 pistas disponibles. -->
-<audio id="sf-audio" loop="" preload="none" playsinline="" src="assets/web1.mp3"></audio>
+<audio id="sf-audio" loop="" preload="none" playsinline="" src="assets/web3.mp3"></audio>
 
 <!-- ================= PANTALLA DE CARGA ================= -->
 <div id="pre" aria-hidden="true">
@@ -2082,7 +2083,7 @@ body.locked{ overflow:hidden; }
       <span class="eyebrow" data-i18n="resenas.kicker" data-i18n-done="">Гласове от общността</span>
       <h2 class="h1 nowrap" data-i18n="resenas.title" data-i18n-done="">Какво казват мениджърите</h2>
     </div>
-    <div class="quotes" id="quotes"><blockquote class="card spotlight quote rv rv-d1"><div class="q-top"><span class="q-mark" aria-hidden="true">“</span><span class="q-score" title="Оценка"><b>9.5</b><span>/10</span></span></div><p>Gracias a esta liga podemos seguir disfrutando el juego y crear una comunidad del juego de nuestras infancias además de todo el trabajo que hay detrás de ella.”</p><span class="q-bar" aria-hidden="true" style="--w:95%"><i></i></span><footer><img src="assets/totti_alcresise.png" alt="" loading="lazy"><div><b>Мениджър на Суперлига Фронтиър</b><span>Contenido de ejemplo</span></div></footer></blockquote><blockquote class="card spotlight quote rv rv-d2"><div class="q-top"><span class="q-mark" aria-hidden="true">“</span><span class="q-score" title="Оценка"><b>8.7</b><span>/10</span></span></div><p>El tope salarial cambia la mentalidad completamente. No puedes fichar la solución fácil: tienes que jugar mejor.”</p><span class="q-bar" aria-hidden="true" style="--w:87%"><i></i></span><footer><img src="assets/gabrii.png" alt="" loading="lazy"><div><b>Мениджър на Фронтиър Чемпиъншип</b><span>Contenido de ejemplo</span></div></footer></blockquote><blockquote class="card spotlight quote rv rv-d3"><div class="q-top"><span class="q-mark" aria-hidden="true">“</span><span class="q-score" title="Оценка"><b>9.2</b><span>/10</span></span></div><p>Llevo tres ligas distintas probadas y esta es la única donde perder no se siente como una excusa de mala suerte del rival.”</p><span class="q-bar" aria-hidden="true" style="--w:92%"><i></i></span><footer><img src="assets/payo-aguao.png" alt="" loading="lazy"><div><b>Привлечен бивш играч</b><span>Contenido de ejemplo</span></div></footer></blockquote></div>
+    <div class="quotes" id="quotes"><blockquote class="card spotlight quote rv rv-d1"><div class="q-top"><span class="q-mark" aria-hidden="true">“</span><span class="q-score" title="Оценка"><b>9.5</b><span>/10</span></span></div><p>Gracias a esta liga podemos seguir disfrutando el juego y crear una comunidad del juego de nuestras infancias además de todo el trabajo que hay detrás de ella.”</p><span class="q-bar" aria-hidden="true" style="--w:95%"><i></i></span><footer><img src="assets/totti_alcresise.png" alt="" loading="lazy"><div><b>Totti Alcresise</b><span>Президент на Суперлига Фронтиър</span></div></footer></blockquote><blockquote class="card spotlight quote rv rv-d2"><div class="q-top"><span class="q-mark" aria-hidden="true">“</span><span class="q-score" title="Оценка"><b>9.6</b><span>/10</span></span></div><p>Gracias a esta liga aprendí muchas cosas, entre ellas, a saber aceptar consejos. Personalmente, creo que la liga es lo que mantendrá viva a la comunidad del juego.”</p><span class="q-bar" aria-hidden="true" style="--w:96%"><i></i></span><footer><img src="assets/manu.png" alt="" loading="lazy"><div><b>manueljoinazuma788</b><span>Президент на Фронтиър Чемпиъншип</span></div></footer></blockquote><blockquote class="card spotlight quote rv rv-d3"><div class="q-top"><span class="q-mark" aria-hidden="true">“</span><span class="q-score" title="Оценка"><b>9.2</b><span>/10</span></span></div><p>Llevo tres ligas distintas probadas y esta es la única donde perder no se siente como una excusa de mala suerte del rival.”</p><span class="q-bar" aria-hidden="true" style="--w:92%"><i></i></span><footer><img src="assets/payo-aguao.png" alt="" loading="lazy"><div><b>Contenido de ejemplo</b><span>Привлечен бивш играч</span></div></footer></blockquote></div>
   </div>
 </section>
 
@@ -2130,7 +2131,7 @@ body.locked{ overflow:hidden; }
     <div class="wrap wrap-wide">
       <div class="block-head rv">
         <div><span class="eyebrow" data-i18n="sec.resultados.kicker" data-i18n-done="">Кръг по кръг</span><h2 class="h2 nowrap" style="margin-top:.875rem" data-i18n="sec.resultados" data-i18n-done="">Резултати</h2></div>
-        <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap">
+        <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;min-width:0;max-width:100%">
           <div class="seg" id="seg-res" data-no-tr="">
             <button class="on" data-comp="liga" data-i18n="comp.superliga" data-i18n-done="">Суперлига Фронтиър</button>
             <button data-comp="ascenso" data-i18n="comp.ascenso" data-i18n-done="">Фронтиър Чемпиъншип</button>
@@ -2997,7 +2998,7 @@ window.SF_FAQ_DICT = {
            y "Gabrii" en "Gabriel" — que es exactamente lo que pasaba con el
            marcado nuevo de staff y leyendas. */
         var SF_PROPER_SEL = '.mono,.nm,.sc-name,.pl-name,.tm-name,.ev-name,.hist-id b,.person b,'
-            + '.legend-card h3,.quote footer b,.champ-id b,.sc-team,.ev-club,.tl-node,.pts,'
+            + '.legend-card h3,.quote footer b,.quote footer span,.champ-id b,.sc-team,.ev-club,.tl-node,.pts,'
             + '.lang-item-code,.sc-goals,.match-side,.br-side,.group-row,.tm,.pp,.art-meta dd,.staff-line b,'
             + '.staff-info h3,.staff-club,.staff-crest,.legend-stats dd,.legend-quote,.tl-card strong,.rule-fig,'
             /* Abreviaturas y códigos: son siglas, no palabras. Sin esto el
@@ -3416,8 +3417,8 @@ window.SF_FAQ_DICT = {
            idiomas. Frase completa por idioma, no una plantilla "Manager de" +
            nombre: en japonés y coreano el orden gramatical es el inverso
            (posesivo + cargo), una plantilla fija lo habría roto. */
-        'resenas.rol.superliga':['Manager de Superliga Frontier','Manager of Frontier Superleague','Treinador da Superliga Frontier','Allenatore della Superlega Frontier','Manager de la Superligue Frontier','フロンティア・スーパーリーグの監督','프런티어 슈퍼리그 감독','Menedżer Superliga Frontier','Мениджър на Суперлига Фронтиър','Менаџер Суперлиге Фронтиер'],
-        'resenas.rol.ascenso':['Manager de Ascenso Frontier','Manager of Frontier Championship','Treinador do Acesso Frontier','Allenatore della Cadetta Frontier','Manager du Championnat Frontier','フロンティア・チャンピオンシップの監督','프런티어 챔피언십 감독','Menedżer Awans Frontier','Мениджър на Фронтиър Чемпиъншип','Менаџер Фронтиер Чемпионата'],
+        'resenas.rol.superliga':['Presidente de la Superliga Frontier','President of Frontier Superleague','Presidente da Superliga Frontier','Presidente della Superlega Frontier','Président de la Superligue Frontier','フロンティア・スーパーリーグ会長','프런티어 슈퍼리그 회장','Prezes Superliga Frontier','Президент на Суперлига Фронтиър','Председник Суперлиге Фронтиер'],
+        'resenas.rol.ascenso':['Presidente del Ascenso Frontier','President of Frontier Championship','Presidente do Acesso Frontier','Presidente della Cadetta Frontier','Président du Championnat Frontier','フロンティア・チャンピオンシップ会長','프런티어 챔피언십 회장','Prezes Awans Frontier','Президент на Фронтиър Чемпиъншип','Председник Фронтиер Чемпионата'],
         'resenas.rol.exjugador':['Ex-jugador reclutado','Recruited ex-player','Ex-jogador recrutado','Ex giocatore reclutato','Ancien joueur recruté','スカウトされた元選手','영입된 전 선수','Zwerbowany były zawodnik','Привлечен бивш играч','Регрутован бивши играч']
         };
         (function mergeExtra() {
@@ -3753,7 +3754,17 @@ function compBadge(comp){
    —no hace falta esperar a DOMContentLoaded— y se corrige si cambia el modo
    de la barra (p. ej. al conectar un ratón en una tablet). */
 (function medirScrollbar(){
-  function fijar(){ document.documentElement.style.setProperty('--sbw', (window.innerWidth-document.documentElement.clientWidth)+'px'); }
+  /* innerWidth-clientWidth solo es fiable como "ancho de scrollbar" dentro de
+     un rango razonable (0-20px reales en cualquier navegador de escritorio).
+     Sin este límite, cualquier lectura ruidosa del motor (barra de
+     direcciones de móvil colapsando, tablets, o el propio pre-renderizado)
+     se traduce literal en --sbw y empuja .hero-photo fuera de su caja lo
+     bastante para inflar el layout viewport y disparar el zoom inicial en
+     móvil que reportó Alejandro. */
+  function fijar(){
+    var d=Math.max(0, Math.min(20, window.innerWidth-document.documentElement.clientWidth));
+    document.documentElement.style.setProperty('--sbw', d+'px');
+  }
   fijar();
   window.addEventListener('resize', fijar, {passive:true});
 })();
@@ -4828,11 +4839,12 @@ window.renderFaq=renderFaq;
 /* q.a es una CLAVE ('superliga'/'ascenso'/'exjugador'), no el texto final: se
    resuelve en renderQuotes() vía resenas.rol.*. Antes era literal en español
    ("Manager de Superliga Frontier") y, aunque protegido de la traducción
-   automática (.quote footer b), nunca se localizaba: salía en español en los
-   10 idiomas (audit Tarea 2.3). */
+   automática (.quote footer span), nunca se localizaba: salía en español en
+   los 10 idiomas (audit Tarea 2.3). En el footer, lo destacado (<b>) es el
+   nombre del autor (q.s) y el rol va como subtítulo (<span>). */
 var QUOTES=[
-  {t:'Gracias a esta liga podemos seguir disfrutando el juego y crear una comunidad del juego de nuestras infancias además de todo el trabajo que hay detrás de ella.',a:'superliga',s:'Contenido de ejemplo',i:'assets/totti_alcresise.png',n:9.5},
-  {t:'El tope salarial cambia la mentalidad completamente. No puedes fichar la solución fácil: tienes que jugar mejor.',a:'ascenso',s:'Contenido de ejemplo',i:'assets/gabrii.png',n:8.7},
+  {t:'Gracias a esta liga podemos seguir disfrutando el juego y crear una comunidad del juego de nuestras infancias además de todo el trabajo que hay detrás de ella.',a:'superliga',s:'Totti Alcresise',i:'assets/totti_alcresise.png',n:9.5},
+  {t:'Gracias a esta liga aprendí muchas cosas, entre ellas, a saber aceptar consejos. Personalmente, creo que la liga es lo que mantendrá viva a la comunidad del juego.',a:'ascenso',s:'manueljoinazuma788',i:'assets/manu.png',n:9.6},
   {t:'Llevo tres ligas distintas probadas y esta es la única donde perder no se siente como una excusa de mala suerte del rival.',a:'exjugador',s:'Contenido de ejemplo',i:'assets/payo-aguao.png',n:9.2}
 ];
 function renderQuotes(){
@@ -4851,7 +4863,7 @@ function renderQuotes(){
       /* --w lo consume el CSS: la barra crece de 0 a la nota cuando la tarjeta
          entra en pantalla (clase .in del observador de reveals). */
       '<span class="q-bar" aria-hidden="true" style="--w:'+(n*10)+'%"><i></i></span>'+
-      '<footer><img src="'+esc(q.i||'')+'" alt="" loading="lazy"><div><b>'+esc(rol)+'</b><span>'+esc(q.s)+'</span></div></footer>'+
+      '<footer><img src="'+esc(q.i||'')+'" alt="" loading="lazy"><div><b>'+esc(q.s)+'</b><span>'+esc(rol)+'</span></div></footer>'+
     '</blockquote>';
   }).join('');
 }

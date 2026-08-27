@@ -275,7 +275,7 @@
            y "Gabrii" en "Gabriel" — que es exactamente lo que pasaba con el
            marcado nuevo de staff y leyendas. */
         var SF_PROPER_SEL = '.mono,.nm,.sc-name,.pl-name,.tm-name,.ev-name,.hist-id b,.person b,'
-            + '.legend-card h3,.quote footer b,.champ-id b,.sc-team,.ev-club,.tl-node,.pts,'
+            + '.legend-card h3,.quote footer b,.quote footer span,.champ-id b,.sc-team,.ev-club,.tl-node,.pts,'
             + '.lang-item-code,.sc-goals,.match-side,.br-side,.group-row,.tm,.pp,.art-meta dd,.staff-line b,'
             + '.staff-info h3,.staff-club,.staff-crest,.legend-stats dd,.legend-quote,.tl-card strong,.rule-fig,'
             /* Abreviaturas y códigos: son siglas, no palabras. Sin esto el
@@ -694,8 +694,8 @@
            idiomas. Frase completa por idioma, no una plantilla "Manager de" +
            nombre: en japonés y coreano el orden gramatical es el inverso
            (posesivo + cargo), una plantilla fija lo habría roto. */
-        'resenas.rol.superliga':['Manager de Superliga Frontier','Manager of Frontier Superleague','Treinador da Superliga Frontier','Allenatore della Superlega Frontier','Manager de la Superligue Frontier','フロンティア・スーパーリーグの監督','프런티어 슈퍼리그 감독','Menedżer Superliga Frontier','Мениджър на Суперлига Фронтиър','Менаџер Суперлиге Фронтиер'],
-        'resenas.rol.ascenso':['Manager de Ascenso Frontier','Manager of Frontier Championship','Treinador do Acesso Frontier','Allenatore della Cadetta Frontier','Manager du Championnat Frontier','フロンティア・チャンピオンシップの監督','프런티어 챔피언십 감독','Menedżer Awans Frontier','Мениджър на Фронтиър Чемпиъншип','Менаџер Фронтиер Чемпионата'],
+        'resenas.rol.superliga':['Presidente de la Superliga Frontier','President of Frontier Superleague','Presidente da Superliga Frontier','Presidente della Superlega Frontier','Président de la Superligue Frontier','フロンティア・スーパーリーグ会長','프런티어 슈퍼리그 회장','Prezes Superliga Frontier','Президент на Суперлига Фронтиър','Председник Суперлиге Фронтиер'],
+        'resenas.rol.ascenso':['Presidente del Ascenso Frontier','President of Frontier Championship','Presidente do Acesso Frontier','Presidente della Cadetta Frontier','Président du Championnat Frontier','フロンティア・チャンピオンシップ会長','프런티어 챔피언십 회장','Prezes Awans Frontier','Президент на Фронтиър Чемпиъншип','Председник Фронтиер Чемпионата'],
         'resenas.rol.exjugador':['Ex-jugador reclutado','Recruited ex-player','Ex-jogador recrutado','Ex giocatore reclutato','Ancien joueur recruté','スカウトされた元選手','영입된 전 선수','Zwerbowany były zawodnik','Привлечен бивш играч','Регрутован бивши играч']
         };
         (function mergeExtra() {
