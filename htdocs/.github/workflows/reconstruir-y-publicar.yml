@@ -39,12 +39,19 @@ jobs:
       - name: Instalar dependencias (jsdom)
         run: npm ci
 
+      # datos_oficiales.json ya se sirve en HTTPS en el propio sitio (con
+      # Cache-Control: no-cache, así que esto siempre pide la versión real,
+      # nunca una copia cacheada). Se prefiere a FTP para esta descarga:
+      # FTP necesita una conexión de datos aparte (modo pasivo) que muchas
+      # veces se cuelga entre el runner de GitHub y el hosting compartido
+      # (fue justo lo que pasó: curl exit code 28, timeout) — HTTPS es una
+      # sola conexión, sin ese problema.
       - name: Descargar datos_oficiales.json actual de IONOS
         run: |
-          curl -sf --ftp-ssl \
-            --user "${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }}" \
-            "ftp://${{ secrets.FTP_SERVER }}/datos_oficiales.json" \
+          curl -sf --connect-timeout 15 --max-time 60 \
+            "https://superligafrontier.es/datos_oficiales.json" \
             -o datos_oficiales.json
+          echo "Descargado: $(wc -c < datos_oficiales.json) bytes"
 
       - name: Reconstruir index.html y los 9 idiomas
         run: node _fuente/build.js
@@ -56,6 +63,7 @@ jobs:
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           protocol: ftps
+          log-level: verbose
           local-dir: ./
           server-dir: ./
           dangerous-clean-slate: false
