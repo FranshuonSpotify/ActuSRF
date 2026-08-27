@@ -6,12 +6,13 @@
 #   2. Ejecuta el MISMO _fuente/build.js que se usa en local — sin
 #      reimplementar nada, así que la calidad (traducciones + transliteración
 #      de nombres a otros alfabetos) es idéntica a un build local.
-#   3. Sube a IONOS solo los ficheros que hayan cambiado.
+#   3. Sube por SFTP los 10 HTML regenerados a IONOS.
 #
-# Requiere 3 secrets del repo (Settings -> Secrets and variables -> Actions):
-#   FTP_SERVER    el host FTP de IONOS (el mismo que usas en tu cliente FTP)
-#   FTP_USERNAME  tu usuario FTP de IONOS
-#   FTP_PASSWORD  tu contraseña FTP de IONOS
+# Requiere 3 secrets del repo (Settings -> Secrets and variables -> Actions),
+# los mismos que usas en tu cliente SFTP (FileZilla/WinSCP/Cyberduck):
+#   FTP_SERVER    el host SFTP de IONOS
+#   FTP_USERNAME  tu usuario
+#   FTP_PASSWORD  tu contraseña
 # Se escriben directamente en la web de GitHub; nadie más los ve ni quedan
 # en el código.
 
@@ -34,7 +35,7 @@ jobs:
       - name: Instalar Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
       - name: Instalar dependencias (jsdom)
         run: npm ci
@@ -56,23 +57,20 @@ jobs:
       - name: Reconstruir index.html y los 9 idiomas
         run: node _fuente/build.js
 
-      - name: Publicar los cambios en IONOS
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
-        with:
-          server: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          protocol: ftps
-          log-level: verbose
-          local-dir: ./
-          server-dir: ./
-          dangerous-clean-slate: false
-          exclude: |
-            **/.git*
-            **/.git*/**
-            **/.github/**
-            **/node_modules/**
-            **/node_modules/
-            _fuente/.last-datos-hash
-            _fuente/cron.log
-            config/secrets.php
+      # IONOS solo acepta SFTP (confirmado: el intento anterior con FTPS dio
+      # "connect ETIMEDOUT" en el puerto 21 -- ni siquiera llega a abrir la
+      # conexión de control, el puerto no está expuesto). SFTP es un
+      # protocolo distinto de FTP/FTPS pese al nombre parecido (va sobre
+      # SSH, una sola conexión, sin el lío de canal de datos aparte que
+      # tiene FTP clásico), así que hace falta una herramienta distinta:
+      # lftp sí sabe hablar los tres. Se suben solo los ficheros que este
+      # build realmente regenera -- ni más rápido ni más simple sería
+      # sincronizar la carpeta entera con exclusiones.
+      - name: Publicar los cambios en IONOS (SFTP)
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq lftp
+          lftp -u "${{ secrets.FTP_USERNAME }},${{ secrets.FTP_PASSWORD }}" \
+            -e "set sftp:auto-confirm yes; set net:timeout 20; set net:max-retries 2;
+                mput index.html en.html pt.html it.html fr.html ja.html ko.html pl.html bg.html sr.html;
+                bye" \
+            sftp://${{ secrets.FTP_SERVER }}
