@@ -1513,7 +1513,7 @@ body.locked{ overflow:hidden; }
           }
         ]
       },
-      "dateModified": "2026-08-27T14:58:39.743Z"
+      "dateModified": "2026-08-27T17:06:53.488Z"
     },
     {
       "@type": "FAQPage",
@@ -1844,7 +1844,7 @@ body.locked{ overflow:hidden; }
      asocie a la pestaña (silenciar la pestaña lo calla) y preload="none"
      para que los 2 MB no pesen en la carga inicial. -->
 <!-- El src lo asigna app.js al azar entre las 3 pistas disponibles. -->
-<audio id="sf-audio" loop="" preload="none" playsinline="" src="assets/web3.mp3"></audio>
+<audio id="sf-audio" loop="" preload="none" playsinline="" src="assets/web2.mp3"></audio>
 
 <!-- ================= PANTALLA DE CARGA ================= -->
 <div id="pre" aria-hidden="true">
@@ -2847,7 +2847,13 @@ window.SF_FAQ_DICT = {
         }
 
         function sfGetLang() {
-            return localStorage.getItem('sf_lang') || 'es';
+            /* localStorage.getItem lanza en Safari con "Navegación privada" (y
+               en otros navegadores con el almacenamiento bloqueado). Esta
+               función se llama muy pronto en la carga de la página, así que
+               un throw aquí sin capturar podía interrumpir el resto del
+               script — incluida toda la lógica de idioma que viene después —
+               solo en el móvil de quien navegara así. */
+            try { return localStorage.getItem('sf_lang') || 'es'; } catch (e) { return 'es'; }
         }
         /* ?lang=en tiene prioridad sobre lo guardado: es la URL que apuntan los
            hreflang y la que se comparte en redes. */
@@ -3473,8 +3479,12 @@ window.SF_FAQ_DICT = {
             var dict = SF_I18N[code] || SF_I18N.es;
             /* El idioma se persiste ANTES de recorrer el DOM: sfATApply() lee
                sfGetLang() para decidir si traduce, y si se guardaba al final
-               veía todavía el idioma anterior y no traducía nada. */
-            localStorage.setItem('sf_lang', code);
+               veía todavía el idioma anterior y no traducía nada. try/catch:
+               si localStorage está bloqueado (navegación privada de Safari,
+               por ejemplo), esto no debe impedir que se aplique el idioma al
+               resto de la página — solo que no se recuerde para la próxima
+               visita. */
+            try { localStorage.setItem('sf_lang', code); } catch (e) {}
             document.documentElement.setAttribute('lang', code);
             /* Sólo 28 de las 136 claves data-i18n del HTML existen en el
                diccionario heredado. Antes, cada una de las 108 restantes pedía
@@ -3788,19 +3798,31 @@ document.addEventListener('DOMContentLoaded', function(){
     });
 });
 
+/* Cada paso va envuelto: son independientes (cada uno pinta su propia
+   sección), pero al llamarse en cadena, un error sin capturar en cualquiera
+   de ellos --por un dato raro o un navegador con alguna rareza-- interrumpía
+   TODOS los que venían después, dejando varias secciones seguidas en blanco
+   ("Sin equipos.", "Sin noticias.") aunque solo una tuviera el problema real.
+   Con el guardado, un fallo se queda contenido en su propia sección y sale
+   en consola con el nombre de la función, en vez de tragarse el resto de
+   la página. */
+function pasoRender(fn, args){
+  try{ fn.apply(null, args||[]); }
+  catch(e){ console.error('[renderAll] '+fn.name+'()', e); }
+}
 function renderAll(){
   _posCache=null;
-  renderMetrics();
-  renderClas(curDiv);
-  renderPlayoff();
-  initJornadas();
-  renderMatches();
-  renderCopa();
-  renderTeams(curTeamDiv);
-  renderScorers(curGol);
-  renderNews();
-  renderStaffClubs();
-  observeReveals();
+  pasoRender(renderMetrics);
+  pasoRender(renderClas,[curDiv]);
+  pasoRender(renderPlayoff);
+  pasoRender(initJornadas);
+  pasoRender(renderMatches);
+  pasoRender(renderCopa);
+  pasoRender(renderTeams,[curTeamDiv]);
+  pasoRender(renderScorers,[curGol]);
+  pasoRender(renderNews);
+  pasoRender(renderStaffClubs);
+  pasoRender(observeReveals);
 }
 
 function renderMetrics(){
@@ -5356,13 +5378,21 @@ document.addEventListener('DOMContentLoaded', function(){
     var wrap = $('sound-wrap');
     if(!boton || !audio) return;
 
-    var VOL = parseInt(localStorage.getItem('sf_vol'), 10);
+    /* try/catch: en Safari con "Navegación privada" (y en algún navegador con
+       el almacenamiento bloqueado por el usuario), localStorage.getItem lanza
+       en vez de devolver null. Sin protegerlo aquí, ese throw interrumpía TODO
+       el script a partir de este punto — incluidas secciones que no tienen
+       nada que ver con el sonido — y dejaba media web en blanco solo en el
+       móvil de quien navegaba así. */
+    var VOL;
+    try{ VOL = parseInt(localStorage.getItem('sf_vol'), 10); }catch(e){ VOL = NaN; }
     if(isNaN(VOL) || VOL < 0 || VOL > 100) VOL = 10;   // 10%: dentro del 8-12% pedido
     VOL = VOL / 100;
     function pintarFill(){ if(range) range.style.setProperty('--fill', (VOL * 100) + '%'); }
     if(range){ range.value = Math.round(VOL * 100); pintarFill(); }
 
-    var quiere = localStorage.getItem('sf_sound') !== 'off';   // por defecto ON
+    var quiere = true;   // por defecto ON
+    try{ quiere = localStorage.getItem('sf_sound') !== 'off'; }catch(e){}
     if(VOL <= 0) quiere = false;   // volumen a 0 equivale a silenciado
 
     /* Las 3 pistas son las únicas disponibles; el "selector" sigue siendo el

@@ -183,19 +183,31 @@ document.addEventListener('DOMContentLoaded', function(){
     });
 });
 
+/* Cada paso va envuelto: son independientes (cada uno pinta su propia
+   sección), pero al llamarse en cadena, un error sin capturar en cualquiera
+   de ellos --por un dato raro o un navegador con alguna rareza-- interrumpía
+   TODOS los que venían después, dejando varias secciones seguidas en blanco
+   ("Sin equipos.", "Sin noticias.") aunque solo una tuviera el problema real.
+   Con el guardado, un fallo se queda contenido en su propia sección y sale
+   en consola con el nombre de la función, en vez de tragarse el resto de
+   la página. */
+function pasoRender(fn, args){
+  try{ fn.apply(null, args||[]); }
+  catch(e){ console.error('[renderAll] '+fn.name+'()', e); }
+}
 function renderAll(){
   _posCache=null;
-  renderMetrics();
-  renderClas(curDiv);
-  renderPlayoff();
-  initJornadas();
-  renderMatches();
-  renderCopa();
-  renderTeams(curTeamDiv);
-  renderScorers(curGol);
-  renderNews();
-  renderStaffClubs();
-  observeReveals();
+  pasoRender(renderMetrics);
+  pasoRender(renderClas,[curDiv]);
+  pasoRender(renderPlayoff);
+  pasoRender(initJornadas);
+  pasoRender(renderMatches);
+  pasoRender(renderCopa);
+  pasoRender(renderTeams,[curTeamDiv]);
+  pasoRender(renderScorers,[curGol]);
+  pasoRender(renderNews);
+  pasoRender(renderStaffClubs);
+  pasoRender(observeReveals);
 }
 
 function renderMetrics(){
@@ -1751,13 +1763,21 @@ document.addEventListener('DOMContentLoaded', function(){
     var wrap = $('sound-wrap');
     if(!boton || !audio) return;
 
-    var VOL = parseInt(localStorage.getItem('sf_vol'), 10);
+    /* try/catch: en Safari con "Navegación privada" (y en algún navegador con
+       el almacenamiento bloqueado por el usuario), localStorage.getItem lanza
+       en vez de devolver null. Sin protegerlo aquí, ese throw interrumpía TODO
+       el script a partir de este punto — incluidas secciones que no tienen
+       nada que ver con el sonido — y dejaba media web en blanco solo en el
+       móvil de quien navegaba así. */
+    var VOL;
+    try{ VOL = parseInt(localStorage.getItem('sf_vol'), 10); }catch(e){ VOL = NaN; }
     if(isNaN(VOL) || VOL < 0 || VOL > 100) VOL = 10;   // 10%: dentro del 8-12% pedido
     VOL = VOL / 100;
     function pintarFill(){ if(range) range.style.setProperty('--fill', (VOL * 100) + '%'); }
     if(range){ range.value = Math.round(VOL * 100); pintarFill(); }
 
-    var quiere = localStorage.getItem('sf_sound') !== 'off';   // por defecto ON
+    var quiere = true;   // por defecto ON
+    try{ quiere = localStorage.getItem('sf_sound') !== 'off'; }catch(e){}
     if(VOL <= 0) quiere = false;   // volumen a 0 equivale a silenciado
 
     /* Las 3 pistas son las únicas disponibles; el "selector" sigue siendo el
