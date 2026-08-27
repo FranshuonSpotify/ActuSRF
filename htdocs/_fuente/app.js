@@ -208,6 +208,62 @@ function renderAll(){
   pasoRender(renderNews);
   pasoRender(renderStaffClubs);
   pasoRender(observeReveals);
+  pasoRender(vigilarDesbordeMovil);
+}
+
+/* ==========================================================================
+   VIGILANTE DE DESBORDE HORIZONTAL EN MÓVIL
+
+   Ya se ha roto dos veces por dos causas distintas (--sbw mal calculado en
+   móvil, .seg sin límite de ancho): cada vez, alguien tuvo que reportarlo
+   desde su móvil, reproducirlo y depurarlo a mano. Esto no evita la próxima
+   causa que aparezca (será otra distinta), pero si el documento vuelve a
+   quedar más ancho que la pantalla, esto lo detecta en el momento en que
+   pasa —en cualquier móvil, no solo en el que lo reporte— y se corrige
+   solo en vez de dejar la web rota hasta el siguiente despliegue.
+   ========================================================================== */
+function vigilarDesbordeMovil(){
+  function comprobar(){
+    var html=document.documentElement;
+    var desborde=html.scrollWidth-html.clientWidth;
+    if(desborde<=1) return;
+    if(window.console&&console.warn){
+      var culpable=null, max=0;
+      document.querySelectorAll('body *').forEach(function(el){
+        var r=el.getBoundingClientRect();
+        if(r.right>max){ max=r.right; culpable=el; }
+      });
+      console.warn('[vigilarDesbordeMovil] la página desborda '+desborde+'px el ancho de pantalla. Elemento más a la derecha:', culpable);
+    }
+    /* Truco documentado: algunos móviles calculan el zoom inicial una sola
+       vez, a partir del primer layout, y no lo recalculan aunque el
+       contenido se corrija después. Retocar el <meta viewport> fuerza esa
+       recalculación en caliente, así que el visitante deja de verse
+       atrapado en un zoom equivocado aunque la causa exacta del desborde
+       cambie con el tiempo. */
+    var vp=document.querySelector('meta[name="viewport"]');
+    if(vp){
+      var original=vp.getAttribute('content');
+      vp.setAttribute('content',original+', shrink-to-fit=yes');
+      requestAnimationFrame(function(){ vp.setAttribute('content',original); });
+    }
+    /* Red de seguridad final: si algo sigue desbordando después del
+       recálculo, se clipa por fuerza para que el visitante tenga una
+       página usable (aunque le falte un pixel de algo) en vez de una
+       inutilizable por el zoom. */
+    html.style.overflowX='clip';
+    document.body.style.overflowX='clip';
+  }
+  comprobar();
+  clearTimeout(vigilarDesbordeMovil._t);
+  vigilarDesbordeMovil._t=setTimeout(comprobar,600);
+  if(!vigilarDesbordeMovil._enResize){
+    vigilarDesbordeMovil._enResize=true;
+    window.addEventListener('resize',function(){
+      clearTimeout(vigilarDesbordeMovil._tr);
+      vigilarDesbordeMovil._tr=setTimeout(comprobar,200);
+    },{passive:true});
+  }
 }
 
 function renderMetrics(){
@@ -1222,7 +1278,7 @@ var FAQ=[
        solo lo reformula junto — ver auditoría GEO de esta sesión. Sin
        traducción propia en faq-dict.js todavía: cae al español en los otros
        9 idiomas hasta que se traduzca. */
-    ['¿Cómo funciona el formato completo de la Superliga Frontier, de la liga regular al campeón?','La Superliga Frontier decide su campeón en dos fases. La liga regular fija las posiciones de los 20 equipos. Los 6 primeros disputan la fase final: 5º contra 6º, el ganador juega el Play In contra el 4º (local por mejor clasificación), y ese ganador entra al Play Off junto al 1º, 2º y 3º — de ahí sale el campeón. Al mismo tiempo, el resultado de la liga regular decide el ascenso y el descenso entre divisiones: los tres primeros del Ascenso Frontier suben a la Superliga, y los tres últimos de la Superliga bajan al Ascenso. Ambos mecanismos comparten la misma tabla de clasificación, por lo que jugar por el título y jugar por no descender son, durante buena parte de la temporada, la misma pelea.']
+    ['¿Cómo funciona el formato completo de la Superliga Frontier, de la liga regular al campeón?','La Superliga Frontier decide su campeón en dos fases. La liga regular fija las posiciones de los 20 equipos. Los 6 primeros disputan la fase final: 5º contra 6º, el ganador juega el Play In contra el 4º (local por mejor clasificación), y ese ganador entra al Play Off junto al 1º, 2º y 3º: de ahí sale el campeón. Al mismo tiempo, el resultado de la liga regular decide el ascenso y el descenso entre divisiones: los tres primeros del Ascenso Frontier suben a la Superliga, y los tres últimos de la Superliga bajan al Ascenso. Ambos mecanismos comparten la misma tabla de clasificación, por lo que jugar por el título y jugar por no descender son, durante buena parte de la temporada, la misma pelea.']
   ]},
   {c:'La web y los datos',items:[
     ['¿Cada cuánto se actualizan los datos?','Después de cada jornada. Clasificación, resultados, goleadores y fichas salen todos del mismo archivo de datos oficial de la liga.'],

@@ -1,6 +1,36 @@
 Options -Indexes
 AddDefaultCharset UTF-8
 
+# Cada .html va con CSS+JS fundidos dentro (600KB+ por página, ver más abajo)
+# y no había compresión de ningún tipo: cada visita bajaba ese peso entero
+# sin comprimir. gzip/deflate de texto suele recortar HTML/CSS/JS un
+# 70-80%, así que es la mejora de rendimiento con más impacto y menos
+# riesgo posible aquí: no cambia ni una byte de lo que el navegador ve,
+# solo cómo viaja por cable.
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/css text/plain text/xml text/javascript
+    AddOutputFilterByType DEFLATE application/javascript application/x-javascript
+    AddOutputFilterByType DEFLATE application/json application/ld+json application/xml
+    AddOutputFilterByType DEFLATE application/rss+xml application/atom+xml
+    AddOutputFilterByType DEFLATE image/svg+xml application/manifest+json
+</IfModule>
+
+# Fuentes e iconos propios (assets/fonts, favicons) no cambian nunca de
+# contenido bajo la misma URL: cuando hace falta invalidarlos ya se hace a
+# mano con "?v=" en el nombre (ver head de shell.html), así que cachearlos
+# un año entero es seguro. Las imágenes de assets/ (escudos, fotos de staff)
+# sí pueden reemplazarse con el mismo nombre desde el disco, así que se
+# cachean bastante menos para no dejar una imagen vieja pegada semanas.
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType font/woff2 "access plus 1 year"
+    ExpiresByType image/svg+xml "access plus 1 year"
+    ExpiresByType image/x-icon "access plus 1 year"
+    ExpiresByType image/png "access plus 1 week"
+    ExpiresByType image/jpeg "access plus 1 week"
+    ExpiresByType image/webp "access plus 1 week"
+</IfModule>
+
 # Cada idioma declarado en el hreflang del <head> y en sitemap.xml (es/en/pt/
 # it/fr/ja/ko/pl/bg/sr) usa la URL "/?lang=XX", pero hasta ahora esa URL
 # devolvía siempre el mismo index.html en español: un rastreador que no
@@ -52,7 +82,7 @@ ErrorDocument 404 /404.html
 # propia, index.html/en.html/etc. quedan a merced de la caché heurística del
 # navegador (o de un proxy del operador móvil, que cachea agresivamente HTML
 # sobre datos móviles) y un visitante puede quedarse viendo una versión vieja
-# de la página — con su JS viejo incluido — después de cada despliegue, sin
+# de la página, con su JS viejo incluido, después de cada despliegue, sin
 # enterarse. Mismo criterio que datos_oficiales.json: revalidar siempre.
 <IfModule mod_headers.c>
     <FilesMatch "\.html$">

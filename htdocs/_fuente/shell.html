@@ -81,7 +81,14 @@
 <link rel="stylesheet" href="styles.css">
 <link rel="preconnect" href="https://unpkg.com" crossorigin>
 <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
-<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/bold/style.css">
+<!-- El peso "bold" solo se usa en momentos de celebración (duelo ganado,
+     logro, carta SRF): no hace falta que bloquee el primer pintado como el
+     regular, que sí se ve en cuanto carga la nav. media="print" + el onload
+     lo cargan sin bloquear render; el <noscript> es la red de seguridad si
+     JS no llega a correr. -->
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/bold/style.css" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/bold/style.css"></noscript>
+<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -774,7 +781,7 @@
               <span class="tl-year" data-i18n="historia.t3.tag2">El primer doblete de la liga</span>
             </div>
             <h3 data-i18n="historia.t3.title">La primera que enlaza con la anterior</h3>
-            <p data-i18n="historia.t3">Fue la primera temporada que arrancó inmediatamente después de la anterior, sin parón ni refundación: las tres competiciones convivieron con calendario propio desde el primer día. Se decidió en el campo: <strong>D4rkRepulser</strong> se llevó la Superliga y la Copa con el <strong>Zanark Domain</strong> —el primer doblete de la historia de la liga— y el <strong>Épsilon</strong> subió campeón del Ascenso Frontier.</p>
+            <p data-i18n="historia.t3">Fue la primera temporada que arrancó inmediatamente después de la anterior, sin parón ni refundación: las tres competiciones convivieron con calendario propio desde el primer día. Se decidió en el campo: <strong>D4rkRepulser</strong> se llevó la Superliga y la Copa con el <strong>Zanark Domain</strong>, el primer doblete de la historia de la liga, y el <strong>Épsilon</strong> subió campeón del Ascenso Frontier.</p>
             <div class="tl-facts">
               <span class="tl-fact"><i class="ph ph-trophy"></i><b data-i18n="historia.t3.f1">Primer doblete</b></span>
               <span class="tl-fact"><i class="ph ph-stack"></i><b>3</b> <span data-i18n="historia.t3.f2">competiciones</span></span>
