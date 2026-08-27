@@ -73,11 +73,20 @@ jobs:
           SFTP_HOST: ${{ secrets.FTP_SERVER }}
         run: |
           sudo apt-get update -qq && sudo apt-get install -y -qq lftp
+          # La sesión SFTP aterriza en la raíz de la cuenta, no en la carpeta
+          # pública -- "htdocs" es el nombre real en este hosting (igual que
+          # en el proyecto local). Si esto vuelve a fallar, "ls" imprime en
+          # el log qué carpetas hay de verdad ahí, para no tener que
+          # adivinar otra vez.
           lftp -e "
           open -u $SFTP_USER,$SFTP_PASS sftp://$SFTP_HOST;
           set sftp:auto-confirm yes;
           set net:timeout 20;
           set net:max-retries 2;
+          pwd;
+          ls;
+          cd htdocs;
+          pwd;
           mput index.html en.html pt.html it.html fr.html ja.html ko.html pl.html bg.html sr.html;
           bye
           "
