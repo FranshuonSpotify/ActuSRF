@@ -1061,7 +1061,7 @@ window.renderAntiguedad=renderAntiguedad;
    campeón de cada división por clasificación final y ganador de Copa por el
    resultado de la FINAL. Los presidentes reales viven aquí porque el campo
    `gerente` del JSON guarda el personaje del juego, no al manager. */
-var PRESIDENTES={'Alpino':'david.gonzzalezc','Zanark Domain':'D4rkRepulser','Inazuma Kids FC':'Totti Alcresise','Academia Plenilunio':'Payo Aguao','Criaturas de la Noche':'Franshu','Gar':'Gabrii'};
+var PRESIDENTES={'Alpino':'david.gonzzalezc','Zanark Domain':'D4rkRepulser','Inazuma Kids FC':'Totti Alcresise','Academia Plenilunio':'Payo Aguao','Criaturas de la Noche':'Franshu','Gar':'Gabrii','Épsilon':'Deivid'};
 /* Se indexa por posición, no por `nombre`: el snapshot archivado se llama
    "Temporada 1" en el JSON pero es la que la web narra como Temporada 2
    (la del Alpino campeón). La etiqueta la pone la propia tarjeta. */
