@@ -149,7 +149,17 @@ function compBadge(comp){
    —no hace falta esperar a DOMContentLoaded— y se corrige si cambia el modo
    de la barra (p. ej. al conectar un ratón en una tablet). */
 (function medirScrollbar(){
-  function fijar(){ document.documentElement.style.setProperty('--sbw', (window.innerWidth-document.documentElement.clientWidth)+'px'); }
+  /* innerWidth-clientWidth solo es fiable como "ancho de scrollbar" dentro de
+     un rango razonable (0-20px reales en cualquier navegador de escritorio).
+     Sin este límite, cualquier lectura ruidosa del motor (barra de
+     direcciones de móvil colapsando, tablets, o el propio pre-renderizado)
+     se traduce literal en --sbw y empuja .hero-photo fuera de su caja lo
+     bastante para inflar el layout viewport y disparar el zoom inicial en
+     móvil que reportó Alejandro. */
+  function fijar(){
+    var d=Math.max(0, Math.min(20, window.innerWidth-document.documentElement.clientWidth));
+    document.documentElement.style.setProperty('--sbw', d+'px');
+  }
   fijar();
   window.addEventListener('resize', fijar, {passive:true});
 })();
@@ -1224,11 +1234,12 @@ window.renderFaq=renderFaq;
 /* q.a es una CLAVE ('superliga'/'ascenso'/'exjugador'), no el texto final: se
    resuelve en renderQuotes() vía resenas.rol.*. Antes era literal en español
    ("Manager de Superliga Frontier") y, aunque protegido de la traducción
-   automática (.quote footer b), nunca se localizaba: salía en español en los
-   10 idiomas (audit Tarea 2.3). */
+   automática (.quote footer span), nunca se localizaba: salía en español en
+   los 10 idiomas (audit Tarea 2.3). En el footer, lo destacado (<b>) es el
+   nombre del autor (q.s) y el rol va como subtítulo (<span>). */
 var QUOTES=[
-  {t:'Gracias a esta liga podemos seguir disfrutando el juego y crear una comunidad del juego de nuestras infancias además de todo el trabajo que hay detrás de ella.',a:'superliga',s:'Contenido de ejemplo',i:'assets/totti_alcresise.png',n:9.5},
-  {t:'El tope salarial cambia la mentalidad completamente. No puedes fichar la solución fácil: tienes que jugar mejor.',a:'ascenso',s:'Contenido de ejemplo',i:'assets/gabrii.png',n:8.7},
+  {t:'Gracias a esta liga podemos seguir disfrutando el juego y crear una comunidad del juego de nuestras infancias además de todo el trabajo que hay detrás de ella.',a:'superliga',s:'Totti Alcresise',i:'assets/totti_alcresise.png',n:9.5},
+  {t:'Gracias a esta liga aprendí muchas cosas, entre ellas, a saber aceptar consejos. Personalmente, creo que la liga es lo que mantendrá viva a la comunidad del juego.',a:'ascenso',s:'manueljoinazuma788',i:'assets/manu.png',n:9.6},
   {t:'Llevo tres ligas distintas probadas y esta es la única donde perder no se siente como una excusa de mala suerte del rival.',a:'exjugador',s:'Contenido de ejemplo',i:'assets/payo-aguao.png',n:9.2}
 ];
 function renderQuotes(){
@@ -1247,7 +1258,7 @@ function renderQuotes(){
       /* --w lo consume el CSS: la barra crece de 0 a la nota cuando la tarjeta
          entra en pantalla (clase .in del observador de reveals). */
       '<span class="q-bar" aria-hidden="true" style="--w:'+(n*10)+'%"><i></i></span>'+
-      '<footer><img src="'+esc(q.i||'')+'" alt="" loading="lazy"><div><b>'+esc(rol)+'</b><span>'+esc(q.s)+'</span></div></footer>'+
+      '<footer><img src="'+esc(q.i||'')+'" alt="" loading="lazy"><div><b>'+esc(q.s)+'</b><span>'+esc(rol)+'</span></div></footer>'+
     '</blockquote>';
   }).join('');
 }
