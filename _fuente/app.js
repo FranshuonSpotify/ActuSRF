@@ -795,7 +795,7 @@ function openTeam(id){
         (isHttp(e.escudo)?'<img class="tm-crest" src="'+esc(e.escudo)+'" alt="'+esc(X(e.nombre))+'">':'')+
         '<div><h1 class="tm-name">'+esc(X(e.nombre))+'</h1>'+
           '<div class="tm-sub">'+(e.division==='SUPERLIGA'?'<span class="badge badge-superliga">'+esc(T('comp.superliga','Superliga Frontier'))+'</span>':'<span class="badge badge-ascenso">'+esc(T('comp.ascenso','Ascenso Frontier'))+'</span>')+
-          '<span>'+esc(abbr3(e.nombre,e.abreviatura))+'</span>'+(e.ciudad?'<span>·</span><span>'+esc(e.ciudad)+'</span>':'')+
+          '<span>'+esc(abbr3(e.nombre,e.abreviatura))+'</span>'+
           '<span class="frm" style="margin-left:.5rem">'+form.map(function(r){ return '<i class="f-'+r+'"></i>'; }).join('')+'</span></div>'+
         '</div>'+
       '</div>'+
@@ -828,7 +828,7 @@ function openTeam(id){
         }).join('')+'</div>'+
         '<div class="sec-label" style="margin-top:2.5rem">'+T('team.direccion','Dirección')+'</div>'+
         '<div class="staff-line"><span>'+T('team.entrenador','Entrenador')+'</span><b style="font-weight:500">'+esc(e.entrenador||'·')+'</b></div>'+
-        '<div class="staff-line"><span>'+T('team.presidente','Presidente / Gerente')+'</span><b style="font-weight:500">'+esc(e.gerente||'·')+'</b></div>'+
+        '<div class="staff-line"><span>'+T('team.presidente','Presidente')+'</span><b style="font-weight:500">'+esc(e.ciudad||'·')+'</b></div>'+
         (e.formacion?'<div class="staff-line"><span>'+T('team.formacion','Formación')+'</span><b style="font-weight:500" class="mono">'+esc(e.formacion)+'</b></div>':'')+
       '</div>'+
     '</div>';
