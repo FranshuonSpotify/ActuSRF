@@ -958,6 +958,7 @@ table.tbl tbody tr:last-child td{ border-bottom:0; }
 .pres-card b{ font-size:1rem; font-weight:600; letter-spacing:-.02em; }
 .pres-card span{ font-size:.75rem; color:var(--ink-3); }
 .pres-back{ display:inline-flex; align-items:center; gap:.4rem; font:inherit; background:none; border:0; padding:0; cursor:pointer; font-family:var(--f-mono); font-size:.6875rem; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-3); }
+.pres-back[hidden]{ display:none; }
 .pres-back:hover{ color:var(--ink-1); }
 .pres-group-title{ padding:1rem 1.125rem .25rem; font-size:.8125rem; font-weight:600; color:var(--ink-2); }
 .champ-id button.pres{ background:none; border:0; padding:0; font:inherit; cursor:pointer; text-align:left; }
