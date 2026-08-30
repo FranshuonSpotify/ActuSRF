@@ -1,4 +1,6 @@
 /config/secrets.php
+/supertecnicas/data/codigos_equipos.json
+/supertecnicas/data/config.json
 *.env
 .env.*
 *.log

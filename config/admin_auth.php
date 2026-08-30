@@ -10,10 +10,10 @@ function cargarSecretos(): array {
     return $secretos;
 }
 
-function requerirAdminBasicAuth(): void {
+function requerirAdminBasicAuthConClaves(string $claveUsuario, string $claveHash, string $realm = 'Administracion'): void {
     $secretos = cargarSecretos();
-    $usuarioEsperado = $secretos['admin_lesiones_user'] ?? '';
-    $hashEsperado = $secretos['admin_lesiones_pass_hash'] ?? '';
+    $usuarioEsperado = $secretos[$claveUsuario] ?? '';
+    $hashEsperado = $secretos[$claveHash] ?? '';
 
     $usuario = $_SERVER['PHP_AUTH_USER'] ?? '';
     $clave = $_SERVER['PHP_AUTH_PW'] ?? '';
@@ -22,10 +22,14 @@ function requerirAdminBasicAuth(): void {
     $claveValida = $hashEsperado !== '' && password_verify($clave, $hashEsperado);
 
     if (!$usuarioValido || !$claveValida) {
-        header('WWW-Authenticate: Basic realm="Administracion"');
+        header('WWW-Authenticate: Basic realm="' . $realm . '"');
         http_response_code(401);
         header('Content-Type: application/json; charset=utf-8');
         echo json_encode(['success' => false, 'error' => 'no_autorizado']);
         exit;
     }
+}
+
+function requerirAdminBasicAuth(): void {
+    requerirAdminBasicAuthConClaves('admin_lesiones_user', 'admin_lesiones_pass_hash');
 }

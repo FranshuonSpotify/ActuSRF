@@ -14,6 +14,11 @@ return [
     'admin_lesiones_user' => 'admin_lesiones',
     'admin_lesiones_pass_hash' => '',
 
+    // Admin de supertecnicas/ (independiente del admin de lesiones).
+    // Genera el hash con: php -r "echo password_hash('tu_clave', PASSWORD_DEFAULT);"
+    'admin_supertecnicas_user' => 'admin_supertecnicas',
+    'admin_supertecnicas_pass_hash' => '',
+
     // Token para invocar cron/reconstruir.php por URL. No hace falta si el
     // cron de IONOS ejecuta el script por CLI (php cron/reconstruir.php).
     'cron_token' => '',
