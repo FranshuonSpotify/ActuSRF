@@ -732,6 +732,9 @@
       <span class="eyebrow"><span id="hist-edad" data-no-tr>8 meses de recorrido</span></span>
       <h2 class="h1 nowrap" data-i18n="historia.title">Cuatro temporadas construyendo liga</h2>
       <p class="lede" data-i18n="historia.lede">Cada temporada ha añadido una pieza que la anterior no tenía: primero el formato, después las competiciones, ahora la continuidad. Esta es la evolución real, sin adornos.</p>
+      <button type="button" class="btn btn-secondary" id="btn-presidentes" style="margin-top:1.25rem">
+        <i class="ph-bold ph-medal"></i> <span data-i18n="hist.presidentes.btn">Salón de presidentes</span>
+      </button>
     </div>
 
     <div class="tl-wrap">
@@ -1136,6 +1139,20 @@
     <div class="ov-head"><h3 id="champ-title" data-no-tr>Palmarés</h3><button class="btn btn-icon" id="champ-close" aria-label="Cerrar"><i class="ph ph-x"></i></button></div>
     <div class="champs" id="champs"></div>
     <p class="champ-note" data-i18n="champs.note">Campeones calculados sobre la clasificación final archivada de esa temporada y el resultado de la final de Copa. Toca un club para abrir su ficha.</p>
+  </div>
+</div>
+
+<div class="ov" id="ov-presidentes">
+  <div class="ov-panel champ-panel">
+    <div class="ov-head">
+      <div style="display:flex;align-items:center;gap:.5rem;min-width:0">
+        <button type="button" class="pres-back" id="pres-back" hidden><i class="ph-bold ph-arrow-left"></i> <span data-i18n="pres.back">Volver</span></button>
+        <h3 id="pres-title" data-no-tr>Salón de presidentes</h3>
+      </div>
+      <button class="btn btn-icon" id="pres-close" aria-label="Cerrar"><i class="ph ph-x"></i></button>
+    </div>
+    <div id="pres-body"></div>
+    <p class="champ-note" data-i18n="pres.note">Solo aparecen presidentes con al menos un título. Toca un nombre para ver su palmarés completo, o un título para abrir el club con el que se ganó.</p>
   </div>
 </div>
 
