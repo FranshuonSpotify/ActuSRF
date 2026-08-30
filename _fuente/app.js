@@ -1934,7 +1934,11 @@ document.addEventListener('DOMContentLoaded', function(){
 
   document.addEventListener('keydown',function(e){
     if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){ e.preventDefault(); openSearch(); }
-    if(e.key==='Escape'){ closeSearch(); closeSheets(); document.querySelectorAll('.ov.open').forEach(function(o){ o.classList.remove('open'); }); }
+    if(e.key==='Escape'){
+      var ott=$('ov-team-titulos');
+      if(ott.classList.contains('open')){ ott.classList.remove('open'); return; }
+      closeSearch(); closeSheets(); document.querySelectorAll('.ov.open').forEach(function(o){ o.classList.remove('open'); });
+    }
   });
 
   var nav=$('nav');
