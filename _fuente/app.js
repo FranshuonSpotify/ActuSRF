@@ -1245,6 +1245,49 @@ function openChamps(idx,label){
   $('ov-champs').classList.add('open');
 }
 
+function openPresidentesHall(){
+  var list=presidentesConTitulos();
+  $('pres-title').textContent=T('pres.hall.title','Salón de presidentes');
+  $('pres-back').hidden=true;
+  $('pres-body').innerHTML = list.length
+    ? '<div class="pres-grid">'+list.map(function(p){
+        var etq=p.titulos.length===1?T('pres.titulo','título'):T('pres.titulos','títulos');
+        return '<button type="button" class="pres-card" data-pres-card="'+esc(p.nombre)+'">'+
+          '<b>'+esc(p.nombre)+'</b>'+
+          '<span>'+p.titulos.length+' '+etq+'</span>'+
+        '</button>';
+      }).join('')+'</div>'
+    : '<p class="champ-note">'+T('pres.vacio','Todavía no hay presidentes con títulos registrados.')+'</p>';
+  $('ov-presidentes').classList.add('open');
+}
+window.openPresidentesHall=openPresidentesHall;
+
+function openPresidenteDetalle(nombre){
+  var titulos=titulosDePresidente(nombre);
+  if(!titulos.length) return;
+  $('pres-title').textContent=nombre;
+  $('pres-back').hidden=false;
+  $('pres-body').innerHTML='<div class="champs">'+titulos.map(function(x){
+    var e=x.equipo, live=bd.equipos.find(function(z){ return z.id===e.id; });
+    var c1=(live&&live.color1)||e.color1||'#3A3A3A';
+    return '<div class="champ" data-team="'+esc(e.id)+'">'+
+      '<span class="champ-wash" style="background:radial-gradient(ellipse 80% 130% at 0% 50%,'+esc(wash(live||e,c1))+',transparent 68%)"></span>'+
+      (isHttp(e.escudo)?'<img class="champ-crest" src="'+esc(e.escudo)+'" alt="'+esc(X(e.nombre))+'" loading="lazy">':'<span class="champ-crest noimg">'+esc(abbr3(e.nombre))+'</span>')+
+      '<div class="champ-id">'+
+        '<b>'+esc(X(e.nombre))+'</b>'+
+        '<span class="pres"><i class="ph-bold ph-calendar"></i>'+esc(x.temporadaNombre)+'</span>'+
+      '</div>'+
+      '<div class="champ-trophy">'+
+        '<i class="ph-bold ph-trophy"></i>'+
+        '<span class="badge '+x.cls+'">'+x.comp+'</span>'+
+        (x.marcador?'<span class="mono" style="font-size:.6875rem;color:var(--ink-5)">'+esc(x.marcador)+'</span>':'')+
+      '</div>'+
+    '</div>';
+  }).join('')+'</div>';
+  $('ov-presidentes').classList.add('open');
+}
+window.openPresidenteDetalle=openPresidenteDetalle;
+
 /* ==========================================================================
    BÚSQUEDA
    ========================================================================== */
@@ -1743,6 +1786,14 @@ document.addEventListener('click', function(ev){
   var ch=t.closest('[data-champs]');
   if(ch){ openChamps(parseInt(ch.dataset.champs,10),ch.dataset.champsLabel||''); return; }
 
+  /* Va antes de data-team: el botón del presidente vive dentro de un .champ
+     que también lleva data-team, y si no, abriría el club en vez del salón. */
+  var pr=t.closest('[data-pres]');
+  if(pr){ $('ov-champs').classList.remove('open'); openPresidenteDetalle(pr.dataset.pres); return; }
+
+  var pc=t.closest('[data-pres-card]');
+  if(pc){ openPresidenteDetalle(pc.dataset.presCard); return; }
+
   var more=t.closest('.sc-more');
   if(more){
     var box=$('scorers'), open=box.classList.toggle('open');
@@ -1810,6 +1861,10 @@ document.addEventListener('DOMContentLoaded', function(){
   renderAntiguedad();
   $('champ-close').addEventListener('click',function(){ $('ov-champs').classList.remove('open'); });
   $('ov-champs').addEventListener('click',function(e){ if(e.target===this) this.classList.remove('open'); });
+  $('btn-presidentes').addEventListener('click',openPresidentesHall);
+  $('pres-back').addEventListener('click',openPresidentesHall);
+  $('pres-close').addEventListener('click',function(){ $('ov-presidentes').classList.remove('open'); });
+  $('ov-presidentes').addEventListener('click',function(e){ if(e.target===this) this.classList.remove('open'); });
   document.addEventListener('keydown',function(e){
     if(e.key==='Enter'||e.key===' '){
       var c=e.target.closest&&e.target.closest('[data-champs]');
