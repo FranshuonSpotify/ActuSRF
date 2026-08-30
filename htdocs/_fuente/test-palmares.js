@@ -63,39 +63,43 @@ const ok = (m) => { n++; console.log('  ok  ' + m); };
   assert.strictEqual((w.bd.historial_temporadas || []).length, 2, 'se esperan 2 temporadas archivadas en datos_oficiales.json; si esto cambió, actualiza los valores esperados de este test');
   ok('2 temporadas archivadas cargadas');
 
-  /* Zanark Domain (id eq_1777322423802): ciudad era "DarkRepulser" cuando se
-     archivó la Temporada 1 (ganó el Ascenso) y "D4rkRepulser" cuando se
-     archivó la Temporada 2 (ganó Superliga y Copa, el primer doblete). Un
-     mapa fijo por nombre de equipo no puede distinguir estos dos presidentes;
-     leer el ciudad del snapshot sí. */
+  /* Zanark Domain (id eq_1777322423802): "DarkRepulser" (Temporada 1, ganó el
+     Ascenso) y "D4rkRepulser" (Temporada 2, ganó Superliga y Copa) resultaron
+     ser la misma persona con el nick reescrito entre temporadas — se corrigió
+     el ciudad de la Temporada 1 en datos_oficiales.json para que coincida.
+     Da igual: el test sigue probando lo mismo, que titulosDeEquipo lee el
+     ciudad DE CADA SNAPSHOT en vez de asumir un único presidente fijo — ahora
+     los 3 snapshots ya coinciden en el mismo nombre, en vez de demostrarlo
+     con dos nombres distintos. */
   const zanark = w.titulosDeEquipo('eq_1777322423802');
   assert.strictEqual(zanark.length, 3, 'Zanark Domain debería tener 3 títulos en el histórico actual');
-  const zanarkPres = zanark.map(function(x){ return x.presidente; }).sort();
-  assert.strictEqual(zanarkPres.length, 3);
-  assert.strictEqual(zanarkPres[0], 'D4rkRepulser', 'Primer presidente debe ser D4rkRepulser');
-  assert.strictEqual(zanarkPres[1], 'D4rkRepulser', 'Segundo presidente debe ser D4rkRepulser');
-  assert.strictEqual(zanarkPres[2], 'DarkRepulser', 'Tercer presidente debe ser DarkRepulser');
-  ok('titulosDeEquipo("eq_1777322423802") separa a los dos presidentes de Zanark Domain');
+  /* Array.from(...) reconstruye el array en el realm de Node: zanark viene
+     del realm de jsdom (window de la página cargada), y assert.deepStrictEqual
+     puede dar un falso negativo comparando arrays de dos realms distintos
+     aunque el contenido sea idéntico. */
+  const zanarkPres = Array.from(zanark.map(function(x){ return x.presidente; }));
+  assert.deepStrictEqual(zanarkPres, ['D4rkRepulser', 'D4rkRepulser', 'D4rkRepulser'], 'los 3 títulos deben atribuirse al mismo presidente tras la corrección de datos');
+  ok('titulosDeEquipo("eq_1777322423802") atribuye los 3 títulos a un solo presidente');
 
   const d4rk = w.titulosDePresidente('D4rkRepulser');
-  assert.strictEqual(d4rk.length, 2, 'D4rkRepulser (Temporada 2) no debe incluir el título de Ascenso de DarkRepulser (Temporada 1)');
-  const d4rkComps = d4rk.map(function(x){ return x.comp; }).sort();
-  assert.strictEqual(d4rkComps[0], 'Copa Fútbol Frontier', 'Primer título debe ser Copa');
-  assert.strictEqual(d4rkComps[1], 'Superliga Frontier', 'Segundo título debe ser Superliga');
-  ok('titulosDePresidente("D4rkRepulser") solo trae sus 2 títulos, no el de "DarkRepulser"');
+  assert.strictEqual(d4rk.length, 3, 'D4rkRepulser debe tener sus 3 títulos (Ascenso, Superliga y Copa)');
+  const d4rkComps = Array.from(d4rk.map(function(x){ return x.comp; }).sort());
+  assert.deepStrictEqual(d4rkComps, ['Ascenso Frontier', 'Copa Fútbol Frontier', 'Superliga Frontier'], 'los 3 títulos deben ser Ascenso, Copa y Superliga');
+  ok('titulosDePresidente("D4rkRepulser") trae sus 3 títulos, incluido el de Ascenso de la Temporada 1');
 
   const darkViejo = w.titulosDePresidente('DarkRepulser');
-  assert.strictEqual(darkViejo.length, 1);
-  assert.strictEqual(darkViejo[0].comp, 'Ascenso Frontier');
-  ok('titulosDePresidente("DarkRepulser") conserva su único título aunque el equipo ya no lo dirija');
+  assert.strictEqual(darkViejo.length, 0, 'ya no debe quedar ningún título bajo el nick antiguo "DarkRepulser"');
+  ok('titulosDePresidente("DarkRepulser") ya no existe tras la corrección de datos');
 
   const salon = w.presidentesConTitulos();
   const nombres = salon.map(function(p){ return p.nombre; });
-  ['david.gonzzalezc', 'DarkRepulser', 'Totti Alcresise', 'D4rkRepulser', 'Deivid'].forEach(function(n){
+  ['david.gonzzalezc', 'Totti Alcresise', 'D4rkRepulser', 'Deivid'].forEach(function(n){
     assert.ok(nombres.indexOf(n) !== -1, 'falta "' + n + '" en presidentesConTitulos()');
   });
-  assert.strictEqual(salon[0].nombre, 'D4rkRepulser', 'D4rkRepulser tiene 2 títulos: debe ir primero en el ranking');
-  ok('presidentesConTitulos() incluye a los 5 presidentes con título y ordena por nº de títulos');
+  assert.strictEqual(nombres.length, 4, 'deben quedar 4 presidentes con título, no 5');
+  assert.strictEqual(salon[0].nombre, 'D4rkRepulser', 'D4rkRepulser tiene 3 títulos: debe ir primero en el ranking');
+  assert.strictEqual(salon[0].titulos.length, 3);
+  ok('presidentesConTitulos() incluye a los 4 presidentes con título y ordena por nº de títulos');
 
   dom.window.close();
   console.log(n + ' comprobaciones OK');
