@@ -574,7 +574,7 @@
         'team.alineacion':['Alineación titular','Starting lineup','Onze inicial','Formazione titolare','Composition de départ','スターティングメンバー','선발 라인업','Wyjściowy skład','Стартов състав','Стартна поставa'],
         'team.direccion':['Dirección','Management','Direção','Dirigenza','Direction','運営','구단 운영','Kierownictwo','Ръководство','Управа'],
         'team.entrenador':['Entrenador','Coach','Treinador','Allenatore','Entraîneur','監督','감독','Trener','Треньор','Тренер'],
-        'team.presidente':['Presidente / Gerente','President / Manager','Presidente / Gestor','Presidente / Manager','Président / Manager','会長 / マネージャー','회장 / 매니저','Prezes / Menedżer','Президент / Мениджър','Председник / Менаџер'],
+        'team.presidente':['Presidente','President','Presidente','Presidente','Président','会長','회장','Prezes','Президент','Председник'],
         'team.formacion':['Formación','Formation','Formação','Modulo','Formation','フォーメーション','포메이션','Ustawienie','Схема','Формација'],
         'temporada':['Temporada','Season','Temporada','Stagione','Saison','シーズン','시즌','Sezon','Сезон','Сезона'],
         'match.crono':['Cronología','Timeline','Cronologia','Cronologia','Chronologie','タイムライン','타임라인','Przebieg meczu','Хронология','Хронологија'],
