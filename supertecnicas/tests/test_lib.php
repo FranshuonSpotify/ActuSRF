@@ -1,7 +1,9 @@
 <?php
 // supertecnicas/tests/test_lib.php
-// Self-check sin framework: cada verificarX() imprime FAIL y corta con
-// exit(1) al primer fallo. Ejecutar con: php supertecnicas/tests/test_lib.php
+// Self-check sin framework: cada verificar() imprime OK/FAIL, acumula los
+// fallos en $fallos y corta con exit(1) al final si hubo alguno (no en el
+// primero: así se ve la lista completa de comprobaciones fallidas de una
+// tirada). Ejecutar con: php supertecnicas/tests/test_lib.php
 
 require_once __DIR__ . '/../lib.php';
 
@@ -81,6 +83,21 @@ verificar(
 verificar('ST_MAX_SUPERTECNICAS es 4', ST_MAX_SUPERTECNICAS === 4);
 verificar('ST_TIPOS tiene 5 valores', count(ST_TIPOS) === 5);
 verificar('ST_AFINIDADES tiene 6 valores', count(ST_AFINIDADES) === 6);
+
+// -- stEsc ---------------------------------------------------------------
+verificar('stEsc escapa comillas y ángulos', stEsc('<a href="x">') === '&lt;a href=&quot;x&quot;&gt;');
+
+// -- stTokenCsrf / stCsrfValido -------------------------------------------
+$_SESSION = [];
+$token = stTokenCsrf();
+verificar('stTokenCsrf genera un token no vacío', is_string($token) && $token !== '');
+verificar('stTokenCsrf devuelve el mismo token en la misma sesión', stTokenCsrf() === $token);
+$_POST['csrf'] = $token;
+verificar('stCsrfValido acepta el token correcto', stCsrfValido() === true);
+$_POST['csrf'] = 'otro-token';
+verificar('stCsrfValido rechaza un token incorrecto', stCsrfValido() === false);
+unset($_POST['csrf']);
+verificar('stCsrfValido rechaza si falta el campo', stCsrfValido() === false);
 
 echo "\n";
 if ($fallos > 0) {

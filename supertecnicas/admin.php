@@ -1,21 +1,25 @@
 <?php
+session_start();
 require_once __DIR__ . '/../config/admin_auth.php';
 require_once __DIR__ . '/lib.php';
 
 requerirAdminBasicAuthConClaves('admin_supertecnicas_user', 'admin_supertecnicas_pass_hash', 'Supertecnicas Admin');
 
-function stEsc($t) {
-    return htmlspecialchars((string) $t, ENT_QUOTES, 'UTF-8');
-}
-
 $mensaje = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!stCsrfValido()) {
+        http_response_code(403);
+        exit('Token CSRF inválido.');
+    }
     if (isset($_POST['toggle_ventana'])) {
         $config = stCargarConfig();
         $config['ventana_abierta'] = !$config['ventana_abierta'];
-        stGuardarConfig($config);
-        $mensaje = 'Ventana ahora: ' . ($config['ventana_abierta'] ? 'ABIERTA' : 'CERRADA');
+        if (stGuardarConfig($config)) {
+            $mensaje = 'Ventana ahora: ' . ($config['ventana_abierta'] ? 'ABIERTA' : 'CERRADA');
+        } else {
+            $mensaje = 'No se pudo guardar: error al escribir el fichero.';
+        }
     } elseif (isset($_POST['guardar_codigo'])) {
         $equipoId = (string) $_POST['guardar_codigo'];
         $codigo = trim((string) ($_POST['codigo'][$equipoId] ?? ''));
@@ -23,8 +27,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($equipoId !== '' && $codigo !== '' && $pin !== '') {
             $codigos = stCargarCodigos();
             $codigos[$equipoId] = ['codigo' => $codigo, 'pin' => $pin];
-            stGuardarCodigos($codigos);
-            $mensaje = 'Código actualizado.';
+            if (stGuardarCodigos($codigos)) {
+                $mensaje = 'Código actualizado.';
+            } else {
+                $mensaje = 'No se pudo guardar: error al escribir el fichero.';
+            }
         } else {
             $mensaje = 'Código y PIN no pueden estar vacíos.';
         }
@@ -51,6 +58,7 @@ $config = stCargarConfig();
   <?php if ($mensaje !== ''): ?><p class="ayuda"><?= stEsc($mensaje) ?></p><?php endif; ?>
 
   <form method="post" class="st-ventana">
+    <input type="hidden" name="csrf" value="<?= stEsc(stTokenCsrf()) ?>">
     <span class="ayuda">Ventana de supertécnicas: <strong><?= $config['ventana_abierta'] ? 'ABIERTA' : 'CERRADA' ?></strong></span>
     <button class="btn btn-accent" type="submit" name="toggle_ventana" value="1">
       <?= $config['ventana_abierta'] ? 'Cerrar ventana' : 'Abrir ventana' ?>
@@ -58,6 +66,7 @@ $config = stCargarConfig();
   </form>
 
   <form method="post">
+    <input type="hidden" name="csrf" value="<?= stEsc(stTokenCsrf()) ?>">
     <div class="tabla-caja">
       <div class="tabla-scroll">
         <table class="tabla">
