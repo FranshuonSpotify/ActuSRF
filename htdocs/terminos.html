@@ -974,6 +974,18 @@ table.tbl tbody tr:last-child td{ border-bottom:0; }
 .champ-trophy{ margin-left:auto; display:flex; flex-direction:column; align-items:flex-end; gap:.35rem; flex-shrink:0; text-align:right; }
 .champ-trophy i{ font-size:1.25rem; color:var(--gold); }
 .champ-note{ padding:0 1rem 1.25rem; font-size:.75rem; color:var(--ink-3); line-height:1.6; }
+.pres-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:.625rem; padding:1rem; }
+.pres-card{ display:flex; flex-direction:column; gap:.35rem; padding:1rem 1.125rem; border:1px solid var(--line); border-radius:var(--r); background:var(--surface); font:inherit; text-align:left; cursor:pointer; transition:border-color var(--t2), transform var(--t2) var(--ease); }
+.pres-card:hover{ border-color:var(--line-2); transform:translateY(-2px); }
+.pres-card b{ font-size:1rem; font-weight:600; letter-spacing:-.02em; }
+.pres-card span{ font-size:.75rem; color:var(--ink-3); }
+.pres-back{ display:inline-flex; align-items:center; gap:.4rem; font:inherit; background:none; border:0; padding:0; cursor:pointer; font-family:var(--f-mono); font-size:.6875rem; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-3); }
+.pres-back[hidden]{ display:none; }
+.pres-back:hover{ color:var(--ink-1); }
+.pres-group-title{ padding:1rem 1.125rem .25rem; font-size:.8125rem; font-weight:600; color:var(--ink-2); }
+.champ-id button.pres{ background:none; border:0; padding:0; font:inherit; cursor:pointer; text-align:left; }
+.champ-id button.pres:hover, .champ-id button.pres:focus-visible{ color:var(--ink-1); }
+#ov-team-titulos{ z-index:900; }
 .tl-card[data-champs]{ cursor:pointer; }
 .tl-open{
   display:inline-flex; align-items:center; gap:.45rem; margin-top:1.25rem;
