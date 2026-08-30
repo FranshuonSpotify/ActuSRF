@@ -3,6 +3,9 @@ Thumbs.db
 *.tmp
 node_modules/
 
+# Worktrees aislados para ejecutar planes de superpowers (sdd)
+.worktrees/
+
 # Artefacto de test-ciclo.js, se regenera al ejecutarlo
 htdocs/gestor/.prueba.json
 
