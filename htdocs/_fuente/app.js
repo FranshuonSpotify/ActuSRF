@@ -1115,9 +1115,16 @@ window.renderAntiguedad=renderAntiguedad;
 
 /* PALMARÉS: se deriva de historial_temporadas en vez de escribirlo a mano —
    campeón de cada división por clasificación final y ganador de Copa por el
-   resultado de la FINAL. Los presidentes reales viven aquí porque el campo
-   `gerente` del JSON guarda el personaje del juego, no al manager. */
-var PRESIDENTES={'Alpino':'david.gonzzalezc','Zanark Domain':'D4rkRepulser','Inazuma Kids FC':'Totti Alcresise','Academia Plenilunio':'Payo Aguao','Criaturas de la Noche':'Franshu','Gar':'Gabrii','Épsilon':'Deivid'};
+   resultado de la FINAL.
+   El presidente de un título es equipo.ciudad DEL SNAPSHOT DE ESA TEMPORADA,
+   no del equipo tal como está hoy: instantaneaTemporada() (gestor/js/core.js)
+   hace una copia profunda al archivar, así que cada temporada ya conserva
+   quién presidía el club entonces. Esto es real: el `ciudad` de Zanark Domain
+   era "DarkRepulser" en la Temporada 1 archivada y pasó a "D4rkRepulser" en
+   la Temporada 2 — un mapa fijo por nombre de equipo habría atribuido mal
+   uno de los dos títulos. */
+function presidenteDe(e){ return String((e&&e.ciudad)||'').trim(); }
+
 /* Se indexa por posición, no por `nombre`: el snapshot archivado se llama
    "Temporada 1" en el JSON pero es la que la web narra como Temporada 2
    (la del Alpino campeón). La etiqueta la pone la propia tarjeta. */
@@ -1164,19 +1171,69 @@ function palmares(idx){
   }
   return out.length?out:null;
 }
+
+/* Todas las entradas de palmarés de todas las temporadas archivadas, en un
+   solo array plano — punto de partida común para las tres vistas de abajo. */
+function todosLosTitulos(){
+  var out=[];
+  (bd.historial_temporadas||[]).forEach(function(t,idx){
+    var list=palmares(idx);
+    if(!list) return;
+    list.forEach(function(c){
+      out.push({
+        idx:idx,
+        temporadaNombre:t.nombre||('Temporada #'+(idx+1)),
+        temporadaFecha:t.fecha||'',
+        comp:c.comp, cls:c.cls, marcador:c.marcador,
+        equipo:c.e, presidente:presidenteDe(c.e)
+      });
+    });
+  });
+  return out;
+}
+
+function titulosDePresidente(nombre){
+  return todosLosTitulos()
+    .filter(function(x){ return x.presidente===nombre; })
+    .sort(function(a,b){ return b.idx-a.idx; });
+}
+window.titulosDePresidente=titulosDePresidente;
+
+function titulosDeEquipo(equipoId){
+  return todosLosTitulos()
+    .filter(function(x){ return x.equipo.id===equipoId; })
+    .sort(function(a,b){ return b.idx-a.idx; });
+}
+window.titulosDeEquipo=titulosDeEquipo;
+
+function presidentesConTitulos(){
+  var map={};
+  todosLosTitulos().forEach(function(x){
+    if(!x.presidente) return;
+    (map[x.presidente]=map[x.presidente]||[]).push(x);
+  });
+  return Object.keys(map)
+    .map(function(nombre){ return {nombre:nombre, titulos:map[nombre]}; })
+    .sort(function(a,b){ return b.titulos.length-a.titulos.length||a.nombre.localeCompare(b.nombre,'es'); });
+}
+window.presidentesConTitulos=presidentesConTitulos;
+window.presidenteDe=presidenteDe;
+
 function openChamps(idx,label){
   var list=palmares(idx); if(!list) return;
   $('champ-title').textContent=T('champs.title','Palmarés')+' · '+label;
   $('champs').innerHTML=list.map(function(c){
     var live=bd.equipos.find(function(x){ return x.nombre===c.e.nombre; });
     var c1=(live&&live.color1)||c.e.color1||'#3A3A3A', c2=(live&&live.color2)||c.e.color2||'#141414';
-    var pres=PRESIDENTES[c.e.nombre];
+    var pres=presidenteDe(c.e);
     return '<div class="champ"'+(live?' data-team="'+esc(live.id)+'"':'')+'>'+
       '<span class="champ-wash" style="background:radial-gradient(ellipse 80% 130% at 0% 50%,'+esc(wash(live||c.e,c1))+',transparent 68%)"></span>'+
       (isHttp(c.e.escudo)?'<img class="champ-crest" src="'+esc(c.e.escudo)+'" alt="'+esc(X(c.e.nombre))+'" loading="lazy">':'<span class="champ-crest noimg">'+esc(abbr3(c.e.nombre))+'</span>')+
       '<div class="champ-id">'+
         '<b>'+esc(X(c.e.nombre))+'</b>'+
-        '<span class="pres"><i class="ph-bold ph-user-circle"></i>'+esc(pres||c.e.gerente||'·')+'</span>'+
+        (pres
+          ? '<button type="button" class="pres" data-pres="'+esc(pres)+'"><i class="ph-bold ph-user-circle"></i>'+esc(pres)+'</button>'
+          : '<span class="pres"><i class="ph-bold ph-user-circle"></i>·</span>')+
       '</div>'+
       '<div class="champ-trophy">'+
         '<i class="ph-bold ph-trophy"></i>'+
