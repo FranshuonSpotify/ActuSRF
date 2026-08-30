@@ -15,7 +15,7 @@ let html=fs.readFileSync(p.join(d,'shell.html'),'utf8').replace(/^﻿/, '');
 html=html.replace('<link rel="stylesheet" href="styles.css">','<style>\n'+fs.readFileSync(p.join(d,'styles.css'),'utf8')+'\n</style>');
 /* dict.js va ANTES que i18n.js: éste lo funde sobre el diccionario heredado
    al cargar, así que tiene que existir ya cuando i18n.js se evalúa. */
-html=html.replace('<script src="i18n.js"></script>\n<script src="app.js"></script>',
+html=html.replace(/<script src="i18n\.js"><\/script>\r?\n<script src="app\.js"><\/script>/,
   '<script>\n'+fs.readFileSync(p.join(d,'dict.js'),'utf8')+'\n</script>\n'+
   '<script>\n'+fs.readFileSync(p.join(d,'faq-dict.js'),'utf8')+'\n</script>\n'+
   '<script>\n'+fs.readFileSync(p.join(d,'i18n.js'),'utf8')+'\n</script>\n'+
