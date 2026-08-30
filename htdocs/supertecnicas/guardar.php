@@ -13,6 +13,11 @@ if ($equipoId === null) {
     exit;
 }
 
+if (!stCsrfValido()) {
+    http_response_code(403);
+    exit('Token CSRF inválido.');
+}
+
 $config = stCargarConfig();
 if (empty($config['ventana_abierta'])) {
     http_response_code(403);
@@ -70,7 +75,10 @@ foreach ($entradas as $i => $entrada) {
     $data['equipos'][$idx]['jugadores'][$i]['supertecnicas'] = $nuevasSupertecnicas;
 }
 
-stGuardarDatosOficiales($data);
+if (!stGuardarDatosOficiales($data)) {
+    http_response_code(500);
+    exit('No se pudo guardar: error al escribir el fichero.');
+}
 
 header('Location: index.php?guardado=1');
 exit;

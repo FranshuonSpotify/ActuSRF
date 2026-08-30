@@ -51,7 +51,7 @@ function stGuardarJsonAtomico($ruta, array $data) {
     $ok = false;
     if ($tmp !== false) {
         $json = json_encode($data, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
-        $ok = file_put_contents($tmp, $json) !== false && rename($tmp, $ruta);
+        $ok = file_put_contents($tmp, $json) !== false && chmod($tmp, 0644) && rename($tmp, $ruta);
         if (!$ok && file_exists($tmp)) unlink($tmp);
     }
 
@@ -93,11 +93,31 @@ function stEquiposActivos(array $data) {
     }));
 }
 
-function stBuscarEquipoPorId(array &$data, $equipoId) {
-    foreach ($data['equipos'] as $i => $equipo) {
-        if (($equipo['id'] ?? null) === $equipoId) return $i;
+function stBuscarEquipoPorId(array $data, $equipoId) {
+    foreach (($data['equipos'] ?? []) as $i => $equipo) {
+        if ((string) ($equipo['id'] ?? '') === (string) $equipoId) return $i;
     }
     return null;
+}
+
+function stEsc($t) {
+    return htmlspecialchars((string) $t, ENT_QUOTES, 'UTF-8');
+}
+
+// Protección CSRF de sinónimo (synchronizer token): un token por sesión,
+// comparado con hash_equals(). index.php (con sesión de presidente) y
+// admin.php (con session_start() propio añadido para esto, aparte del
+// Basic Auth) comparten este mismo mecanismo.
+function stTokenCsrf() {
+    if (empty($_SESSION['st_csrf'])) {
+        $_SESSION['st_csrf'] = bin2hex(random_bytes(32));
+    }
+    return $_SESSION['st_csrf'];
+}
+
+function stCsrfValido() {
+    $enviado = $_POST['csrf'] ?? '';
+    return !empty($_SESSION['st_csrf']) && is_string($enviado) && hash_equals($_SESSION['st_csrf'], $enviado);
 }
 
 // Valor por defecto de código/PIN para un equipo sin entrada todavía en

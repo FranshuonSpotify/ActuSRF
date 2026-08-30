@@ -1216,3 +1216,42 @@ resultados).
 Verificación: `node test-core.js` (27 OK) sigue en verde — estos cambios son
 sólo de la web pública, no tocan el gestor. Sin scroll horizontal en 375px ni
 en escritorio en `index.html` ni `terminos.html`.
+
+---
+
+## Supertécnicas por presidentes: herramienta nueva, y un riesgo de concurrencia aceptado a propósito
+
+Añadida `supertecnicas/` (fuera del gestor propiamente dicho, pero escribe en
+el mismo `datos_oficiales.json`): cada presidente entra con un código y un
+PIN de equipo y asigna hasta 4 supertécnicas por jugador; `supertecnicas/admin.php`
+controla la ventana de edición (abierta/cerrada) y el código/PIN de cada
+equipo. Batería final de revisión aplicada de una vez: permisos del fichero
+tras la escritura atómica (`chmod 0644` antes del `rename`, para que
+`tempnam()` no deje el JSON público en modo 0600), los tres guardados
+(`stGuardarDatosOficiales`/`stGuardarCodigos`/`stGuardarConfig`) ya no se dan
+por buenos sin comprobar su valor de retorno, y token CSRF (patrón
+sincronizador, `hash_equals()`) en los dos formularios que escriben
+(`guardar.php` del presidente y ambos formularios de `admin.php`, que ahora
+también abre sesión PHP propia además del Basic Auth que ya tenía). Saneos
+menores: `hash_equals()` en vez de `===` para código/PIN de login,
+`session_regenerate_id()` tras iniciar sesión, `stEsc()`/`stBuscarEquipoPorId()`
+consolidados en `lib.php` en vez de duplicados por fichero.
+
+**Limitación conocida, aceptada a propósito, no arreglada en este lote:**
+`guardar.php` lee `datos_oficiales.json` completo, modifica solo el equipo de
+la sesión y reescribe el fichero entero — el lock de escritura atómica solo
+cubre el `rename()` final, no la lectura inicial. `api/discord_update.php`
+(no tocado por este plan) escribe el mismo fichero sin ningún lock propio, así
+que en teoría dos escrituras solapadas podrían perder una de las dos. Se
+decidió **no** extender el lock ni tocar `discord_update.php`: la ventana de
+supertécnicas solo se abre con el mercado de fichajes cerrado, y no se juegan
+partidos en esa ventana, así que la carrera con los resultados de Discord es
+de riesgo bajo en la práctica.
+
+El riesgo real que sí queda anotado: Alejandro edita `datos_oficiales.json` a
+mano entre temporadas para registrar traspasos. Si ese editado manual
+coincide con la ventana de supertécnicas abierta, el guardado de un
+presidente (que reescribe el fichero entero desde su propia lectura en
+memoria) podría machacar en silencio ese cambio manual. Recomendación:
+cerrar la ventana desde `supertecnicas/admin.php` antes de editar el JSON a
+mano, y reabrirla después.

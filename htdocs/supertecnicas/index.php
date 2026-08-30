@@ -2,10 +2,6 @@
 session_start();
 require_once __DIR__ . '/lib.php';
 
-function stEsc($t) {
-    return htmlspecialchars((string) $t, ENT_QUOTES, 'UTF-8');
-}
-
 $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'login') {
@@ -18,7 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'login
         foreach ($codigos as $id => $c) {
             $codigoGuardado = stNormalizarTexto($c['codigo'] ?? '');
             $pinGuardado = stNormalizarTexto($c['pin'] ?? '');
-            if ($codigoGuardado === $codigoIntento && $pinGuardado === $pinIntento) {
+            if (hash_equals($codigoGuardado, $codigoIntento) && hash_equals($pinGuardado, $pinIntento)) {
                 $equipoEncontrado = $id;
                 break;
             }
@@ -27,6 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'login
 
     if ($equipoEncontrado !== null) {
         $_SESSION['st_equipo_id'] = $equipoEncontrado;
+        session_regenerate_id(true);
         header('Location: index.php');
         exit;
     }
@@ -98,6 +95,7 @@ $guardado = isset($_GET['guardado']);
     <?php endif; ?>
 
     <form method="post" action="guardar.php">
+      <input type="hidden" name="csrf" value="<?= stEsc(stTokenCsrf()) ?>">
       <?php foreach (($equipo['jugadores'] ?? []) as $i => $j): ?>
         <fieldset class="card st-jugador" <?= $ventanaAbierta ? '' : 'disabled' ?>>
           <legend><?= stEsc($j['nombre'] ?? '') ?> · #<?= stEsc($j['dorsal'] ?? '') ?> · <?= stEsc($j['posicion'] ?? '') ?></legend>
