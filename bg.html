@@ -1032,6 +1032,18 @@ table.tbl tbody tr:last-child td{ border-bottom:0; }
 .champ-trophy{ margin-left:auto; display:flex; flex-direction:column; align-items:flex-end; gap:.35rem; flex-shrink:0; text-align:right; }
 .champ-trophy i{ font-size:1.25rem; color:var(--gold); }
 .champ-note{ padding:0 1rem 1.25rem; font-size:.75rem; color:var(--ink-3); line-height:1.6; }
+.pres-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:.625rem; padding:1rem; }
+.pres-card{ display:flex; flex-direction:column; gap:.35rem; padding:1rem 1.125rem; border:1px solid var(--line); border-radius:var(--r); background:var(--surface); font:inherit; text-align:left; cursor:pointer; transition:border-color var(--t2), transform var(--t2) var(--ease); }
+.pres-card:hover{ border-color:var(--line-2); transform:translateY(-2px); }
+.pres-card b{ font-size:1rem; font-weight:600; letter-spacing:-.02em; }
+.pres-card span{ font-size:.75rem; color:var(--ink-3); }
+.pres-back{ display:inline-flex; align-items:center; gap:.4rem; font:inherit; background:none; border:0; padding:0; cursor:pointer; font-family:var(--f-mono); font-size:.6875rem; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-3); }
+.pres-back[hidden]{ display:none; }
+.pres-back:hover{ color:var(--ink-1); }
+.pres-group-title{ padding:1rem 1.125rem .25rem; font-size:.8125rem; font-weight:600; color:var(--ink-2); }
+.champ-id button.pres{ background:none; border:0; padding:0; font:inherit; cursor:pointer; text-align:left; }
+.champ-id button.pres:hover, .champ-id button.pres:focus-visible{ color:var(--ink-1); }
+#ov-team-titulos{ z-index:900; }
 .tl-card[data-champs]{ cursor:pointer; }
 .tl-open{
   display:inline-flex; align-items:center; gap:.45rem; margin-top:1.25rem;
@@ -1520,7 +1532,7 @@ body.locked{ overflow:hidden; }
           }
         ]
       },
-      "dateModified": "2026-08-27T19:32:34.153Z"
+      "dateModified": "2026-09-02T21:13:09.037Z"
     },
     {
       "@type": "FAQPage",
@@ -2018,6 +2030,9 @@ body.locked{ overflow:hidden; }
       <span class="eyebrow"><span id="hist-edad" data-no-tr="">8 месеца история</span></span>
       <h2 class="h1 nowrap" data-i18n="historia.title" data-i18n-done="">Четири сезона в изграждане на лига</h2>
       <p class="lede" data-i18n="historia.lede" data-i18n-done="">Всеки сезон добавяше по нещо, което на предишния му липсваше: първо форматът, после състезанията, сега приемствеността. Това е реалната еволюция, без разкрасяване.</p>
+      <button type="button" class="btn btn-secondary" id="btn-presidentes" style="margin-top:1.25rem">
+        <i class="ph-bold ph-medal"></i> <span data-i18n="hist.presidentes.btn">Salón de presidentes</span>
+      </button>
     </div>
 
     <div class="tl-wrap">
@@ -2422,6 +2437,27 @@ body.locked{ overflow:hidden; }
     <div class="ov-head"><h3 id="champ-title" data-no-tr="">Palmarés</h3><button class="btn btn-icon" id="champ-close" aria-label="Cerrar"><i class="ph ph-x"></i></button></div>
     <div class="champs" id="champs"></div>
     <p class="champ-note" data-i18n="champs.note" data-i18n-done="">Шампионите са изчислени по архивираното крайно класиране за този сезон и резултата от финала за Купата. Докосни клуб, за да отвориш профила му.</p>
+  </div>
+</div>
+
+<div class="ov" id="ov-presidentes">
+  <div class="ov-panel champ-panel">
+    <div class="ov-head">
+      <div style="display:flex;align-items:center;gap:.5rem;min-width:0">
+        <button type="button" class="pres-back" id="pres-back" hidden=""><i class="ph-bold ph-arrow-left"></i> <span data-i18n="pres.back">Volver</span></button>
+        <h3 id="pres-title" data-no-tr="">Salón de presidentes</h3>
+      </div>
+      <button class="btn btn-icon" id="pres-close" aria-label="Cerrar"><i class="ph ph-x"></i></button>
+    </div>
+    <div id="pres-body"></div>
+    <p class="champ-note" data-i18n="pres.note">Solo aparecen presidentes con al menos un título. Toca un nombre para ver su palmarés completo, o un título para abrir el club con el que se ganó.</p>
+  </div>
+</div>
+
+<div class="ov" id="ov-team-titulos">
+  <div class="ov-panel champ-panel">
+    <div class="ov-head"><h3 data-i18n="team.titulos.title">Palmarés del club</h3><button class="btn btn-icon" id="team-titulos-close" aria-label="Cerrar"><i class="ph ph-x"></i></button></div>
+    <div id="team-titulos-body"></div>
   </div>
 </div>
 
@@ -3323,7 +3359,7 @@ window.SF_FAQ_DICT = {
         'team.alineacion':['Alineación titular','Starting lineup','Onze inicial','Formazione titolare','Composition de départ','スターティングメンバー','선발 라인업','Wyjściowy skład','Стартов състав','Стартна поставa'],
         'team.direccion':['Dirección','Management','Direção','Dirigenza','Direction','運営','구단 운영','Kierownictwo','Ръководство','Управа'],
         'team.entrenador':['Entrenador','Coach','Treinador','Allenatore','Entraîneur','監督','감독','Trener','Треньор','Тренер'],
-        'team.presidente':['Presidente / Gerente','President / Manager','Presidente / Gestor','Presidente / Manager','Président / Manager','会長 / マネージャー','회장 / 매니저','Prezes / Menedżer','Президент / Мениджър','Председник / Менаџер'],
+        'team.presidente':['Presidente','President','Presidente','Presidente','Président','会長','회장','Prezes','Президент','Председник'],
         'team.formacion':['Formación','Formation','Formação','Modulo','Formation','フォーメーション','포메이션','Ustawienie','Схема','Формација'],
         'temporada':['Temporada','Season','Temporada','Stagione','Saison','シーズン','시즌','Sezon','Сезон','Сезона'],
         'match.crono':['Cronología','Timeline','Cronologia','Cronologia','Chronologie','タイムライン','타임라인','Przebieg meczu','Хронология','Хронологија'],
@@ -4436,7 +4472,7 @@ function openTeam(id){
         (isHttp(e.escudo)?'<img class="tm-crest" src="'+esc(e.escudo)+'" alt="'+esc(X(e.nombre))+'">':'')+
         '<div><h1 class="tm-name">'+esc(X(e.nombre))+'</h1>'+
           '<div class="tm-sub">'+(e.division==='SUPERLIGA'?'<span class="badge badge-superliga">'+esc(T('comp.superliga','Superliga Frontier'))+'</span>':'<span class="badge badge-ascenso">'+esc(T('comp.ascenso','Ascenso Frontier'))+'</span>')+
-          '<span>'+esc(abbr3(e.nombre,e.abreviatura))+'</span>'+(e.ciudad?'<span>·</span><span>'+esc(e.ciudad)+'</span>':'')+
+          '<span>'+esc(abbr3(e.nombre,e.abreviatura))+'</span>'+
           '<span class="frm" style="margin-left:.5rem">'+form.map(function(r){ return '<i class="f-'+r+'"></i>'; }).join('')+'</span></div>'+
         '</div>'+
       '</div>'+
@@ -4469,8 +4505,14 @@ function openTeam(id){
         }).join('')+'</div>'+
         '<div class="sec-label" style="margin-top:2.5rem">'+T('team.direccion','Dirección')+'</div>'+
         '<div class="staff-line"><span>'+T('team.entrenador','Entrenador')+'</span><b style="font-weight:500">'+esc(e.entrenador||'·')+'</b></div>'+
-        '<div class="staff-line"><span>'+T('team.presidente','Presidente / Gerente')+'</span><b style="font-weight:500">'+esc(e.gerente||'·')+'</b></div>'+
+        '<div class="staff-line"><span>'+T('team.presidente','Presidente')+'</span><b style="font-weight:500">'+esc(e.ciudad||'·')+'</b></div>'+
         (e.formacion?'<div class="staff-line"><span>'+T('team.formacion','Formación')+'</span><b style="font-weight:500" class="mono">'+esc(e.formacion)+'</b></div>':'')+
+        (function(){
+          var t=titulosDeEquipo(e.id);
+          return t.length
+            ? '<button type="button" class="btn btn-secondary btn-sm" style="margin-top:1.25rem" data-team-titulos="'+esc(e.id)+'"><i class="ph-bold ph-trophy"></i> '+T('team.titulos.ver','Ver palmarés del club')+' · '+t.length+'</button>'
+            : '';
+        })()+
       '</div>'+
     '</div>';
   openSheet('sheet-team');
@@ -4756,9 +4798,16 @@ window.renderAntiguedad=renderAntiguedad;
 
 /* PALMARÉS: se deriva de historial_temporadas en vez de escribirlo a mano —
    campeón de cada división por clasificación final y ganador de Copa por el
-   resultado de la FINAL. Los presidentes reales viven aquí porque el campo
-   `gerente` del JSON guarda el personaje del juego, no al manager. */
-var PRESIDENTES={'Alpino':'david.gonzzalezc','Zanark Domain':'D4rkRepulser','Inazuma Kids FC':'Totti Alcresise','Academia Plenilunio':'Payo Aguao','Criaturas de la Noche':'Franshu','Gar':'Gabrii','Épsilon':'Deivid'};
+   resultado de la FINAL.
+   El presidente de un título es equipo.ciudad DEL SNAPSHOT DE ESA TEMPORADA,
+   no del equipo tal como está hoy: instantaneaTemporada() (gestor/js/core.js)
+   hace una copia profunda al archivar, así que cada temporada ya conserva
+   quién presidía el club entonces. Esto es real: el `ciudad` de Zanark Domain
+   era "DarkRepulser" en la Temporada 1 archivada y pasó a "D4rkRepulser" en
+   la Temporada 2 — un mapa fijo por nombre de equipo habría atribuido mal
+   uno de los dos títulos. */
+function presidenteDe(e){ return String((e&&e.ciudad)||'').trim(); }
+
 /* Se indexa por posición, no por `nombre`: el snapshot archivado se llama
    "Temporada 1" en el JSON pero es la que la web narra como Temporada 2
    (la del Alpino campeón). La etiqueta la pone la propia tarjeta. */
@@ -4805,19 +4854,69 @@ function palmares(idx){
   }
   return out.length?out:null;
 }
+
+/* Todas las entradas de palmarés de todas las temporadas archivadas, en un
+   solo array plano — punto de partida común para las tres vistas de abajo. */
+function todosLosTitulos(){
+  var out=[];
+  (bd.historial_temporadas||[]).forEach(function(t,idx){
+    var list=palmares(idx);
+    if(!list) return;
+    list.forEach(function(c){
+      out.push({
+        idx:idx,
+        temporadaNombre:t.nombre||('Temporada #'+(idx+1)),
+        temporadaFecha:t.fecha||'',
+        comp:c.comp, cls:c.cls, marcador:c.marcador,
+        equipo:c.e, presidente:presidenteDe(c.e)
+      });
+    });
+  });
+  return out;
+}
+
+function titulosDePresidente(nombre){
+  return todosLosTitulos()
+    .filter(function(x){ return x.presidente===nombre; })
+    .sort(function(a,b){ return b.idx-a.idx; });
+}
+window.titulosDePresidente=titulosDePresidente;
+
+function titulosDeEquipo(equipoId){
+  return todosLosTitulos()
+    .filter(function(x){ return x.equipo.id===equipoId; })
+    .sort(function(a,b){ return b.idx-a.idx; });
+}
+window.titulosDeEquipo=titulosDeEquipo;
+
+function presidentesConTitulos(){
+  var map={};
+  todosLosTitulos().forEach(function(x){
+    if(!x.presidente) return;
+    (map[x.presidente]=map[x.presidente]||[]).push(x);
+  });
+  return Object.keys(map)
+    .map(function(nombre){ return {nombre:nombre, titulos:map[nombre]}; })
+    .sort(function(a,b){ return b.titulos.length-a.titulos.length||a.nombre.localeCompare(b.nombre,'es'); });
+}
+window.presidentesConTitulos=presidentesConTitulos;
+window.presidenteDe=presidenteDe;
+
 function openChamps(idx,label){
   var list=palmares(idx); if(!list) return;
   $('champ-title').textContent=T('champs.title','Palmarés')+' · '+label;
   $('champs').innerHTML=list.map(function(c){
     var live=bd.equipos.find(function(x){ return x.nombre===c.e.nombre; });
     var c1=(live&&live.color1)||c.e.color1||'#3A3A3A', c2=(live&&live.color2)||c.e.color2||'#141414';
-    var pres=PRESIDENTES[c.e.nombre];
+    var pres=presidenteDe(c.e);
     return '<div class="champ"'+(live?' data-team="'+esc(live.id)+'"':'')+'>'+
       '<span class="champ-wash" style="background:radial-gradient(ellipse 80% 130% at 0% 50%,'+esc(wash(live||c.e,c1))+',transparent 68%)"></span>'+
       (isHttp(c.e.escudo)?'<img class="champ-crest" src="'+esc(c.e.escudo)+'" alt="'+esc(X(c.e.nombre))+'" loading="lazy">':'<span class="champ-crest noimg">'+esc(abbr3(c.e.nombre))+'</span>')+
       '<div class="champ-id">'+
         '<b>'+esc(X(c.e.nombre))+'</b>'+
-        '<span class="pres"><i class="ph-bold ph-user-circle"></i>'+esc(pres||c.e.gerente||'·')+'</span>'+
+        (pres
+          ? '<button type="button" class="pres" data-pres="'+esc(pres)+'"><i class="ph-bold ph-user-circle"></i>'+esc(pres)+'</button>'
+          : '<span class="pres"><i class="ph-bold ph-user-circle"></i>·</span>')+
       '</div>'+
       '<div class="champ-trophy">'+
         '<i class="ph-bold ph-trophy"></i>'+
@@ -4828,6 +4927,91 @@ function openChamps(idx,label){
   }).join('');
   $('ov-champs').classList.add('open');
 }
+
+function openPresidentesHall(){
+  var list=presidentesConTitulos();
+  $('pres-title').textContent=T('pres.hall.title','Salón de presidentes');
+  $('pres-back').hidden=true;
+  $('pres-body').innerHTML = list.length
+    ? '<div class="pres-grid">'+list.map(function(p){
+        var etq=p.titulos.length===1?T('pres.titulo','título'):T('pres.titulos','títulos');
+        return '<button type="button" class="pres-card" data-pres-card="'+esc(p.nombre)+'">'+
+          '<b>'+esc(p.nombre)+'</b>'+
+          '<span>'+p.titulos.length+' '+etq+'</span>'+
+        '</button>';
+      }).join('')+'</div>'
+    : '<p class="champ-note">'+T('pres.vacio','Todavía no hay presidentes con títulos registrados.')+'</p>';
+  $('ov-presidentes').classList.add('open');
+}
+window.openPresidentesHall=openPresidentesHall;
+
+function openPresidenteDetalle(nombre){
+  var titulos=titulosDePresidente(nombre);
+  if(!titulos.length) return;
+  $('pres-title').textContent=nombre;
+  $('pres-back').hidden=false;
+  $('pres-body').innerHTML='<div class="champs">'+titulos.map(function(x){
+    var e=x.equipo, live=bd.equipos.find(function(z){ return z.id===e.id; });
+    var c1=(live&&live.color1)||e.color1||'#3A3A3A';
+    return '<div class="champ" data-team="'+esc(e.id)+'">'+
+      '<span class="champ-wash" style="background:radial-gradient(ellipse 80% 130% at 0% 50%,'+esc(wash(live||e,c1))+',transparent 68%)"></span>'+
+      (isHttp(e.escudo)?'<img class="champ-crest" src="'+esc(e.escudo)+'" alt="'+esc(X(e.nombre))+'" loading="lazy">':'<span class="champ-crest noimg">'+esc(abbr3(e.nombre))+'</span>')+
+      '<div class="champ-id">'+
+        '<b>'+esc(X(e.nombre))+'</b>'+
+        '<span class="pres"><i class="ph-bold ph-calendar"></i>'+esc(x.temporadaNombre)+'</span>'+
+      '</div>'+
+      '<div class="champ-trophy">'+
+        '<i class="ph-bold ph-trophy"></i>'+
+        '<span class="badge '+x.cls+'">'+x.comp+'</span>'+
+        (x.marcador?'<span class="mono" style="font-size:.6875rem;color:var(--ink-5)">'+esc(x.marcador)+'</span>':'')+
+      '</div>'+
+    '</div>';
+  }).join('')+'</div>';
+  $('ov-presidentes').classList.add('open');
+}
+window.openPresidenteDetalle=openPresidenteDetalle;
+
+function openTeamTitulos(equipoId){
+  var titulos=titulosDeEquipo(equipoId);
+  if(!titulos.length) return;
+  var porPresidente={};
+  titulos.forEach(function(x){
+    var nombre=x.presidente||T('pres.desconocido','—');
+    (porPresidente[nombre]=porPresidente[nombre]||[]).push(x);
+  });
+  var presidentes=Object.keys(porPresidente)
+    .map(function(nombre){ return {nombre:nombre, titulos:porPresidente[nombre]}; })
+    .sort(function(a,b){ return b.titulos.length-a.titulos.length||a.nombre.localeCompare(b.nombre,'es'); });
+
+  var filas=titulos.map(function(x){
+    return '<div class="champ">'+
+      '<div class="champ-id">'+
+        '<b>'+esc(x.temporadaNombre)+'</b>'+
+        '<span class="pres"><i class="ph-bold ph-user-circle"></i>'+esc(x.presidente||'·')+'</span>'+
+      '</div>'+
+      '<div class="champ-trophy">'+
+        '<i class="ph-bold ph-trophy"></i>'+
+        '<span class="badge '+x.cls+'">'+x.comp+'</span>'+
+        (x.marcador?'<span class="mono" style="font-size:.6875rem;color:var(--ink-5)">'+esc(x.marcador)+'</span>':'')+
+      '</div>'+
+    '</div>';
+  }).join('');
+
+  var grupos=presidentes.map(function(p){
+    var etq=p.titulos.length===1?T('pres.titulo','título'):T('pres.titulos','títulos');
+    return '<div class="pres-card" style="cursor:default">'+
+      '<b>'+esc(p.nombre)+'</b>'+
+      '<span>'+p.titulos.length+' '+etq+'</span>'+
+    '</div>';
+  }).join('');
+
+  $('team-titulos-body').innerHTML=
+    '<div class="champs">'+filas+'</div>'+
+    '<div class="pres-group-title">'+T('team.titulos.presidentes','Presidentes con título en este club')+'</div>'+
+    '<div class="pres-grid" style="padding-top:0">'+grupos+'</div>';
+  $('ov-team-titulos').classList.add('open');
+}
+window.openTeamTitulos=openTeamTitulos;
 
 /* ==========================================================================
    BÚSQUEDA
@@ -5327,6 +5511,17 @@ document.addEventListener('click', function(ev){
   var ch=t.closest('[data-champs]');
   if(ch){ openChamps(parseInt(ch.dataset.champs,10),ch.dataset.champsLabel||''); return; }
 
+  /* Van antes de data-team: ambos botones pueden vivir dentro de marcado que
+     también lleva data-team, y si no, abrirían el club en vez de su destino. */
+  var pr=t.closest('[data-pres]');
+  if(pr){ $('ov-champs').classList.remove('open'); openPresidenteDetalle(pr.dataset.pres); return; }
+
+  var pc=t.closest('[data-pres-card]');
+  if(pc){ openPresidenteDetalle(pc.dataset.presCard); return; }
+
+  var tt=t.closest('[data-team-titulos]');
+  if(tt){ openTeamTitulos(tt.dataset.teamTitulos); return; }
+
   var more=t.closest('.sc-more');
   if(more){
     var box=$('scorers'), open=box.classList.toggle('open');
@@ -5394,6 +5589,12 @@ document.addEventListener('DOMContentLoaded', function(){
   renderAntiguedad();
   $('champ-close').addEventListener('click',function(){ $('ov-champs').classList.remove('open'); });
   $('ov-champs').addEventListener('click',function(e){ if(e.target===this) this.classList.remove('open'); });
+  $('btn-presidentes').addEventListener('click',openPresidentesHall);
+  $('pres-back').addEventListener('click',openPresidentesHall);
+  $('pres-close').addEventListener('click',function(){ $('ov-presidentes').classList.remove('open'); });
+  $('ov-presidentes').addEventListener('click',function(e){ if(e.target===this) this.classList.remove('open'); });
+  $('team-titulos-close').addEventListener('click',function(){ $('ov-team-titulos').classList.remove('open'); });
+  $('ov-team-titulos').addEventListener('click',function(e){ if(e.target===this) this.classList.remove('open'); });
   document.addEventListener('keydown',function(e){
     if(e.key==='Enter'||e.key===' '){
       var c=e.target.closest&&e.target.closest('[data-champs]');
@@ -5410,7 +5611,11 @@ document.addEventListener('DOMContentLoaded', function(){
 
   document.addEventListener('keydown',function(e){
     if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){ e.preventDefault(); openSearch(); }
-    if(e.key==='Escape'){ closeSearch(); closeSheets(); document.querySelectorAll('.ov.open').forEach(function(o){ o.classList.remove('open'); }); }
+    if(e.key==='Escape'){
+      var ott=$('ov-team-titulos');
+      if(ott.classList.contains('open')){ ott.classList.remove('open'); return; }
+      closeSearch(); closeSheets(); document.querySelectorAll('.ov.open').forEach(function(o){ o.classList.remove('open'); });
+    }
   });
 
   var nav=$('nav');
