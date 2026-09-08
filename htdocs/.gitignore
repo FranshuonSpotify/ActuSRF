@@ -10,3 +10,4 @@ Thumbs.db
 /node_modules
 /_fuente/.last-datos-hash
 /_fuente/cron.log
+/_fuente/.permitir-rebuild-node
