@@ -14,7 +14,34 @@ declare(strict_types=1);
 
    No hace nada (ni escribe en el log) si datos_oficiales.json no ha
    cambiado desde la última vez — así puede llamarse tan a menudo como se
-   quiera sin generar ruido ni carga innecesaria. */
+   quiera sin generar ruido ni carga innecesaria.
+
+   IMPORTANTE — por qué el rebuild completo con Node ya NO se dispara solo:
+   ese rebuild regenera index.html ENTERO a partir del _fuente/ que haya EN
+   EL SERVIDOR, no del que tengas en local. Si subes a mano index.html (con
+   una función nueva de app.js ya inlineada) pero se te olvida subir también
+   _fuente/app.js (o shell.html, styles.css, i18n.js…), el _fuente/ del
+   servidor se queda con la versión vieja — y en cuanto este cron detecta
+   que datos_oficiales.json cambió, reconstruía index.html desde ese
+   _fuente/ viejo y te borraba silenciosamente lo que acababas de subir.
+   Pasó de verdad con el palmarés por presidente.
+
+   Por eso ahora el cron usa SIEMPRE la actualización segura en PHP puro
+   (sf_actualizarTablas): solo reemplaza el contenido de las tablas de
+   datos (clasificación/resultados/goleadores/Copa) dentro del HTML que YA
+   hay en el servidor — el que subiste tú a mano — sin tocar el resto del
+   documento ni los <script> inlineados. No puede borrar nada que no sean
+   esas tablas.
+
+   El rebuild completo con Node sigue disponible, pero ahora es explícito:
+   solo se ejecuta si existe el fichero _fuente/.permitir-rebuild-node en
+   el servidor. Créalo a mano SOLO justo después de subir un _fuente/
+   completo y actualizado (`touch _fuente/.permitir-rebuild-node` por SSH,
+   o sube un fichero vacío con ese nombre por FTP) — este script lo borra
+   automáticamente tras usarlo una vez, así que hay que volver a crearlo
+   cada vez que quieras ese rebuild completo (traducciones/transliteración
+   de los 9 idiomas incluidas). Si no existe, el cron nunca toca más que
+   las tablas de datos. */
 
 $root = dirname(__DIR__);
 require_once __DIR__.'/render.php';
@@ -58,12 +85,17 @@ if (!is_array($datos)) {
     exit;
 }
 
-/* Vía preferida: si el hosting tiene Node.js accesible desde PHP, usar el
-   pre-renderizador real (_fuente/build.js), que es idéntico a lo que hace un
-   navegador y cubre también los 9 idiomas con traducción y transliteración
-   completas — la reimplementación en render.php es solo la red de seguridad
-   para cuando esto no está disponible (hosting compartido solo-PHP). */
-$execFuncionaba = function_exists('exec') && !in_array('exec', array_map('trim', explode(',', (string)ini_get('disable_functions'))), true);
+/* El rebuild completo con Node (_fuente/build.js) es idéntico a lo que hace
+   un navegador y cubre también los 9 idiomas con traducción y
+   transliteración completas — pero regenera el documento ENTERO desde el
+   _fuente/ del servidor, así que solo es seguro dispararlo cuando ese
+   _fuente/ se acaba de subir actualizado. Por eso requiere el permiso
+   explícito de este fichero marcador (ver comentario de cabecera); sin él,
+   se usa siempre sf_actualizarTablas() (PHP puro), que solo toca las
+   tablas de datos dentro del HTML ya subido y nunca puede borrar nada más. */
+$permisoNode = $root.'/_fuente/.permitir-rebuild-node';
+$execFuncionaba = is_file($permisoNode)
+    && function_exists('exec') && !in_array('exec', array_map('trim', explode(',', (string)ini_get('disable_functions'))), true);
 $usadoNode = false;
 if ($execFuncionaba) {
     $version = null; $codigoVersion = 1;
@@ -79,12 +111,16 @@ if ($execFuncionaba) {
         exec('cd '.escapeshellarg($root).' && node _fuente/build.js 2>&1', $salida, $codigo);
         $salidaTexto = implode("\n", $salida ?? []);
         if ($codigo === 0) {
-            sf_cronLog($logFile, "Reconstruido con Node.js (".$version[0]."):\n".$salidaTexto);
+            sf_cronLog($logFile, "Reconstruido con Node.js (".$version[0]."), permiso consumido:\n".$salidaTexto);
             $usadoNode = true;
         } else {
-            sf_cronLog($logFile, "AVISO: node _fuente/build.js falló (código $codigo), se usa la reserva en PHP. Salida:\n".$salidaTexto);
+            sf_cronLog($logFile, "AVISO: node _fuente/build.js falló (código $codigo) con el permiso puesto; se usa la reserva en PHP y el permiso se borra igualmente. Salida:\n".$salidaTexto);
         }
     }
+    /* Se consume tanto si el rebuild fue bien como si falló: un permiso que
+       sobrevive a un intento fallido dispararía el mismo rebuild roto en
+       cada ejecución siguiente del cron hasta que alguien lo note. */
+    @unlink($permisoNode);
 }
 
 if (!$usadoNode) {
