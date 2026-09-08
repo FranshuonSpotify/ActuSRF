@@ -352,16 +352,20 @@ function stT(string $clave): string {
 function stTipoLabel(string $tipo): string {
     global $ST_TIPOS_I18N;
     $idioma = $GLOBALS['ST_IDIOMA_ACTUAL'];
-    $clave = mb_strtolower(trim($tipo), 'UTF-8');
-    if ($clave === '' || !isset($ST_TIPOS_I18N[$clave])) return '';
+    $original = trim($tipo);
+    if ($original === '') return '';
+    $clave = mb_strtolower($original, 'UTF-8');
+    if (!isset($ST_TIPOS_I18N[$clave])) return $original;
     return $ST_TIPOS_I18N[$clave][$idioma] ?? $ST_TIPOS_I18N[$clave]['es'];
 }
 
 function stAfinidadLabel(string $afinidad): string {
     global $ST_AFINIDADES_I18N;
     $idioma = $GLOBALS['ST_IDIOMA_ACTUAL'];
-    $clave = mb_strtolower(trim($afinidad), 'UTF-8');
-    if ($clave === '' || !isset($ST_AFINIDADES_I18N[$clave])) return '';
+    $original = trim($afinidad);
+    if ($original === '') return '';
+    $clave = mb_strtolower($original, 'UTF-8');
+    if (!isset($ST_AFINIDADES_I18N[$clave])) return $original;
     return $ST_AFINIDADES_I18N[$clave][$idioma] ?? $ST_AFINIDADES_I18N[$clave]['es'];
 }
 
