@@ -210,7 +210,7 @@
             var key = _sfATKey(text, lang);
             if (_sfATCache[key] !== undefined) return _sfATCache[key];
             try {
-                var url = 'https://translate.googleapis.com/translate_a/single?client=gtx&sl=es&tl=' + lang + '&dt=t&q=' + encodeURIComponent(text);
+                var url = 'https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=' + lang + '&dt=t&q=' + encodeURIComponent(text);
                 var resp = await fetch(url);
                 if (!resp.ok) throw new Error('translate fail');
                 var data = await resp.json();
@@ -260,6 +260,29 @@
             var lang = sfGetLang();
             var entry = SF_AFINIDADES_MAP[String(afi || '').toLowerCase().trim()];
             if (!entry) entry = SF_AF_NEUTRO;
+            return entry[lang] || entry.es;
+        }
+
+        /* Los cuatro tipos de supertécnica (tiro/regate/bloqueo/parada) son
+           términos de fútbol/Inazuma Eleven, igual que las afinidades:
+           terminología del juego, no traducción literal palabra por
+           palabra. Mismo patrón que SF_AFINIDADES_MAP de arriba. */
+        var SF_TIPO_TIRO    = {es:'Tiro',en:'Shot',pt:'Chute',it:'Tiro',fr:'Tir',ja:'シュート',ko:'슛',pl:'Strzał',bg:'Удар',sr:'Шут'};
+        var SF_TIPO_REGATE  = {es:'Regate',en:'Dribble',pt:'Drible',it:'Dribbling',fr:'Dribble',ja:'ドリブル',ko:'드리블',pl:'Drybling',bg:'Дрибъл',sr:'Дриблинг'};
+        var SF_TIPO_BLOQUEO = {es:'Bloqueo',en:'Block',pt:'Bloqueio',it:'Blocco',fr:'Blocage',ja:'ブロック',ko:'블록',pl:'Blok',bg:'Блок',sr:'Блок'};
+        var SF_TIPO_PARADA  = {es:'Parada',en:'Save',pt:'Defesa',it:'Parata',fr:'Arrêt',ja:'セーブ',ko:'세이브',pl:'Obrona',bg:'Спасяване',sr:'Одбрана'};
+        var SF_TIPO_MAP = {
+            'tiro': SF_TIPO_TIRO, 'shot': SF_TIPO_TIRO,
+            'regate': SF_TIPO_REGATE, 'dribble': SF_TIPO_REGATE,
+            'bloqueo': SF_TIPO_BLOQUEO, 'block': SF_TIPO_BLOQUEO,
+            'parada': SF_TIPO_PARADA, 'save': SF_TIPO_PARADA
+        };
+        function sfTipoLabel(tipo) {
+            var lang = sfGetLang();
+            var clave = String(tipo || '').toLowerCase().trim();
+            if (!clave) return '';
+            var entry = SF_TIPO_MAP[clave];
+            if (!entry) return '';
             return entry[lang] || entry.es;
         }
 
@@ -403,7 +426,7 @@
         async function sfATBatch(list, lang) {
             var joined = list.join('\n');
             try {
-                var url = 'https://translate.googleapis.com/translate_a/single?client=gtx&sl=es&tl='
+                var url = 'https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl='
                     + lang + '&dt=t&q=' + encodeURIComponent(joined);
                 var resp = await fetch(url);
                 if (!resp.ok) throw new Error('translate fail');
@@ -738,6 +761,7 @@
         window.sfATFetch = sfATFetch;
         window.sfAfinidadLabel = sfAfinidadLabel;
         window.sfGetLang = sfGetLang;
+        window.sfTipoLabel = sfTipoLabel;
 
         /* Copia española original de cada nodo traducible. Se captura ANTES de
            la primera sustitución para no traducir nunca sobre una traducción. */

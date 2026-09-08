@@ -69,6 +69,12 @@ var AF_LABEL={fuego:'Fuego',montana:'Montaña',bosque:'Bosque',aire:'Aire',neutr
 var AF_HEX={fuego:'#FF5A3C',montana:'#C08A3E',bosque:'#46B45F',aire:'#35D0C6',neutro:'#9AA0A6'};
 function afKey(a){ return AF_MAP[norm(a||'').replace(/[^a-zñ]/g,'')]||'neutro'; }
 function afName(a){ return window.sfAfinidadLabel ? sfAfinidadLabel(a) : AF_LABEL[afKey(a)]; }
+var TIPO_LABEL={tiro:'Tiro',regate:'Regate',bloqueo:'Bloqueo',parada:'Parada'};
+function tipoName(t){
+  var k=String(t||'').toLowerCase().trim();
+  if(!k) return '';
+  return window.sfTipoLabel ? (sfTipoLabel(k)||TIPO_LABEL[k]||t) : (TIPO_LABEL[k]||t);
+}
 function afTag(a,cls){ var k=afKey(a); return '<span class="af af-'+k+(cls?' '+cls:'')+'"><i></i><span class="pn">'+esc(afName(a))+'</span></span>'; }
 
 function team(n){ return bd.equipos.find(function(e){ return e.nombre===n; }); }
@@ -850,7 +856,7 @@ function openPlayer(teamId,nameEnc){
   var posCls=String(j.posicion||'').toLowerCase();
 
   var techs=(j.supertecnicas||[]).map(function(t){
-    return '<div class="tech"><div class="tech-top"><b>'+esc(t.nombre)+'</b>'+(t.tipo?'<span class="badge">'+esc(t.tipo)+'</span>':'')+'</div>'+(t.descripcion?'<p>'+esc(t.descripcion)+'</p>':'')+'</div>';
+    return '<div class="tech"><div class="tech-top"><b>'+esc(t.nombre)+'</b>'+(t.tipo?'<span class="badge">'+esc(tipoName(t.tipo))+'</span>':'')+'</div>'+(t.descripcion?'<p>'+esc(t.descripcion)+'</p>':'')+'</div>';
   }).join('');
 
   /* HISTORIAL DE EQUIPOS — un logo enorme con nombre y temporada no decía
