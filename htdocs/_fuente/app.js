@@ -855,8 +855,17 @@ function openPlayer(teamId,nameEnc){
   var k=afKey(j.afinidad), hex=AF_HEX[k];
   var posCls=String(j.posicion||'').toLowerCase();
 
-  var techs=(j.supertecnicas||[]).map(function(t){
-    return '<div class="tech"><div class="tech-top"><b>'+esc(t.nombre)+'</b>'+(t.tipo?'<span class="badge" data-no-tr>'+esc(tipoName(t.tipo))+'</span>':'')+'</div>'+(t.descripcion?'<p>'+esc(t.descripcion)+'</p>':'')+'</div>';
+  /* nombre/descripcion son texto libre del presidente, en el idioma que sea
+     (español, francés, inglés...). El recorrido automático de la página los
+     traduce en LOTE junto con el resto de textos sueltos —y ahí es donde se
+     rompía: el lote junta muchas cadenas en una sola petición con sl=auto,
+     Google detecta UN idioma de origen para el lote entero (normalmente
+     español, porque el resto del lote sí lo es) y una frase en otro idioma
+     dentro de ese lote sale intacta, sin traducir. data-no-tr los saca del
+     recorrido en lote; sfATApply() de abajo los traduce de uno en uno, cada
+     cual con su propia detección de idioma. */
+  var techs=(j.supertecnicas||[]).map(function(t,ti){
+    return '<div class="tech"><div class="tech-top"><b data-no-tr data-tech-nombre="'+ti+'">'+esc(t.nombre)+'</b>'+(t.tipo?'<span class="badge" data-no-tr>'+esc(tipoName(t.tipo))+'</span>':'')+'</div>'+(t.descripcion?'<p data-no-tr data-tech-desc="'+ti+'">'+esc(t.descripcion)+'</p>':'')+'</div>';
   }).join('');
 
   /* HISTORIAL DE EQUIPOS — un logo enorme con nombre y temporada no decía
@@ -933,6 +942,13 @@ function openPlayer(teamId,nameEnc){
         '<button class="btn btn-secondary" data-share-player="'+esc(e.id)+'|'+esc(encodeURIComponent(j.nombre))+'"><i class="ph-bold ph-download-simple"></i> Descargar carta</button>'+
       '</div>'+
     '</div>';
+  (j.supertecnicas||[]).forEach(function(t,ti){
+    if(!window.sfATApply) return;
+    var elN=document.querySelector('#sheet-player-body [data-tech-nombre="'+ti+'"]');
+    if(elN && t.nombre) sfATApply(elN, t.nombre);
+    var elD=document.querySelector('#sheet-player-body [data-tech-desc="'+ti+'"]');
+    if(elD && t.descripcion) sfATApply(elD, t.descripcion);
+  });
   openSheet('sheet-player');
 }
 
