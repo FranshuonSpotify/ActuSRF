@@ -945,9 +945,9 @@ function openPlayer(teamId,nameEnc){
   (j.supertecnicas||[]).forEach(function(t,ti){
     if(!window.sfATApply) return;
     var elN=document.querySelector('#sheet-player-body [data-tech-nombre="'+ti+'"]');
-    if(elN && t.nombre) sfATApply(elN, t.nombre);
+    if(elN && t.nombre) sfATApply(elN, t.nombre, true);
     var elD=document.querySelector('#sheet-player-body [data-tech-desc="'+ti+'"]');
-    if(elD && t.descripcion) sfATApply(elD, t.descripcion);
+    if(elD && t.descripcion) sfATApply(elD, t.descripcion, true);
   });
   openSheet('sheet-player');
 }

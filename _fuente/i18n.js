@@ -223,15 +223,31 @@
             }
         }
 
-        function sfATApply(el, text) {
+        /* forzar=true traduce también hacia español. Por defecto español es
+           "no tocar" porque el resto del sitio se escribe en español y
+           traducirlo consigo mismo no aporta nada —pero un texto libre de
+           origen desconocido (p.ej. el nombre de una supertécnica, que
+           puede haberlo escrito un presidente en cualquier idioma) sí debe
+           traducirse aunque el idioma activo sea español. */
+        /* Google devuelve frases sueltas cortas (sin puntuación de cierre)
+           a veces en minúscula aunque el original empezara en mayúscula
+           ("Tornade de Feu" -> "tornado de fuego"). Un nombre de técnica
+           debe leerse como tal, así que se capitaliza la inicial al vuelo;
+           no toca nada más de la frase. */
+        function sfCapitalizarInicial(s) {
+            s = String(s || '');
+            return s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
+        }
+
+        function sfATApply(el, text, forzar) {
             if (!el || !text) return;
             var lang = sfGetLang();
-            if (lang === 'es') { el.textContent = text; return; }
+            if (lang === 'es' && !forzar) { el.textContent = text; return; }
             el.textContent = text;
             var key = _sfATKey(text, lang);
-            if (_sfATCache[key] !== undefined) { el.textContent = _sfATCache[key]; return; }
+            if (_sfATCache[key] !== undefined) { el.textContent = sfCapitalizarInicial(_sfATCache[key]); return; }
             sfATFetch(text, lang).then(function(res) {
-                if (sfGetLang() === lang) el.textContent = res;
+                if (sfGetLang() === lang) el.textContent = sfCapitalizarInicial(res);
             });
         }
 
