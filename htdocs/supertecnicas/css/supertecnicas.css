@@ -1,47 +1,230 @@
 /* supertecnicas/css/supertecnicas.css
    Se carga DESPUÉS de _fuente/styles.css (tokens, .card, .btn, .badge, .wrap).
-   Aquí solo lo que esta herramienta necesita y styles.css no trae:
-   formularios, tabla y el layout de sus tres páginas. */
+   Rediseño completo de la interfaz de supertecnicas/: mismo sistema de
+   diseño que la web pública (negro real, monocromo, acento naranja
+   raro y preciso, Inter/JetBrains Mono, --ease/--t1/--t2), sin inventar
+   tokens nuevos. Reemplaza por completo la versión anterior. */
 
-.campo{ display:flex; flex-direction:column; gap:.3rem; min-width:0; font-size:.8125rem; color:var(--ink-2); }
-.ayuda{ font-size:.8125rem; color:var(--ink-3); }
-p.mal{ color:var(--c-copa); font-size:.8125rem; }
+/* ============================ FORMULARIOS ============================ */
+.campo{ display:flex; flex-direction:column; gap:.4rem; min-width:0; }
+.campo > span:first-child{
+  font-size:.75rem; font-weight:500; color:var(--ink-3);
+  letter-spacing:.01em;
+}
+.ayuda{ font-size:.8125rem; color:var(--ink-3); line-height:1.5; }
+p.mal{
+  display:flex; align-items:center; gap:.5rem;
+  color:#FF8A7A; background:rgba(255,59,59,.1); border:1px solid rgba(255,59,59,.25);
+  border-radius:var(--r-sm); padding:.65rem .85rem; font-size:.8125rem;
+}
 
 .inp{
-  height:38px; width:100%; padding:0 .7rem; border-radius:var(--r-sm);
-  background:var(--surface); border:1px solid var(--line-2); color:var(--ink);
-  font-family:var(--f-sans); font-size:.875rem; transition:border-color var(--t1);
+  height:42px; width:100%; padding:0 .8rem; border-radius:var(--r-sm);
+  background:var(--surface-2); border:1px solid var(--line-2); color:var(--ink);
+  font-family:var(--f-sans); font-size:.875rem;
+  transition:border-color var(--t1) var(--ease), background var(--t1) var(--ease), box-shadow var(--t1) var(--ease);
 }
-textarea.inp{ height:auto; min-height:72px; padding:.6rem .7rem; line-height:1.5; resize:vertical; }
+textarea.inp{ height:auto; min-height:76px; padding:.65rem .8rem; line-height:1.55; resize:vertical; }
+.inp::placeholder{ color:var(--ink-4); }
 .inp:hover{ border-color:var(--line-3); }
-.inp:focus{ outline:none; border-color:var(--accent); }
-.inp:disabled{ opacity:.45; cursor:not-allowed; }
-.inp-sm{ height:32px; font-size:.8125rem; }
-.inp-mono{ font-family:var(--f-mono); }
+.inp:focus{
+  outline:none; border-color:var(--accent); background:var(--surface-3);
+  box-shadow:0 0 0 3px var(--accent-glow);
+}
+.inp:disabled{ opacity:.4; cursor:not-allowed; background:var(--surface); }
+.inp-sm{ height:36px; font-size:.8125rem; }
+.inp-mono{ font-family:var(--f-mono); letter-spacing:.01em; }
 
-.rejilla{ display:grid; gap:.75rem; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); }
-.rejilla-4{ grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); }
+select.inp{
+  appearance:none; -webkit-appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%237A7A7A' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat:no-repeat; background-position:right .6rem center;
+  padding-right:2.1rem;
+}
 
+.rejilla{ display:grid; gap:.85rem; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); }
+.rejilla-4{ grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); }
+
+/* ============================ ICONOS ============================ */
+.icon{ width:1em; height:1em; flex-shrink:0; stroke:currentColor; fill:none; stroke-width:1.75; stroke-linecap:round; stroke-linejoin:round; }
+.btn .icon{ width:1.05em; height:1.05em; }
+
+/* ============================ BOTONES EXTRA ============================ */
+.btn-icon-txt{ display:inline-flex; align-items:center; gap:.5rem; }
+
+/* ============================ TABLA (admin) ============================ */
 .tabla-caja{ border:1px solid var(--line); border-radius:var(--r-lg); overflow:hidden; background:var(--surface); }
 .tabla-scroll{ overflow-x:auto; }
-.tabla{ width:100%; border-collapse:collapse; font-size:.8125rem; }
-.tabla th, .tabla td{ padding:.6rem .75rem; text-align:left; border-bottom:1px solid var(--line); }
-.tabla th{ color:var(--ink-3); font-weight:500; }
+.tabla{ width:100%; border-collapse:collapse; font-size:.8125rem; min-width:640px; }
+.tabla th, .tabla td{ padding:.75rem .9rem; text-align:left; border-bottom:1px solid var(--line); vertical-align:middle; }
+.tabla thead th{
+  color:var(--ink-3); font-weight:500; font-size:.6875rem; letter-spacing:.06em; text-transform:uppercase;
+  background:var(--bg-raised); position:sticky; top:0;
+}
+.tabla tbody tr{ transition:background var(--t1) var(--ease); }
+.tabla tbody tr:hover{ background:rgba(255,255,255,.02); }
+.tabla tbody tr:last-child td{ border-bottom:none; }
+.tabla td.col-equipo{ font-weight:500; }
+.tabla td.col-min{ width:1%; white-space:nowrap; }
 
-/* -------- páginas -------- */
-.st-login{ min-height:100vh; display:grid; place-items:center; padding:1.5rem; }
-.st-login-card{ width:100%; max-width:360px; padding:1.75rem; border:1px solid var(--line); }
-.st-login-card h1{ font-size:1.5rem; margin-bottom:.5rem; }
-.st-form{ display:flex; flex-direction:column; gap:1rem; margin-top:1.25rem; }
+.pendiente{
+  display:inline-flex; align-items:center; gap:.35rem;
+  font-size:.6875rem; font-weight:500; letter-spacing:.02em; color:var(--gold);
+  background:rgba(255,201,74,.1); border:1px solid rgba(255,201,74,.25);
+  border-radius:var(--r-full); padding:.15rem .55rem; margin-top:.3rem;
+}
+.confirmado{
+  display:inline-flex; align-items:center; gap:.35rem;
+  font-size:.6875rem; font-weight:500; letter-spacing:.02em; color:var(--success,#3DDC9B);
+  opacity:.85; margin-top:.3rem;
+}
 
-.st-roster, .st-admin{ max-width:960px; margin:0 auto; padding:2rem 1.25rem 4rem; }
-.st-cabecera{ display:flex; justify-content:space-between; align-items:flex-end; gap:1rem; margin-bottom:1.5rem; flex-wrap:wrap; }
-.st-aviso{ padding:.75rem 1rem; border:1px solid var(--line-2); border-radius:var(--r-sm); color:var(--ink-2); margin-bottom:1.5rem; }
-.st-jugador{ border:1px solid var(--line); padding:1.25rem; margin-bottom:1.25rem; }
-.st-jugador legend{ padding:0 .4rem; font-weight:600; }
-.st-slot{ margin-bottom:.6rem; }
-.st-ventana{ display:flex; align-items:center; gap:1rem; margin-bottom:1.5rem; }
+/* ============================ PÁGINA: LOGIN ============================ */
+.st-login{
+  min-height:100vh; display:grid; place-items:center; padding:1.5rem;
+  position:relative; overflow:hidden;
+  background:
+    radial-gradient(600px circle at 50% 0%, rgba(255,81,0,.09), transparent 60%),
+    var(--bg);
+}
+.st-marca{
+  display:flex; align-items:center; gap:.6rem; justify-content:center;
+  margin-bottom:2rem; color:var(--ink-3);
+}
+.st-marca .pip{ width:7px; height:7px; border-radius:50%; background:var(--accent); box-shadow:0 0 10px var(--accent-glow); }
+.st-marca span{ font-size:.75rem; font-weight:500; letter-spacing:.12em; text-transform:uppercase; }
 
+.st-login-card{
+  width:100%; max-width:380px; padding:2.25rem 2rem;
+  border:1px solid var(--line); background:var(--bg-raised);
+  border-radius:var(--r-xl); position:relative; z-index:1;
+  box-shadow:0 24px 60px -20px rgba(0,0,0,.6);
+}
+.st-login-card h1{
+  font-family:var(--f-display,var(--f-sans)); font-size:1.75rem; font-weight:700;
+  letter-spacing:-.01em; margin-bottom:.4rem;
+}
+.st-form{ display:flex; flex-direction:column; gap:1.1rem; margin-top:1.5rem; }
+.st-form .btn{ margin-top:.35rem; }
+
+/* ============================ CABECERA COMÚN ============================ */
+.st-shell{ max-width:920px; margin:0 auto; padding:2.5rem 1.25rem 5rem; }
+.st-cabecera{
+  display:flex; justify-content:space-between; align-items:flex-start; gap:1.25rem;
+  margin-bottom:2rem; padding-bottom:1.5rem; border-bottom:1px solid var(--line);
+  flex-wrap:wrap;
+}
+.st-cabecera h1{ font-size:1.5rem; font-weight:700; letter-spacing:-.01em; margin-bottom:.3rem; }
+.st-cabecera .ayuda{ max-width:46ch; }
+
+.st-estado{
+  display:inline-flex; align-items:center; gap:.45rem;
+  font-size:.75rem; font-weight:500; padding:.4rem .75rem; border-radius:var(--r-full);
+  border:1px solid var(--line-2); color:var(--ink-2); white-space:nowrap;
+}
+.st-estado .punto{ width:6px; height:6px; border-radius:50%; background:var(--ink-4); }
+.st-estado[data-abierta="1"]{ color:var(--success,#3DDC9B); border-color:rgba(61,220,155,.3); background:rgba(61,220,155,.08); }
+.st-estado[data-abierta="1"] .punto{ background:var(--success,#3DDC9B); box-shadow:0 0 8px rgba(61,220,155,.5); }
+.st-estado[data-abierta="0"]{ color:var(--ink-3); }
+
+/* ============================ BANDA DE ESTADO ============================ */
+.st-banda{
+  display:flex; align-items:center; gap:.65rem;
+  padding:.85rem 1.1rem; border-radius:var(--r); margin-bottom:1.5rem;
+  font-size:.8438rem; line-height:1.5;
+}
+.st-banda-ok{ background:rgba(61,220,155,.08); border:1px solid rgba(61,220,155,.25); color:#8FE8C4; }
+.st-banda-aviso{ background:var(--surface); border:1px solid var(--line-2); color:var(--ink-2); }
+.st-banda .icon{ flex-shrink:0; opacity:.9; }
+
+/* ============================ TARJETAS DE JUGADOR ============================ */
+.st-lista{ display:flex; flex-direction:column; gap:.65rem; margin-bottom:2rem; }
+
+.jugador-card{
+  border:1px solid var(--line); border-radius:var(--r-lg); background:var(--surface);
+  overflow:hidden; transition:border-color var(--t1) var(--ease);
+}
+.jugador-card[open]{ border-color:var(--line-2); }
+.jugador-card:hover{ border-color:var(--line-3); }
+
+.jugador-resumen{
+  display:flex; align-items:center; gap:.9rem; padding:.9rem 1.1rem;
+  cursor:pointer; list-style:none; user-select:none;
+  transition:background var(--t1) var(--ease);
+}
+.jugador-resumen::-webkit-details-marker{ display:none; }
+.jugador-resumen:hover{ background:rgba(255,255,255,.02); }
+.jugador-resumen:focus-visible{ outline:2px solid var(--accent); outline-offset:-2px; }
+
+.jugador-avatar{
+  width:38px; height:38px; border-radius:50%; flex-shrink:0;
+  display:grid; place-items:center; font-family:var(--f-mono); font-size:.75rem; font-weight:600;
+  background:var(--surface-3); color:var(--ink-2); border:1px solid var(--line-2);
+}
+.jugador-info{ min-width:0; flex:1 1 auto; display:flex; flex-direction:column; gap:.15rem; }
+.jugador-nombre{ font-size:.9375rem; font-weight:500; color:var(--ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.jugador-meta{ font-size:.75rem; color:var(--ink-4); font-family:var(--f-mono); }
+
+.jugador-chips{
+  display:flex; gap:.35rem; flex-wrap:wrap; justify-content:flex-end;
+  max-width:44%; flex-shrink:1;
+}
+.chip{
+  font-size:.6875rem; font-weight:500; padding:.2rem .55rem; border-radius:var(--r-full);
+  background:rgba(255,81,0,.1); color:#FFB68A; border:1px solid rgba(255,81,0,.22);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:12rem;
+}
+.chip-vacio{ background:transparent; border-color:var(--line-2); color:var(--ink-4); }
+.chip-mas{ background:var(--surface-3); color:var(--ink-3); border-color:var(--line-2); }
+
+.jugador-resumen .icon-chevron{ color:var(--ink-4); transition:transform var(--t2) var(--ease); flex-shrink:0; }
+.jugador-card[open] .icon-chevron{ transform:rotate(180deg); }
+
+.jugador-editor{
+  padding:0 1.1rem 1.25rem; display:flex; flex-direction:column; gap:1.25rem;
+  border:none; margin:0;
+}
+.st-slot{
+  padding-top:1rem; border-top:1px solid var(--line);
+  display:flex; flex-direction:column; gap:.7rem;
+}
+.st-slot:first-child{ border-top:1px solid var(--line); }
+.st-slot-num{
+  font-family:var(--f-mono); font-size:.6875rem; color:var(--ink-4);
+  letter-spacing:.06em; text-transform:uppercase;
+}
+
+/* ============================ ACCIONES FIJAS ============================ */
+.st-acciones{
+  position:sticky; bottom:1.25rem; display:flex; justify-content:flex-end;
+  margin-top:.5rem;
+}
+.st-acciones .btn{ box-shadow:0 12px 32px -8px rgba(0,0,0,.5); }
+
+/* ============================ ADMIN: VENTANA ============================ */
+.st-panel{
+  display:flex; align-items:center; justify-content:space-between; gap:1rem;
+  padding:1.1rem 1.25rem; border:1px solid var(--line); border-radius:var(--r-lg);
+  background:var(--surface); margin-bottom:1.5rem; flex-wrap:wrap;
+}
+.st-panel-texto{ display:flex; flex-direction:column; gap:.2rem; }
+.st-panel-texto b{ font-size:.9375rem; font-weight:600; }
+
+/* ============================ RESPONSIVE ============================ */
+@media (max-width:640px){
+  .st-shell{ padding:1.5rem 1rem 4rem; }
+  .st-cabecera{ flex-direction:column; align-items:flex-start; }
+  .jugador-chips{ display:none; }
+  .st-panel{ flex-direction:column; align-items:stretch; }
+  .st-panel .btn{ width:100%; justify-content:center; }
+}
+
+/* ============================ MOTION ============================ */
+@media (prefers-reduced-motion: reduce){
+  .jugador-resumen, .inp, .icon-chevron, .jugador-card{ transition:none !important; }
+}
+
+/* ============================ SELECTOR DE IDIOMA ============================ */
 .st-idiomas{ display:flex; gap:.4rem; justify-content:center; margin-bottom:1.25rem; flex-wrap:wrap; }
 .st-shell .st-idiomas{ justify-content:flex-end; margin-bottom:1rem; }
 .st-idiomas a{
