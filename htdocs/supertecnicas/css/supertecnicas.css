@@ -41,3 +41,13 @@ textarea.inp{ height:auto; min-height:72px; padding:.6rem .7rem; line-height:1.5
 .st-jugador legend{ padding:0 .4rem; font-weight:600; }
 .st-slot{ margin-bottom:.6rem; }
 .st-ventana{ display:flex; align-items:center; gap:1rem; margin-bottom:1.5rem; }
+
+.st-idiomas{ display:flex; gap:.4rem; justify-content:center; margin-bottom:1.25rem; flex-wrap:wrap; }
+.st-shell .st-idiomas{ justify-content:flex-end; margin-bottom:1rem; }
+.st-idiomas a{
+  display:inline-flex; padding:.3rem; border-radius:var(--r-sm);
+  border:1px solid transparent; opacity:.55; transition:opacity var(--t1) var(--ease), border-color var(--t1) var(--ease);
+}
+.st-idiomas a:hover{ opacity:.85; }
+.st-idiomas a.activo{ opacity:1; border-color:var(--line-2); background:var(--surface-2); }
+.st-idiomas img{ display:block; border-radius:2px; }

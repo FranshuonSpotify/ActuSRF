@@ -1,6 +1,9 @@
 <?php
 session_start();
 require_once __DIR__ . '/lib.php';
+require_once __DIR__ . '/i18n.php';
+
+stEstablecerIdioma(stResolverIdioma());
 
 $error = '';
 
@@ -27,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'login
         header('Location: index.php');
         exit;
     }
-    $error = 'Código o PIN incorrectos.';
+    $error = stT('login.error');
 }
 
 $equipoId = $_SESSION['st_equipo_id'] ?? null;
@@ -47,95 +50,167 @@ if ($equipoId !== null) {
 $config = stCargarConfig();
 $ventanaAbierta = $config['ventana_abierta'];
 $guardado = isset($_GET['guardado']);
+
+// Iniciales para el avatar del jugador ("Fran Dictador" -> "FD").
+function stIniciales($nombre) {
+    $partes = preg_split('/\s+/', trim((string) $nombre));
+    $partes = array_filter($partes);
+    if (!$partes) return '?';
+    $ini = mb_substr(reset($partes), 0, 1, 'UTF-8');
+    if (count($partes) > 1) $ini .= mb_substr(end($partes), 0, 1, 'UTF-8');
+    return mb_strtoupper($ini, 'UTF-8');
+}
 ?>
 <!doctype html>
-<html lang="es">
+<html lang="<?= stEsc($GLOBALS['ST_IDIOMA_ACTUAL']) ?>">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Supertécnicas — Superliga Frontier</title>
+<title><?= stEsc(stT('login.titulo')) ?> — Superliga Frontier</title>
 <link rel="stylesheet" href="../_fuente/styles.css">
 <link rel="stylesheet" href="css/supertecnicas.css">
 </head>
 <body>
 <?php if ($equipoId === null): ?>
   <main class="st-login">
+    <div class="st-marca">
+      <span class="pip"></span>
+      <span>Superliga Frontier</span>
+    </div>
+    <?php stRenderSelectorIdioma(); ?>
     <div class="card st-login-card">
-      <h1>Supertécnicas</h1>
-      <p class="ayuda">Entra con el código y el PIN de tu equipo.</p>
-      <?php if ($error !== ''): ?><p class="mal"><?= stEsc($error) ?></p><?php endif; ?>
+      <h1><?= stEsc(stT('login.titulo')) ?></h1>
+      <p class="ayuda"><?= stEsc(stT('login.subtitulo')) ?></p>
+      <?php if ($error !== ''): ?>
+        <p class="mal">
+          <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="13"/><line x1="12" y1="16.5" x2="12.01" y2="16.5"/></svg>
+          <?= stEsc($error) ?>
+        </p>
+      <?php endif; ?>
       <form method="post" action="index.php" class="st-form">
         <input type="hidden" name="accion" value="login">
-        <label class="campo">Código de equipo
-          <input class="inp" type="text" name="codigo" required autofocus>
+        <label class="campo"><span><?= stEsc(stT('login.campo_codigo')) ?></span>
+          <input class="inp" type="text" name="codigo" required autofocus autocomplete="off">
         </label>
-        <label class="campo">PIN
-          <input class="inp" type="text" name="pin" required>
+        <label class="campo"><span><?= stEsc(stT('login.campo_pin')) ?></span>
+          <input class="inp inp-mono" type="text" name="pin" required autocomplete="off">
         </label>
-        <button class="btn btn-accent btn-lg" type="submit">Entrar</button>
+        <button class="btn btn-accent btn-lg btn-icon-txt" type="submit">
+          <?= stEsc(stT('login.boton_entrar')) ?>
+          <svg class="icon" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </button>
       </form>
     </div>
   </main>
 <?php else: ?>
-  <main class="st-roster">
+  <main class="st-shell">
+    <?php stRenderSelectorIdioma(); ?>
     <header class="st-cabecera">
       <div>
         <h1><?= stEsc($equipo['nombre'] ?? '') ?></h1>
-        <p class="ayuda">Asigna hasta 4 supertécnicas por jugador.</p>
+        <p class="ayuda"><?= stEsc(stT('roster.subtitulo')) ?></p>
       </div>
-      <a class="btn btn-secondary" href="logout.php">Cerrar sesión</a>
+      <div style="display:flex;align-items:center;gap:.75rem;flex-wrap:wrap">
+        <span class="st-estado" data-abierta="<?= $ventanaAbierta ? '1' : '0' ?>">
+          <span class="punto"></span>
+          <?= $ventanaAbierta ? stEsc(stT('roster.ventana_abierta')) : stEsc(stT('roster.ventana_cerrada')) ?>
+        </span>
+        <a class="btn btn-secondary btn-icon-txt" href="logout.php">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          <?= stEsc(stT('roster.cerrar_sesion')) ?>
+        </a>
+      </div>
     </header>
 
     <?php if ($guardado): ?>
-      <p class="ayuda">Guardado.</p>
+      <div class="st-banda st-banda-ok">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        <?= stEsc(stT('roster.guardado_ok')) ?>
+      </div>
     <?php endif; ?>
 
     <?php if (!$ventanaAbierta): ?>
-      <p class="st-aviso">La ventana de supertécnicas está cerrada. Puedes ver lo asignado, pero no editarlo.</p>
+      <div class="st-banda st-banda-aviso">
+        <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        <?= stEsc(stT('roster.ventana_cerrada_aviso')) ?>
+      </div>
     <?php endif; ?>
 
     <form method="post" action="guardar.php">
       <input type="hidden" name="csrf" value="<?= stEsc(stTokenCsrf()) ?>">
-      <?php foreach (($equipo['jugadores'] ?? []) as $i => $j): ?>
-        <fieldset class="card st-jugador" <?= $ventanaAbierta ? '' : 'disabled' ?>>
-          <legend><?= stEsc($j['nombre'] ?? '') ?> · #<?= stEsc($j['dorsal'] ?? '') ?> · <?= stEsc($j['posicion'] ?? '') ?></legend>
-          <input type="hidden" name="jugadores[<?= (int) $i ?>][nombre_check]" value="<?= stEsc($j['nombre'] ?? '') ?>">
+      <div class="st-lista">
+        <?php foreach (($equipo['jugadores'] ?? []) as $i => $j): ?>
           <?php
             $slots = $j['supertecnicas'] ?? [];
-            for ($s = 0; $s < ST_MAX_SUPERTECNICAS; $s++):
-              $st = $slots[$s] ?? ['nombre' => '', 'tipo' => '', 'afinidad' => '', 'especial' => '', 'descripcion' => ''];
+            $asignadas = array_values(array_filter($slots, function ($x) { return trim((string) ($x['nombre'] ?? '')) !== ''; }));
           ?>
-            <div class="rejilla rejilla-4 st-slot">
-              <label class="campo">Nombre
-                <input class="inp inp-sm" type="text" maxlength="40" name="jugadores[<?= (int) $i ?>][st][<?= $s ?>][nombre]" value="<?= stEsc($st['nombre'] ?? '') ?>">
-              </label>
-              <label class="campo">Tipo
-                <select class="inp inp-sm" name="jugadores[<?= (int) $i ?>][st][<?= $s ?>][tipo]">
-                  <?php foreach (ST_TIPOS as $t): ?>
-                    <option value="<?= stEsc($t) ?>" <?= ($st['tipo'] ?? '') === $t ? 'selected' : '' ?>><?= $t === '' ? '—' : stEsc($t) ?></option>
+          <details class="jugador-card">
+            <summary class="jugador-resumen">
+              <span class="jugador-avatar"><?= stEsc(stIniciales($j['nombre'] ?? '')) ?></span>
+              <span class="jugador-info">
+                <span class="jugador-nombre"><?= stEsc($j['nombre'] ?? '') ?></span>
+                <span class="jugador-meta">#<?= stEsc($j['dorsal'] ?? '') ?> · <?= stEsc($j['posicion'] ?? '') ?></span>
+              </span>
+              <span class="jugador-chips">
+                <?php if (!$asignadas): ?>
+                  <span class="chip chip-vacio"><?= stEsc(stT('roster.sin_asignar')) ?></span>
+                <?php else: ?>
+                  <?php foreach (array_slice($asignadas, 0, 2) as $x): ?>
+                    <span class="chip"><?= stEsc($x['nombre']) ?></span>
                   <?php endforeach; ?>
-                </select>
-              </label>
-              <label class="campo">Afinidad
-                <select class="inp inp-sm" name="jugadores[<?= (int) $i ?>][st][<?= $s ?>][afinidad]">
-                  <?php foreach (ST_AFINIDADES as $a): ?>
-                    <option value="<?= stEsc($a) ?>" <?= ($st['afinidad'] ?? '') === $a ? 'selected' : '' ?>><?= $a === '' ? '—' : stEsc($a) ?></option>
-                  <?php endforeach; ?>
-                </select>
-              </label>
-              <label class="campo">Especial
-                <input class="inp inp-sm inp-mono" type="text" maxlength="40" name="jugadores[<?= (int) $i ?>][st][<?= $s ?>][especial]" value="<?= stEsc($st['especial'] ?? '') ?>" placeholder="miximax, tótem…">
-              </label>
-            </div>
-            <label class="campo">Descripción
-              <textarea class="inp" maxlength="300" name="jugadores[<?= (int) $i ?>][st][<?= $s ?>][descripcion]"><?= stEsc($st['descripcion'] ?? '') ?></textarea>
-            </label>
-          <?php endfor; ?>
-        </fieldset>
-      <?php endforeach; ?>
+                  <?php if (count($asignadas) > 2): ?>
+                    <span class="chip chip-mas">+<?= count($asignadas) - 2 ?></span>
+                  <?php endif; ?>
+                <?php endif; ?>
+              </span>
+              <svg class="icon icon-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+            </summary>
+            <fieldset class="jugador-editor" <?= $ventanaAbierta ? '' : 'disabled' ?>>
+              <input type="hidden" name="jugadores[<?= (int) $i ?>][nombre_check]" value="<?= stEsc($j['nombre'] ?? '') ?>">
+              <?php for ($s = 0; $s < ST_MAX_SUPERTECNICAS; $s++):
+                $st = $slots[$s] ?? ['nombre' => '', 'tipo' => '', 'afinidad' => '', 'especial' => '', 'descripcion' => ''];
+              ?>
+                <div class="st-slot">
+                  <span class="st-slot-num"><?= stEsc(stT('roster.supertecnica')) ?> <?= $s + 1 ?></span>
+                  <div class="rejilla rejilla-4">
+                    <label class="campo"><span><?= stEsc(stT('campo.nombre')) ?></span>
+                      <input class="inp inp-sm" type="text" maxlength="40" name="jugadores[<?= (int) $i ?>][st][<?= $s ?>][nombre]" value="<?= stEsc($st['nombre'] ?? '') ?>" placeholder="<?= stEsc(stT('placeholder.nombre')) ?>">
+                    </label>
+                    <label class="campo"><span><?= stEsc(stT('campo.tipo')) ?></span>
+                      <select class="inp inp-sm" name="jugadores[<?= (int) $i ?>][st][<?= $s ?>][tipo]">
+                        <?php foreach (ST_TIPOS as $t): ?>
+                          <option value="<?= stEsc($t) ?>" <?= ($st['tipo'] ?? '') === $t ? 'selected' : '' ?>><?= $t === '' ? '—' : stEsc(stTipoLabel($t)) ?></option>
+                        <?php endforeach; ?>
+                      </select>
+                    </label>
+                    <label class="campo"><span><?= stEsc(stT('campo.afinidad')) ?></span>
+                      <select class="inp inp-sm" name="jugadores[<?= (int) $i ?>][st][<?= $s ?>][afinidad]">
+                        <?php foreach (ST_AFINIDADES as $a): ?>
+                          <option value="<?= stEsc($a) ?>" <?= ($st['afinidad'] ?? '') === $a ? 'selected' : '' ?>><?= $a === '' ? '—' : stEsc(stAfinidadLabel($a)) ?></option>
+                        <?php endforeach; ?>
+                      </select>
+                    </label>
+                    <label class="campo"><span><?= stEsc(stT('campo.especial')) ?></span>
+                      <input class="inp inp-sm inp-mono" type="text" maxlength="40" name="jugadores[<?= (int) $i ?>][st][<?= $s ?>][especial]" value="<?= stEsc($st['especial'] ?? '') ?>" placeholder="<?= stEsc(stT('placeholder.especial')) ?>">
+                    </label>
+                  </div>
+                  <label class="campo"><span><?= stEsc(stT('campo.descripcion')) ?></span>
+                    <textarea class="inp" maxlength="300" name="jugadores[<?= (int) $i ?>][st][<?= $s ?>][descripcion]" placeholder="<?= stEsc(stT('placeholder.descripcion')) ?>"><?= stEsc($st['descripcion'] ?? '') ?></textarea>
+                  </label>
+                </div>
+              <?php endfor; ?>
+            </fieldset>
+          </details>
+        <?php endforeach; ?>
+      </div>
 
       <?php if ($ventanaAbierta): ?>
-        <button class="btn btn-accent btn-lg" type="submit">Guardar supertécnicas</button>
+        <div class="st-acciones">
+          <button class="btn btn-accent btn-lg btn-icon-txt" type="submit">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+            <?= stEsc(stT('roster.guardar')) ?>
+          </button>
+        </div>
       <?php endif; ?>
     </form>
   </main>
