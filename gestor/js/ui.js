@@ -512,11 +512,29 @@ function campoImagen(label, valor, ref, ayuda){
     '<div class="color-par zona-img" data-img="'+esc(ref)+'">'+
       previa+
       '<input class="inp" value="'+esc(valor||'')+'" data-c="'+esc(ref)+'" placeholder="https://… o suelta una imagen aquí">'+
+      '<button type="button" class="btn btn-icon btn-secondary" data-subir-img title="Subir una foto desde este dispositivo"><i class="ph ph-upload-simple"></i></button>'+
+      '<input type="file" accept="image/*" data-input-img hidden>'+
     '</div>'+
     '<span class="ayuda">'+(esDato
       ? '<b style="color:var(--gold)">Imagen incrustada</b> · '+Math.round((valor.length*3/4)/1024)+' KB dentro del archivo'
-      : (ayuda||'Arrastra un archivo encima para incrustarlo, o pega una URL.'))+'</span>'+
+      : (ayuda||'Arrastra un archivo encima, pulsa el botón para elegirlo, o pega una URL.'))+'</span>'+
   '</div>';
+}
+/* Aplica un archivo de imagen ya elegido (por soltar o por el selector) al
+   campo que corresponda: mismo recorte, mismo aviso, mismo repintado — un
+   solo sitio para las dos formas de entrada, en vez de duplicar la lógica. */
+function aplicarImagenSubida(zona, file){
+  if(!/^image\//.test(file.type)) return aviso('Eso no es una imagen.', 'ojo');
+  SFG.dnd.procesarImagen(file, {recortar:true, max:256}, function(url){
+    var kb = Math.round((url.length*3/4)/1024);
+    var partes = String(zona.dataset.img).split(':');
+    var fn = (acciones[partes[0]]||{})[partes[1]];
+    if(!fn) return;
+    var falso = {value:url, dataset:Object.assign({}, zona.querySelector('input.inp').dataset)};
+    fn(falso);
+    aviso('Imagen incrustada, '+kb+' KB. Con muchas, el archivo que descarga la web crece deprisa.', kb>120?'ojo':'ok', 8000);
+    refrescar();
+  });
 }
 /* Un solo juego de oyentes para todos los campos de imagen que existan o
    lleguen a existir, en vez de recablear en cada repintado. */
@@ -539,19 +557,25 @@ document.addEventListener('drop', function(ev){
   z.classList.remove('dnd-encima');
   var f = ev.dataTransfer.files[0];
   if(!f) return;
-  if(!/^image\//.test(f.type)) return aviso('Eso no es una imagen.', 'ojo');
-  SFG.dnd.procesarImagen(f, {recortar:true, max:256}, function(url){
-    var kb = Math.round((url.length*3/4)/1024);
-    var partes = String(z.dataset.img).split(':');
-    var fn = (acciones[partes[0]]||{})[partes[1]];
-    if(!fn) return;
-    /* Se reutiliza el mismo manejador que el campo de texto: para el modelo de
-       datos, soltar una imagen es escribir un valor en ese campo. */
-    var falso = {value:url, dataset:Object.assign({}, z.querySelector('input').dataset)};
-    fn(falso);
-    aviso('Imagen incrustada, '+kb+' KB. Con muchas, el archivo que descarga la web crece deprisa.', kb>120?'ojo':'ok', 8000);
-    refrescar();
-  });
+  aplicarImagenSubida(z, f);
+});
+/* Botón "subir" del campo de imagen: dispara el selector de archivos nativo
+   (mismo input file oculto, siempre el mismo por campo, para no acumular
+   listeners en cada repintado). */
+document.addEventListener('click', function(ev){
+  var b = ev.target.closest && ev.target.closest('[data-subir-img]');
+  if(!b) return;
+  var z = b.closest('[data-img]');
+  var input = z && z.querySelector('[data-input-img]');
+  if(input) input.click();
+});
+document.addEventListener('change', function(ev){
+  var input = ev.target.closest && ev.target.closest('[data-input-img]');
+  if(!input) return;
+  var z = input.closest('[data-img]');
+  var f = input.files && input.files[0];
+  input.value = '';
+  if(z && f) aplicarImagenSubida(z, f);
 });
 
 function campo(label, control, ayuda){
