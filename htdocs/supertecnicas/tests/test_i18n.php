@@ -77,11 +77,80 @@ stEstablecerIdioma('en');
 verificar('stTipoLabel traduce "tiro" a inglés', stTipoLabel('tiro') === 'Shot');
 verificar('stTipoLabel es insensible a mayúsculas', stTipoLabel('TIRO') === 'Shot');
 verificar('stTipoLabel devuelve vacío si no hay tipo', stTipoLabel('') === '');
-verificar('stTipoLabel devuelve vacío si el tipo no existe', stTipoLabel('inventado') === '');
+verificar('stTipoLabel devuelve el valor original si el tipo no existe', stTipoLabel('inventado') === 'inventado');
 
 verificar('stAfinidadLabel traduce "fuego" a inglés', stAfinidadLabel('fuego') === 'Fire');
 verificar('stAfinidadLabel traduce "montaña" (con ñ) a inglés', stAfinidadLabel('montaña') === 'Mountain');
 stEstablecerIdioma('es');
+
+// -- stResolverIdioma ----------------------------------------------------
+// Guarda y restaura los superglobales que esta sección manipula, para no
+// afectar al resto del test.
+$get_original = $_GET;
+$session_original = $_SESSION ?? [];
+
+$_GET = ['lang' => 'fr'];
+$_SESSION = [];
+verificar(
+    'stResolverIdioma usa ?lang= si es válido y lo guarda en sesión',
+    stResolverIdioma() === 'fr' && ($_SESSION['st_lang'] ?? null) === 'fr'
+);
+
+$_GET = [];
+$_SESSION = ['st_lang' => 'pt'];
+verificar(
+    'stResolverIdioma usa el idioma ya guardado en sesión si no hay ?lang=',
+    stResolverIdioma() === 'pt'
+);
+
+$_GET = [];
+$_SESSION = [];
+$_SERVER['HTTP_ACCEPT_LANGUAGE'] = 'de-DE,it;q=0.9';
+verificar(
+    'stResolverIdioma cae a Accept-Language si no hay ?lang= ni sesión',
+    stResolverIdioma() === 'it'
+);
+unset($_SERVER['HTTP_ACCEPT_LANGUAGE']);
+
+$_GET = $get_original;
+$_SESSION = $session_original;
+
+// -- Paridad de claves entre idiomas --------------------------------------
+verificar(
+    'todos los idiomas de ST_I18N tienen exactamente las mismas claves',
+    (function () use ($ST_I18N) {
+        $clavesEs = array_keys($ST_I18N['es']);
+        sort($clavesEs);
+        foreach ($ST_I18N as $idioma => $textos) {
+            $claves = array_keys($textos);
+            sort($claves);
+            if ($claves !== $clavesEs) return false;
+        }
+        return true;
+    })()
+);
+
+// -- Paridad entre los mapas de traducción y las constantes de lib.php ---
+verificar(
+    'las claves de ST_TIPOS_I18N coinciden con ST_TIPOS (sin la vacía)',
+    (function () use ($ST_TIPOS_I18N) {
+        $esperadas = array_filter(ST_TIPOS, function ($t) { return $t !== ''; });
+        sort($esperadas);
+        $reales = array_keys($ST_TIPOS_I18N);
+        sort($reales);
+        return $esperadas === $reales;
+    })()
+);
+verificar(
+    'las claves de ST_AFINIDADES_I18N coinciden con ST_AFINIDADES (sin la vacía)',
+    (function () use ($ST_AFINIDADES_I18N) {
+        $esperadas = array_filter(ST_AFINIDADES, function ($a) { return $a !== ''; });
+        sort($esperadas);
+        $reales = array_keys($ST_AFINIDADES_I18N);
+        sort($reales);
+        return $esperadas === $reales;
+    })()
+);
 
 // -- stRenderSelectorIdioma ------------------------------------------------
 verificar(

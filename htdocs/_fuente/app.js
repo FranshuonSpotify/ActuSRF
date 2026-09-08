@@ -856,7 +856,7 @@ function openPlayer(teamId,nameEnc){
   var posCls=String(j.posicion||'').toLowerCase();
 
   var techs=(j.supertecnicas||[]).map(function(t){
-    return '<div class="tech"><div class="tech-top"><b>'+esc(t.nombre)+'</b>'+(t.tipo?'<span class="badge">'+esc(tipoName(t.tipo))+'</span>':'')+'</div>'+(t.descripcion?'<p>'+esc(t.descripcion)+'</p>':'')+'</div>';
+    return '<div class="tech"><div class="tech-top"><b>'+esc(t.nombre)+'</b>'+(t.tipo?'<span class="badge" data-no-tr>'+esc(tipoName(t.tipo))+'</span>':'')+'</div>'+(t.descripcion?'<p>'+esc(t.descripcion)+'</p>':'')+'</div>';
   }).join('');
 
   /* HISTORIAL DE EQUIPOS — un logo enorme con nombre y temporada no decía
