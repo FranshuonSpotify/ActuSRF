@@ -53,15 +53,39 @@ $config = stCargarConfig();
 <link rel="stylesheet" href="css/supertecnicas.css">
 </head>
 <body>
-<main class="st-admin">
-  <h1>Admin · Supertécnicas</h1>
-  <?php if ($mensaje !== ''): ?><p class="ayuda"><?= stEsc($mensaje) ?></p><?php endif; ?>
+<main class="st-shell">
+  <header class="st-cabecera">
+    <div>
+      <h1>Admin · Supertécnicas</h1>
+      <p class="ayuda">Controla la ventana de edición y el código/PIN de acceso de cada equipo.</p>
+    </div>
+    <span class="st-estado" data-abierta="<?= $config['ventana_abierta'] ? '1' : '0' ?>">
+      <span class="punto"></span>
+      <?= $config['ventana_abierta'] ? 'Ventana abierta' : 'Ventana cerrada' ?>
+    </span>
+  </header>
 
-  <form method="post" class="st-ventana">
+  <?php if ($mensaje !== ''): ?>
+    <div class="st-banda st-banda-ok">
+      <svg class="icon" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      <?= stEsc($mensaje) ?>
+    </div>
+  <?php endif; ?>
+
+  <form method="post" class="st-panel">
     <input type="hidden" name="csrf" value="<?= stEsc(stTokenCsrf()) ?>">
-    <span class="ayuda">Ventana de supertécnicas: <strong><?= $config['ventana_abierta'] ? 'ABIERTA' : 'CERRADA' ?></strong></span>
-    <button class="btn btn-accent" type="submit" name="toggle_ventana" value="1">
-      <?= $config['ventana_abierta'] ? 'Cerrar ventana' : 'Abrir ventana' ?>
+    <div class="st-panel-texto">
+      <b>Ventana de supertécnicas</b>
+      <span class="ayuda">Mientras está cerrada, los presidentes ven su plantilla pero no pueden guardar cambios.</span>
+    </div>
+    <button class="btn btn-accent btn-icon-txt" type="submit" name="toggle_ventana" value="1">
+      <?php if ($config['ventana_abierta']): ?>
+        <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>
+        Cerrar ventana
+      <?php else: ?>
+        <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        Abrir ventana
+      <?php endif; ?>
     </button>
   </form>
 
@@ -76,11 +100,24 @@ $config = stCargarConfig();
           <tbody>
             <?php foreach ($equipos as $equipo): $id = $equipo['id']; $actual = $codigos[$id] ?? stCodigoPorDefecto($equipo); $pendiente = !isset($codigos[$id]); ?>
               <tr>
-                <td><?= stEsc($equipo['nombre'] ?? '') ?><?= $pendiente ? ' <span class="ayuda">(pendiente de confirmar)</span>' : '' ?></td>
+                <td class="col-equipo">
+                  <?= stEsc($equipo['nombre'] ?? '') ?><br>
+                  <?php if ($pendiente): ?>
+                    <span class="pendiente">
+                      <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15.5 14"/></svg>
+                      Pendiente de confirmar
+                    </span>
+                  <?php else: ?>
+                    <span class="confirmado">
+                      <svg class="icon" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                      Confirmado
+                    </span>
+                  <?php endif; ?>
+                </td>
                 <td><?= stEsc($equipo['ciudad'] ?? '') ?></td>
-                <td><input class="inp inp-sm" type="text" name="codigo[<?= stEsc($id) ?>]" value="<?= stEsc($actual['codigo']) ?>"></td>
-                <td><input class="inp inp-sm" type="text" name="pin[<?= stEsc($id) ?>]" value="<?= stEsc($actual['pin']) ?>"></td>
-                <td><button class="btn btn-secondary btn-sm" type="submit" name="guardar_codigo" value="<?= stEsc($id) ?>">Guardar</button></td>
+                <td><input class="inp inp-sm inp-mono" type="text" name="codigo[<?= stEsc($id) ?>]" value="<?= stEsc($actual['codigo']) ?>"></td>
+                <td><input class="inp inp-sm inp-mono" type="text" name="pin[<?= stEsc($id) ?>]" value="<?= stEsc($actual['pin']) ?>"></td>
+                <td class="col-min"><button class="btn btn-secondary btn-sm" type="submit" name="guardar_codigo" value="<?= stEsc($id) ?>">Guardar</button></td>
               </tr>
             <?php endforeach; ?>
           </tbody>
