@@ -1365,7 +1365,7 @@ function honoursStrip(titulos){
   if(!grupos.length) return '';
   return '<div class="honours-strip">'+grupos.map(function(g){
     var ultima=g.instancias[0], foto=trofeoFotoDe(g.cls);
-    return '<button type="button" class="honour-tile" data-team-hist="'+esc(ultima.idx)+':'+esc(ultima.equipo.id)+'">'+
+    return '<button type="button" class="honour-tile" data-cls="'+esc(g.cls)+'" data-team-hist="'+esc(ultima.idx)+':'+esc(ultima.equipo.id)+'">'+
       (foto
         ? '<img src="'+esc(foto)+'" alt="" referrerpolicy="no-referrer">'
         : '<span class="honour-tile-noimg"><i class="ph-bold ph-trophy"></i></span>')+
