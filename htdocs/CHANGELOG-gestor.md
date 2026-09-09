@@ -266,3 +266,72 @@ Recordatorio del esquema: el presidente vive en el campo `ciudad` — rareza
 histórica que `presidenteDe()` ya encapsulaba. Se añadió `team.gerente` al
 diccionario de `i18n.js` en los diez idiomas, para que no cayera al traductor
 automático mientras sus vecinos van por diccionario.
+
+---
+
+## El traductor automático estaba muerto en producción
+
+**Diagnóstico.** No era que faltaran traducciones: era que `translate_a/single?client=gtx`
+dejó de mandar `Access-Control-Allow-Origin` a las peticiones **del navegador**
+—desde `curl`, con la misma IP y el mismo `Origin`, sí lo manda—. En la web
+real eso eran **194 peticiones fallidas por carga** y todo lo que no estuviera
+en el diccionario se quedaba en español: bio del fundador, las cuatro
+descripciones de Construyendo historia, las tres reseñas, el rol de
+D4rkRepulser y los cuerpos de noticia. Lo que sí tiene traducción curada
+(133 de las 139 claves) funcionaba, y por eso parecía un problema de claves
+sueltas.
+
+**Segundo fallo, el que lo hacía permanente.** Cuando el lote fallaba, el
+respaldo llamaba a `sfATFetch()`, que devuelve el **texto original** al fallar,
+y el guardado posterior lo metía en caché como si fuese la traducción. Las 40
+entradas de caché en producción eran el original sin traducir. Una vez ahí, la
+cadena quedaba congelada en español para siempre aunque el traductor volviera:
+había acierto de caché y no se volvía a pedir. Ahora `_sfATRequest()` devuelve
+`null` al fallar y el guardado ya ignora los nulos, así que un fallo se
+reintenta en la carga siguiente en vez de fosilizarse.
+
+**El arreglo.** `translate_a/t?client=dict-chrome-ex`, que es el **mismo host**
+—no hay que tocar la CSP—, responde con CORS y acepta varios `&q=` en una
+llamada devolviendo un array con una traducción por entrada. Eso sustituye al
+truco de unir por saltos de línea y volver a partir, que era lo que podía
+descuadrar un lote entero. Verificado en los diez idiomas. De 194 peticiones
+fallidas se pasa a 3 correctas, y la consola queda limpia.
+
+`sl=auto` y no `sl=es`: casi todo el origen es el español del DOM, pero
+`sfATApply(forzar)` traduce texto libre de idioma desconocido —el nombre de una
+supertécnica lo puede haber escrito un presidente en francés o en japonés— y
+con `sl=es` fijo eso volvía sin tocar. La respuesta cambia de forma según `sl`
+(`[[texto, idioma]]` con `auto`, `[texto]` con idioma fijo), así que
+`_sfATTextos()` acepta las dos.
+
+`SF_CACHE_V` sube a `v3` para tirar la caché envenenada del navegador de todo
+el mundo; si no, el arreglo no se notaría en quien ya hubiera visitado la web.
+
+## Términos y privacidad, en los diez idiomas
+
+La página era un HTML suelto sin nada de JavaScript. Ahora carga el motor de
+idiomas, que recorre el `<body>` traduciendo cualquier nodo de texto: no le
+hacen falta claves `data-i18n` propias. Se traduce sola al idioma que el
+visitante eligiera en la portada (va en `localStorage`) o al de `?lang=`, y
+lleva su propio selector de idioma en la barra.
+
+- El motor se **inlinea** en el build, no se enlaza con `src`: el despliegue
+  sube solo los `.html`, así que un `<script src="_fuente/i18n.js">` serviría
+  la copia que hubiera en el hosting, congelada desde la última subida manual.
+  Los marcadores `<!-- SF-I18N -->` sobreviven al reemplazo, así que el build
+  es idempotente (comprobado: dos builds seguidos dan el mismo tamaño).
+- `data-sf-meta="off"` en el `<html>`: `SF_META` es el título y la descripción
+  **de la portada**, y aplicarlos aquí dejaba la pestaña con el título
+  equivocado. En su lugar se traduce el título y la descripción propios de la
+  página, recordando el original para poder volver al español sin recargar.
+- `hreflang` para los diez idiomas apuntando a `terminos.html?lang=xx`.
+
+**Anchura.** `.lg-sections` tenía `max-width:78ch`, que dejaba media pantalla
+vacía a la derecha en escritorio. Se quita el tope: quien manda es la rejilla
+de `.lg-body`, que ya limita el conjunto a 1480px.
+
+**Comprobación:** `node _fuente/test-traductor.js` — carga la página en inglés
+saliendo de verdad a la red y verifica que la bio del fundador, la cronología y
+las reseñas acaban traducidas, y que la caché no guarda originales sin traducir.
+Si no hay conexión, avisa y no falla: prueba el camino del código, no que
+Google esté disponible.

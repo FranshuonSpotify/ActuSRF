@@ -1401,7 +1401,10 @@ body.locked{ overflow:hidden; }
 .lg-toc a{ display:flex; gap:.7rem; padding:.5rem .75rem; border-radius:var(--r-sm); font-size:.875rem; color:var(--ink-3); transition:background var(--t1), color var(--t1); }
 .lg-toc a:hover{ background:rgba(255,255,255,.05); color:var(--ink); }
 .lg-toc a b{ font-family:var(--f-mono); font-size:.75rem; color:var(--ink-5); font-weight:500; }
-.lg-sections{ display:flex; flex-direction:column; gap:1rem; max-width:78ch; }
+/* Sin tope de anchura: el tope de 78ch dejaba media pantalla vacía a la
+   derecha en escritorio. Quien manda es la rejilla de .lg-body, que ya
+   limita el conjunto a 1480px. */
+.lg-sections{ display:flex; flex-direction:column; gap:1rem; }
 .lg-card{ padding:clamp(1.5rem,3vw,2.25rem); scroll-margin-top:88px; }
 .lg-card h2{ display:flex; align-items:center; gap:.875rem; font-size:clamp(1.125rem,2vw,1.5rem); letter-spacing:-.03em; }
 .lg-card h2 .n{ display:grid; place-items:center; width:30px; height:30px; border-radius:50%; background:rgba(255,255,255,.06); border:1px solid var(--line-2); font-family:var(--f-mono); font-size:.75rem; color:var(--ink-3); flex-shrink:0; }

@@ -203,7 +203,7 @@
            entera: sin esto, una traducción mala se quedaba pegada para siempre
            en el navegador de quien la hubiera cogido. Se limita el tamaño
            porque localStorage ronda los 5 MB y la web tiene mucho texto. */
-        var SF_CACHE_V = 'v2';
+        var SF_CACHE_V = 'v3';
         var SF_CACHE_MAX = 4000;
         var _sfATCache = (function() {
             try {
@@ -227,6 +227,41 @@
             }
         }
         function _sfATKey(text, lang) { return lang + '::' + text; }
+
+        /* El endpoint de siempre (translate_a/single?client=gtx) dejó de mandar
+           Access-Control-Allow-Origin a las peticiones DEL NAVEGADOR —desde
+           curl sí llega—, así que en producción TODAS las traducciones morían
+           en CORS: 194 fallos por carga, y todo lo que no estuviera en el
+           diccionario se quedaba en español (bio del fundador, cronología,
+           reseñas, cuerpos de noticia...).
+
+           translate_a/t?client=dict-chrome-ex es el mismo host —no hay que
+           tocar la CSP—, responde con CORS y acepta varios &q= en una misma
+           llamada, devolviendo un array con una traducción por entrada. Eso
+           sustituye al truco de unir por saltos de línea y volver a partir,
+           que era lo que podía descuadrar un lote entero.
+
+           sl=auto y no sl=es: casi todo el origen es el español del DOM, pero
+           sfATApply(forzar) traduce texto libre de idioma desconocido —el
+           nombre de una supertécnica lo puede haber escrito un presidente en
+           francés o en japonés— y con sl=es fijo eso volvía sin tocar. */
+        function _sfATUrl(textos, lang) {
+            return 'https://translate.googleapis.com/translate_a/t?client=dict-chrome-ex&sl=auto&tl=' + lang +
+                textos.map(function(t){ return '&q=' + encodeURIComponent(t); }).join('');
+        }
+
+        /* La respuesta cambia de forma según sl: con sl=auto viene
+           [[traducción, idioma detectado], ...] y con sl=<idioma> viene
+           [traducción, ...]. Se aceptan las dos y se devuelve null si el
+           reparto no cuadra, que es la señal de "no escribas nada". */
+        function _sfATTextos(data, cuantos) {
+            if (!Array.isArray(data) || data.length !== cuantos) return null;
+            var out = data.map(function(x) {
+                if (typeof x === 'string') return x;
+                return (Array.isArray(x) && typeof x[0] === 'string') ? x[0] : null;
+            });
+            return out.some(function(t){ return t == null; }) ? null : out;
+        }
         window.sfResetCache = function() {
             _sfATCache = { __v: SF_CACHE_V };
             try { localStorage.removeItem('sf_at_cache'); } catch(e) {}
@@ -258,20 +293,24 @@
             return queued == null ? text : queued;
         }
 
+        /* Devuelve null si la traducción no llega. Es importante que sea null
+           y no el texto original: quien llama guarda en caché lo que reciba, y
+           cachear el original como si fuese la traducción dejaba la cadena
+           congelada en español PARA SIEMPRE, aunque el traductor volviera a
+           funcionar. Así estaban las 40 entradas de caché en producción. */
         async function _sfATRequest(text, lang) {
             var key = _sfATKey(text, lang);
             if (_sfATCache[key] !== undefined) return _sfATCache[key];
             try {
-                var url = 'https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=' + lang + '&dt=t&q=' + encodeURIComponent(text);
-                var resp = await fetch(url);
+                var resp = await fetch(_sfATUrl([text], lang));
                 if (!resp.ok) throw new Error('translate fail');
-                var data = await resp.json();
-                var translated = (data && data[0]) ? data[0].map(function(chunk){ return chunk[0]; }).join('') : text;
-                _sfATCache[key] = translated;
+                var textos = _sfATTextos(await resp.json(), 1);
+                if (!textos) throw new Error('respuesta inesperada');
+                _sfATCache[key] = textos[0];
                 _sfATSaveCache();
-                return translated;
+                return textos[0];
             } catch(e) {
-                return text;
+                return null;
             }
         }
 
@@ -491,21 +530,15 @@
             node.nodeValue = src ? orig.replace(src, translated) : orig;
         }
 
-        /* Un solo viaje por cada ~18 cadenas: unidas por salto de línea y
-           separadas de vuelta. Si el reparto no cuadra, se cae a peticiones
-           sueltas para ese lote en lugar de escribir texto descolocado. */
+        /* Un solo viaje por lote: cada cadena va en su propio &q= y vuelve en
+           su propia posición del array, así que no hay nada que volver a
+           partir. Si el reparto no cuadra, se cae a peticiones sueltas para
+           ese lote en lugar de escribir texto descolocado. */
         async function sfATBatch(list, lang) {
-            var joined = list.join('\n');
             try {
-                var url = 'https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl='
-                    + lang + '&dt=t&q=' + encodeURIComponent(joined);
-                var resp = await fetch(url);
+                var resp = await fetch(_sfATUrl(list, lang));
                 if (!resp.ok) throw new Error('translate fail');
-                var data = await resp.json();
-                if (!data || !data[0]) throw new Error('sin datos');
-                var parts = data[0].map(function(c) { return c[0]; }).join('').split('\n');
-                if (parts.length !== list.length) return null;
-                return parts;
+                return _sfATTextos(await resp.json(), list.length);
             } catch (e) { return null; }
         }
 
@@ -566,8 +599,12 @@
                 return _sfQueue(function() { return sfATBatch(slice, lang); })
                     .then(function(res) {
                         if (res) return { slice: slice, res: res };
-                        return Promise.all(slice.map(function(s) { return sfATFetch(s, lang); }))
-                            .then(function(r2) { return { slice: slice, res: r2 }; });
+                        /* _sfATRequest y no sfATFetch: éste devuelve el texto
+                           original cuando falla, y el guardado de más abajo lo
+                           metería en caché como si fuese la traducción. */
+                        return Promise.all(slice.map(function(s) {
+                            return _sfQueue(function(){ return _sfATRequest(s, lang); });
+                        })).then(function(r2) { return { slice: slice, res: r2 }; });
                     });
             })).then(function(bloques) {
                 bloques.forEach(function(b) {
@@ -627,16 +664,46 @@
             sr: ['Суперлига Фронтијер: Активна лига Inazuma Eleven Victory Road 2026 | Табела и резултати',
                  'Активна лига Inazuma Eleven: Victory Road. Зелени играчи, без пребацивања пасива и платни лимит. Табела, резултати, тимови и најбољи стрелци.']
         };
+        var _sfMetaPropio = null;
         function sfApplyMeta(code) {
-            var m = SF_META[code] || SF_META.es;
-            document.title = m[0];
-            [['name', 'description', m[1]], ['property', 'og:title', m[0]], ['property', 'og:description', m[1]],
-             ['name', 'twitter:title', m[0]], ['name', 'twitter:description', m[1]]].forEach(function(t) {
-                var el = document.head.querySelector('meta[' + t[0] + '="' + t[1] + '"]');
-                if (el) el.setAttribute('content', t[2]);
-            });
-            var loc = document.head.querySelector('meta[property="og:locale"]');
-            if (loc) loc.setAttribute('content', code === 'es' ? 'es_ES' : code);
+            /* SF_META es el título y la descripción DE LA PORTADA. Una página
+               suelta que reutilice este motor (terminos.html) trae los suyos y
+               marca data-sf-meta="off" para que no se los pisemos. El resto de
+               la función —la URL con ?lang=— sí le sirve igual. */
+            if (document.documentElement.getAttribute('data-sf-meta') === 'off') {
+                /* El <title> y la descripción son de la propia página, pero
+                   también tienen que verse en el idioma del visitante: el
+                   recorrido de traducción solo entra al <body>, así que aquí
+                   no llega. Se guarda el original para poder volver al
+                   español sin recargar. */
+                if (!_sfMetaPropio) {
+                    _sfMetaPropio = {
+                        t: document.title,
+                        d: (document.head.querySelector('meta[name="description"]') || {}).content || ''
+                    };
+                }
+                var ponMeta = function(t, dsc) {
+                    if (sfGetLang() !== code) return;
+                    if (t) document.title = t;
+                    var el = document.head.querySelector('meta[name="description"]');
+                    if (el && dsc) el.setAttribute('content', dsc);
+                };
+                if (code === 'es') ponMeta(_sfMetaPropio.t, _sfMetaPropio.d);
+                else {
+                    sfATFetch(_sfMetaPropio.t, code).then(function(t){ ponMeta(t, null); });
+                    if (_sfMetaPropio.d) sfATFetch(_sfMetaPropio.d, code).then(function(dsc){ ponMeta(null, dsc); });
+                }
+            } else {
+                var m = SF_META[code] || SF_META.es;
+                document.title = m[0];
+                [['name', 'description', m[1]], ['property', 'og:title', m[0]], ['property', 'og:description', m[1]],
+                 ['name', 'twitter:title', m[0]], ['name', 'twitter:description', m[1]]].forEach(function(t) {
+                    var el = document.head.querySelector('meta[' + t[0] + '="' + t[1] + '"]');
+                    if (el) el.setAttribute('content', t[2]);
+                });
+                var loc = document.head.querySelector('meta[property="og:locale"]');
+                if (loc) loc.setAttribute('content', code === 'es' ? 'es_ES' : code);
+            }
             /* ?lang= convierte cada idioma en una URL propia, que es lo que
                hace legítimos los hreflang del <head>. */
             try {
