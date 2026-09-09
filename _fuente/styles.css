@@ -992,7 +992,12 @@ table.tbl tbody tr:last-child td{ border-bottom:0; }
 .pres-avatar{ width:22px; height:22px; border-radius:50%; object-fit:cover; flex-shrink:0; filter:grayscale(1); transition:filter var(--t2); }
 .pres-card .pres-avatar, .pres-row-static .pres-avatar{ width:52px; height:52px; }
 .pres-card:hover .pres-avatar, .pres-card:focus-visible .pres-avatar{ filter:none; }
-.pres-avatar-lg{ width:44px; height:44px; vertical-align:-14px; margin-right:.6rem; filter:none; }
+.pres-avatar-lg{ width:44px; height:44px; filter:none; }
+/* #pres-title mezcla avatar + nombre como contenido inline (img + texto):
+   con vertical-align a pixel fijo el avatar y el nombre no alineaban bien
+   entre sí. inline-flex los centra el uno respecto al otro de verdad, sin
+   depender de la métrica exacta de la fuente. */
+#pres-title{ display:inline-flex; align-items:center; gap:.6rem; min-width:0; }
 #pres-title, #champ-title, #ov-team-titulos .ov-head h3{ font-family:var(--f-sans); font-weight:700; font-size:1.125rem; letter-spacing:-.01em; }
 #ov-team-titulos{ z-index:900; }
 
@@ -1011,8 +1016,8 @@ table.tbl tbody tr:last-child td{ border-bottom:0; }
    bloque de contenido pone el suyo), así que "sangrar" el margen no tenía
    nada que cancelar y la tira quedaba pegada al borde del modal, sin hueco
    a la izquierda — justo lo que se veía mal en pantallas pequeñas. */
-.honours-wrap{ padding-bottom:1.25rem; border-bottom:1px solid var(--line); margin-bottom:1.25rem; }
-.honours-strip{ display:flex; gap:.75rem; overflow-x:auto; padding:0 1.5rem 1.5rem; scroll-snap-type:x proximity; scrollbar-width:none; }
+.honours-wrap{ padding:1.25rem 0; border-bottom:1px solid var(--line); margin-bottom:1.25rem; }
+.honours-strip{ display:flex; gap:.75rem; overflow-x:auto; padding:0 1.5rem; scroll-snap-type:x proximity; scrollbar-width:none; }
 .honours-strip::-webkit-scrollbar{ display:none; }
 .honour-tile{
   position:relative; flex:0 0 128px; height:168px; border-radius:var(--r); overflow:hidden;

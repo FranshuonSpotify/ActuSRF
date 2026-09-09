@@ -1413,7 +1413,7 @@ function openTeamTitulos(equipoId){
   }).join('');
 
   $('team-titulos-body').innerHTML=
-    '<div class="honours-wrap" style="padding-top:.5rem">'+honoursStrip(titulos)+'</div>'+
+    '<div class="honours-wrap">'+honoursStrip(titulos)+'</div>'+
     '<div class="pres-group-title">'+T('team.titulos.presidentes','Presidentes con título en este club')+'</div>'+
     '<div class="pres-grid" style="padding-top:0">'+grupos+'</div>';
   $('ov-team-titulos').classList.add('open');
