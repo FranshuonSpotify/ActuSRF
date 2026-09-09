@@ -246,8 +246,12 @@ function fichaDatos(e){
     '<div class="rejilla rejilla-2">'+
       U.campo('Nombre', '<input class="inp" value="'+v('nombre')+'" data-c="equipos:campo" data-k="nombre">',
         'Los partidos referencian al club por este nombre: al cambiarlo se actualizan solos.')+
+      U.campo('Nombre en inglés', '<input class="inp" value="'+v('nombre_en')+'" data-c="equipos:campo" data-k="nombre_en" placeholder="'+v('nombre')+'">',
+        'El nombre de arriba solo se ve en español; en los otros nueve idiomas la web usa éste. Vacío = se queda el español.')+
       U.campo('Abreviatura', '<input class="inp inp-mono" maxlength="3" value="'+v('abreviatura')+'" data-c="equipos:campo" data-k="abreviatura" placeholder="'+esc(C.abbr3(e.nombre))+'">',
         'Si se deja vacía, la web la deduce del nombre.')+
+      U.campo('Abreviatura en inglés', '<input class="inp inp-mono" maxlength="3" value="'+v('abreviatura_en')+'" data-c="equipos:campo" data-k="abreviatura_en" placeholder="'+(v('abreviatura')||esc(C.abbr3(e.nombre_en||e.nombre)))+'">',
+        'Si se deja vacía, se usa la española; y si tampoco hay, se deduce del nombre en inglés.')+
       U.campo('División', '<select class="inp" data-c="equipos:campo" data-k="division">'+
         C.DIVISIONES.map(function(x){ return '<option'+(e.division===x?' selected':'')+'>'+x+'</option>'; }).join('')+'</select>')+
       U.campo('Formación', '<select class="inp" data-c="equipos:campo" data-k="formacion">'+
@@ -652,7 +656,7 @@ var A = {
     var e = {
       id:'eq_'+Date.now(), nombre:'Club nuevo', escudo:'', division:'SUPERLIGA',
       ciudad:'', estadio:'', entrenador:'', gerente:'', formacion:'4-3-3',
-      abreviatura:'', color1:'#FF5100', color2:'#111111',
+      abreviatura:'', nombre_en:'', abreviatura_en:'', color1:'#FF5100', color2:'#111111',
       pj:0, g:0, e:0, p:0, gf:0, gc:0, pts:0, jugadores:[]
     };
     SFG.d().equipos.push(e);

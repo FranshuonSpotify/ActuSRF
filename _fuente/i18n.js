@@ -93,12 +93,52 @@
             }).join('');
         }
 
+        /* ══════════════════════════════════════════
+           NOMBRE DE CLUB POR IDIOMA
+           El nombre en español solo se ve en español; en los otros nueve manda
+           nombre_en/abreviatura_en, si el gestor los ha rellenado.
+           La clave del mapa es SIEMPRE el nombre español, que es lo que
+           referencian los partidos, el historial y team(): por eso basta con
+           interceptar en SFX() y ningún punto de render necesita cambiar.
+        ════════════════════════════════════════════ */
+        var _sfEqMapa = null, _sfEqMapaBd = null;
+        function sfEquipoMapa() {
+            var bd = window.bd;
+            if (_sfEqMapa && _sfEqMapaBd === bd) return _sfEqMapa;
+            var m = Object.create(null);
+            ((bd && bd.equipos) || []).forEach(function(e) {
+                var n = String(e.nombre == null ? '' : e.nombre).trim();
+                if (n) m[n] = e;
+            });
+            _sfEqMapa = m; _sfEqMapaBd = bd;
+            return m;
+        }
+
+        /* {nombre, abreviatura} del club en el idioma activo, o null si el
+           texto no es el nombre de ningún club. Vacío cae al español, para que
+           un club sin traducir siga saliendo con el nombre de siempre. */
+        function sfEquipoIntl(nombre) {
+            var e = sfEquipoMapa()[String(nombre == null ? '' : nombre).trim()];
+            if (!e) return null;
+            if (sfGetLang() === 'es') return { nombre: e.nombre, abreviatura: e.abreviatura || '' };
+            return {
+                nombre: String(e.nombre_en || '').trim() || e.nombre,
+                abreviatura: String(e.abreviatura_en || '').trim() || e.abreviatura || ''
+            };
+        }
+        window.sfEquipoIntl = sfEquipoIntl;
+
         /* API pública: transcribe cualquier nombre según el idioma activo.
            Se usa en todos los puntos de render de equipos, jugadores, staff y ciudades. */
         function SFX(text) {
             var lang = sfGetLang();
-            if (lang !== 'bg' && lang !== 'sr') return text || '';
-            return sfTransliterarTexto(text || '', lang);
+            var s = text || '';
+            if (lang !== 'es') {
+                var intl = sfEquipoIntl(s);
+                if (intl) s = intl.nombre;
+            }
+            if (lang !== 'bg' && lang !== 'sr') return s;
+            return sfTransliterarTexto(s, lang);
         }
         window.SFX = SFX;
 
@@ -392,6 +432,9 @@
             }
             (bd && bd.equipos ? bd.equipos : []).forEach(function(e) {
                 add(e.nombre); add(e.entrenador); add(e.gerente); add(e.ciudad); add(e.estadio); add(e.abreviatura);
+                /* El nombre inglés es tan nombre propio como el español: sin
+                   esto, el recorrido de traducción se lo llevaba al traductor. */
+                add(e.nombre_en); add(e.abreviatura_en);
                 /* Los nombres de súper técnica NO entran aquí a propósito:
                    son contenido de juego y sí deben traducirse. Clubes,
                    jugadores y managers, en cambio, nunca se traducen. */

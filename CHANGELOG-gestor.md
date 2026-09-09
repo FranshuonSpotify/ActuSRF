@@ -152,3 +152,51 @@ preparación" a "En juego" (clave `historia.t4.tag`/`historia.t4.f3` en
 
 Tras estos cambios se reconstruyeron `index.html` y los 9 `*.html` de idioma
 con `node _fuente/build.js`.
+
+---
+
+## Nombre de club en inglés (expansión internacional)
+
+**Esquema (aditivo, retrocompatible):** `equipos[]` acepta dos claves nuevas,
+`nombre_en` y `abreviatura_en`. Ambas opcionales; un club sin ellas se comporta
+exactamente igual que antes.
+
+**Por qué no se toca `nombre`:** los partidos (`local`/`visitante`), el
+`historial[]` de cada jugador, `team()` y la resolución de goleadores
+referencian al club por su nombre **español**, que sigue siendo la clave real
+del dato. `nombre_en` es solo una etiqueta de presentación.
+
+**Dónde se decide el idioma:** en `SFX()` (`_fuente/i18n.js`), que ya envolvía
+todos los puntos de render de nombres propios vía `X()` en `app.js`. Se añadió
+`sfEquipoIntl(nombre)`, que devuelve `{nombre, abreviatura}` del club según el
+idioma activo. Al interceptar ahí, ni un solo punto de render de `app.js` ha
+tenido que cambiar: clasificación, resultados, cuadro de Copa, play-off, fichas
+de club y jugador, goleadores, buscador e imágenes para redes usan la versión
+correcta solos.
+
+**Regla:** español → `nombre`; los otros nueve idiomas → `nombre_en` si está
+relleno, y si no, `nombre`. En búlgaro y serbio la transliteración a cirílico
+se aplica **sobre el nombre inglés**, no sobre el español.
+
+**Abreviaturas:** `abbr3()` (`_fuente/app.js`) usa `abreviatura_en` fuera del
+español; si está vacía cae a `abreviatura`, y si tampoco hay, la deduce del
+nombre inglés. Se mantiene sin transliterar, como hasta ahora.
+
+**Traducción automática:** `sfNameSet()` registra también `nombre_en` y
+`abreviatura_en` como nombres propios, para que el recorrido de traducción no
+mande el nombre inglés a Google Translate (mismo bug que en su día convirtió
+"Ројал Академи" en "Краљевска академија").
+
+**Gestor:** dos campos nuevos en la ficha del club (`vista-equipos.js`),
+"Nombre en inglés" y "Abreviatura en inglés", con el valor español como
+placeholder para dejar claro qué se ve si se quedan vacíos. Usan el manejador
+`equipos:campo` de siempre, así que no propagan renombrados (no deben: solo el
+nombre español lo hace).
+
+**Comprobación:** `node _fuente/test-intl-equipos.js` — carga los datos reales
+en jsdom, traduce dos clubes en memoria y verifica las siete reglas (español
+intacto, inglés, resto de idiomas, caídas de abreviatura y de nombre,
+transliteración serbia desde el inglés, y texto que no es un club sin tocar).
+
+**Fuera de alcance, no hecho:** `ciudad`, `estadio`, `entrenador` y `gerente`
+siguen siendo únicos; solo se pidió el nombre del club.
