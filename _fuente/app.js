@@ -1364,7 +1364,11 @@ var HONOUR_NOMBRE_CORTO={
 function honoursStrip(titulos){
   var grupos=agruparPorCompeticion(titulos);
   if(!grupos.length) return '';
-  return '<div class="honours-strip">'+grupos.map(function(g){
+  /* .honours-strip-outer envuelve la tira sin más motivo que dar un sitio
+     fijo (que no se desplaza con el contenido) al desvanecido del borde
+     derecho: como hijo de la propia tira con scroll, se iría de la vista
+     en cuanto se deslizara. */
+  return '<div class="honours-strip-outer"><div class="honours-strip">'+grupos.map(function(g){
     var ultima=g.instancias[0], foto=trofeoFotoDe(g.cls);
     return '<button type="button" class="honour-tile" data-cls="'+esc(g.cls)+'" data-team-hist="'+esc(ultima.idx)+':'+esc(ultima.equipo.id)+'">'+
       (foto
@@ -1376,17 +1380,26 @@ function honoursStrip(titulos){
         '<span class="honour-tile-count">'+g.instancias.length+'</span>'+
       '</span>'+
     '</button>';
-  }).join('')+'</div>';
+  }).join('')+'</div></div>';
 }
 /* Centra los mosaicos como grupo solo cuando caben enteros sin scroll —
    comprobando el desbordamiento real del layout ya pintado, no adivinándolo
    por ancho de pantalla (los mismos 3 mosaicos caben o no según haya foto de
    trofeo o el icono de repuesto, según el idioma, etc.). Sin esto, un flex
    normal deja los mosaicos pegados a la izquierda y todo el aire sobrante se
-   acumula a la derecha. */
+   acumula a la derecha.
+   Cuando NO caben (pantallas muy estrechas), no hay margen simétrico
+   posible de verdad — el último mosaico sigue existiendo fuera de la vista,
+   no es un hueco vacío. En vez de perseguir una simetría que no tiene
+   sentido ahí, se añade un desvanecido en el borde derecho (.desborda) para
+   que se note que hay más contenido esperando a deslizar, no que se cortó
+   por error. */
 function ajustarCentradoHonours(){
   document.querySelectorAll('.honours-strip').forEach(function(el){
-    el.classList.toggle('centrado', el.scrollWidth<=el.clientWidth);
+    var desborda=el.scrollWidth>el.clientWidth;
+    el.classList.toggle('centrado', !desborda);
+    var outer=el.closest('.honours-strip-outer');
+    if(outer) outer.classList.toggle('desborda', desborda);
   });
 }
 
