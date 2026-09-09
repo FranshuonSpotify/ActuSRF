@@ -40,10 +40,23 @@ async function run(){
     console.log(lang+'.html regenerado (pre-renderizado):',htmlLang.length,'bytes');
   }
 
+  /* terminos.html marca con <!-- SF-I18N --> dónde va el motor de idiomas.
+     Se inlinea en vez de enlazarlo con src porque el despliegue sube solo los
+     .html: un <script src="_fuente/i18n.js"> serviría la copia que hubiera en
+     el hosting, congelada desde la última subida manual. Los marcadores
+     sobreviven al reemplazo, así que el build siguiente vuelve a refrescar el
+     contenido — el fichero es a la vez fuente y resultado, igual que pasa con
+     el <style> de la línea de arriba. */
+  const I18N_INI='<!-- SF-I18N -->', I18N_FIN='<!-- /SF-I18N -->';
   ['404.html','terminos.html'].forEach(function(f){
     let h=fs.readFileSync(p.join(root,f),'utf8');
     h=h.replace(/<style>[\s\S]*?<\/style>/,'<style>\n'+fs.readFileSync(p.join(d,'styles.css'),'utf8')+'\n</style>');
+    const ini=h.indexOf(I18N_INI), fin=h.indexOf(I18N_FIN);
+    if(ini>=0 && fin>ini){
+      h=h.slice(0,ini)+I18N_INI+'\n<script>\n'+fs.readFileSync(p.join(d,'i18n.js'),'utf8')+'\n</script>\n'+h.slice(fin);
+    }
     fs.writeFileSync(p.join(root,f),h);
+    console.log(f+' actualizado:',h.length,'bytes');
   });
 }
 
