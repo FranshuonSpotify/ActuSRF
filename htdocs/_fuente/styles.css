@@ -1034,10 +1034,19 @@ table.tbl tbody tr:last-child td{ border-bottom:0; }
    (el mismo síntoma que "safe center" antes) — el hueco izquierdo existía
    pero no se veía hasta desplazar a mano. Con como mucho 3 mosaicos, el
    ajuste fino de snap no compensa ese efecto secundario. */
+.honours-strip-outer{ position:relative; }
 .honours-strip{ display:flex; gap:.75rem; overflow-x:auto; padding-left:1.5rem; scrollbar-width:none; }
 .honours-strip.centrado{ justify-content:center; }
 .honours-strip::after{ content:''; flex:0 0 .75rem; }
 .honours-strip::-webkit-scrollbar{ display:none; }
+/* No es un hueco vacío recortado por error: hay un mosaico más esperando a
+   la derecha. Fijo (no es hijo de la tira con scroll), solo cuando de
+   verdad desborda. */
+.honours-strip-outer.desborda::after{
+  content:''; position:absolute; top:0; bottom:0; right:0; width:32px;
+  background:linear-gradient(to right, transparent, var(--bg-raised));
+  pointer-events:none;
+}
 .honour-tile{
   position:relative; flex:0 0 128px; height:168px; border-radius:var(--r); overflow:hidden;
   cursor:pointer; background:var(--surface-2); border:0; padding:0;
