@@ -1315,6 +1315,7 @@ function openPresidentesHall(){
   var list=presidentesConTitulos();
   $('pres-title').textContent=T('pres.hall.title','Salón de presidentes');
   $('pres-back').hidden=true;
+  $('pres-head-photo').hidden=true;
   $('pres-body').innerHTML = list.length
     ? '<div class="pres-grid">'+list.map(function(p){
         var etq=p.titulos.length===1?T('pres.titulo','título'):T('pres.titulos','títulos');
@@ -1382,14 +1383,16 @@ function openPresidenteDetalle(nombre){
   var titulos=titulosDePresidente(nombre);
   if(!titulos.length) return;
   var presFoto=presidenteFotoDe(nombre);
-  /* La foto no va en la cabecera junto a "Volver": un control pequeño y un
-     retrato grande en la misma línea competían mal entre sí. Va como su
-     propia franja arriba del contenido, a modo de foto de perfil — y solo
-     si existe, para no dejar un hueco vacío cuando todavía no se ha subido. */
   $('pres-title').textContent=nombre;
   $('pres-back').hidden=false;
+  /* Foto de fondo de la propia cabecera (difuminada, poco visible, apagándose
+     hacia la derecha con mask-image — ver #pres-head-photo en styles.css) en
+     vez de un retrato aparte compitiendo con "Volver" por espacio. Sin foto,
+     se oculta y la cabecera se queda como estaba. */
+  var elHeadFoto=$('pres-head-photo');
+  elHeadFoto.hidden=!presFoto;
+  elHeadFoto.style.backgroundImage=presFoto?'url("'+presFoto.replace(/"/g,'%22')+'")':'';
   $('pres-body').innerHTML=
-    (presFoto?'<div class="pres-hero"><img class="pres-avatar-lg" src="'+esc(presFoto)+'" alt="" referrerpolicy="no-referrer"></div>':'')+
     '<div class="honours-wrap"><div class="honours-label">'+T('pres.honores','Palmarés')+'</div>'+honoursStrip(titulos)+'</div>';
   $('ov-presidentes').classList.add('open');
 }

@@ -992,12 +992,6 @@ table.tbl tbody tr:last-child td{ border-bottom:0; }
 .pres-avatar{ width:22px; height:22px; border-radius:50%; object-fit:cover; flex-shrink:0; filter:grayscale(1); transition:filter var(--t2); }
 .pres-card .pres-avatar, .pres-row-static .pres-avatar{ width:52px; height:52px; }
 .pres-card:hover .pres-avatar, .pres-card:focus-visible .pres-avatar{ filter:none; }
-/* La foto de perfil del presidente no va en la cabecera (junto a "Volver"
-   un control pequeño y un retrato grande en la misma línea competían mal
-   entre sí): es su propia franja arriba del contenido. Solo se pinta si
-   hay foto — sin ella no queda hueco vacío. */
-.pres-hero{ padding:1.25rem 1.5rem 0; }
-.pres-avatar-lg{ width:64px; height:64px; border-radius:50%; object-fit:cover; filter:none; }
 #pres-title, #champ-title, #ov-team-titulos .ov-head h3{ font-family:var(--f-sans); font-weight:700; font-size:1.125rem; letter-spacing:-.01em; }
 #ov-team-titulos{ z-index:900; }
 
@@ -1061,6 +1055,22 @@ table.tbl tbody tr:last-child td{ border-bottom:0; }
 }
 .ov-head{ display:flex; align-items:center; justify-content:space-between; padding:1rem 1.25rem; border-bottom:1px solid var(--line); }
 .ov-head h3{ font-size:.9375rem; font-weight:550; }
+/* Foto de fondo de la cabecera del detalle de presidente: de fondo tras
+   "Volver" y el nombre, difuminada y poco visible, apagándose hacia la
+   derecha hasta el color liso del resto del panel (mask-image, no un
+   degradado de color aparte que haya que mantener igual a --bg-raised a
+   mano). Solo #ov-presidentes la usa; el resto de cabeceras no cambian. */
+#pres-head{ position:relative; overflow:hidden; }
+#pres-head > *:not(.pres-head-photo){ position:relative; z-index:1; }
+.pres-head-photo{
+  position:absolute; inset:0; z-index:0;
+  background-size:cover; background-position:center;
+  filter:blur(14px) brightness(.55) saturate(1.05);
+  opacity:.55;
+  -webkit-mask-image:linear-gradient(to right, black 0%, black 45%, transparent 90%);
+  mask-image:linear-gradient(to right, black 0%, black 45%, transparent 90%);
+}
+.pres-head-photo[hidden]{ display:none; }
 
 /* ============================ SHEET (pantalla completa) ============================ */
 .sheet{ position:fixed; inset:0; z-index:850; background:var(--bg); opacity:0; visibility:hidden; transition:opacity var(--t2) var(--ease), visibility var(--t2); }
