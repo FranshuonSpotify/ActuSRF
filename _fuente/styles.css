@@ -935,10 +935,13 @@ table.tbl tbody tr:last-child td{ border-bottom:0; }
 /* ============================ SALÓN DE PRESIDENTES / PALMARÉS ============================
    Lista editorial, no tarjetas de juego: sin cajas, sin insignias, sin
    fondos degradados, casi sin color. Separadores finos entre filas, nombres
-   en serif (Fraunces, la misma voz editorial del resto del sitio) y cifras
-   en mono — el contenido manda, la decoración no. Una sola señal de
-   interacción: la fila se desplaza un poco a la derecha al enfocarla/pasar
-   el ratón, nada más. */
+   en Inter (NO Fraunces: el único corte que carga shell.html es italic —
+   ver el <link> de Google Fonts — así que cualquier texto dinámico en serif
+   sale en cursiva, ilegible con nicks que mezclan mayúsculas y números como
+   "D4rkRepulser". Inter es la fuente de UI del sitio; se queda en eso aquí)
+   y cifras en mono — el contenido manda, la decoración no. Una sola señal
+   de interacción: la fila se desplaza un poco a la derecha al
+   enfocarla/pasar el ratón, nada más. */
 .champ-panel{ width:min(94vw,760px); }
 .champs{ display:flex; flex-direction:column; padding:.25rem 1.5rem 1.5rem; }
 .champ{
@@ -950,7 +953,7 @@ table.tbl tbody tr:last-child td{ border-bottom:0; }
 .champ:hover, .champ:focus-visible{ padding-left:.5rem; }
 .champ-crest{ width:42px; height:42px; object-fit:contain; flex-shrink:0; }
 .champ-id{ min-width:0; }
-.champ-id b{ display:block; font-family:var(--f-serif); font-size:1.375rem; font-weight:400; letter-spacing:-.01em; line-height:1.25; }
+.champ-id b{ display:block; font-family:var(--f-sans); font-size:1.0625rem; font-weight:600; letter-spacing:-.015em; line-height:1.3; }
 .champ-id .pres{ display:flex; align-items:center; gap:.4rem; margin-top:.35rem; font-size:.8125rem; color:var(--ink-3); }
 .champ-id .pres i{ color:var(--ink-5); font-size:.875rem; }
 .champ-trophy{ margin-left:auto; display:flex; align-items:center; gap:1rem; flex-shrink:0; }
@@ -971,11 +974,11 @@ table.tbl tbody tr:last-child td{ border-bottom:0; }
 }
 .pres-card:first-child{ border-top:none; }
 .pres-card:hover, .pres-card:focus-visible{ padding-left:.5rem; }
-.pres-card b{ font-family:var(--f-serif); font-size:1.25rem; font-weight:400; letter-spacing:-.01em; flex:1; min-width:0; }
+.pres-card b{ font-family:var(--f-sans); font-size:1rem; font-weight:600; letter-spacing:-.01em; flex:1; min-width:0; }
 .pres-card span{ font-family:var(--f-mono); font-size:.875rem; color:var(--ink-3); flex-shrink:0; }
 .pres-row-static{ display:flex; align-items:center; gap:1.125rem; padding:1.125rem 0; border-top:1px solid var(--line); }
 .pres-row-static:first-child{ border-top:none; }
-.pres-row-static b{ font-family:var(--f-serif); font-size:1.125rem; font-weight:400; flex:1; min-width:0; }
+.pres-row-static b{ font-family:var(--f-sans); font-size:.9375rem; font-weight:600; flex:1; min-width:0; }
 .pres-row-static span{ font-family:var(--f-mono); font-size:.8125rem; color:var(--ink-3); flex-shrink:0; }
 .pres-back{ display:inline-flex; align-items:center; gap:.4rem; font:inherit; background:none; border:0; padding:0; cursor:pointer; font-family:var(--f-mono); font-size:.6875rem; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-3); }
 .pres-back[hidden]{ display:none; }
@@ -990,7 +993,7 @@ table.tbl tbody tr:last-child td{ border-bottom:0; }
 .pres-card .pres-avatar, .pres-row-static .pres-avatar{ width:52px; height:52px; }
 .pres-card:hover .pres-avatar, .pres-card:focus-visible .pres-avatar{ filter:none; }
 .pres-avatar-lg{ width:44px; height:44px; vertical-align:-14px; margin-right:.6rem; filter:none; }
-#pres-title, #champ-title, #ov-team-titulos .ov-head h3{ font-family:var(--f-serif); font-weight:400; font-size:1.375rem; }
+#pres-title, #champ-title, #ov-team-titulos .ov-head h3{ font-family:var(--f-sans); font-weight:700; font-size:1.125rem; letter-spacing:-.01em; }
 #ov-team-titulos{ z-index:900; }
 
 /* ============================ TIRA DE HONORES (estilo Football Manager) ============================
@@ -1004,8 +1007,12 @@ table.tbl tbody tr:last-child td{ border-bottom:0; }
   display:flex; align-items:center; gap:.5rem; margin:0 1.5rem .875rem;
   font-family:var(--f-mono); font-size:.75rem; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--accent-2);
 }
-.honours-wrap{ padding-bottom:1.5rem; border-bottom:1px solid var(--line); margin:0 1.5rem 1.5rem; }
-.honours-strip{ display:flex; gap:.75rem; overflow-x:auto; padding:0 1.5rem; margin:0 -1.5rem; scroll-snap-type:x proximity; scrollbar-width:none; }
+/* Sin truco de margen negativo: .ov-panel no tiene padding propio (cada
+   bloque de contenido pone el suyo), así que "sangrar" el margen no tenía
+   nada que cancelar y la tira quedaba pegada al borde del modal, sin hueco
+   a la izquierda — justo lo que se veía mal en pantallas pequeñas. */
+.honours-wrap{ padding-bottom:1.25rem; border-bottom:1px solid var(--line); margin-bottom:1.25rem; }
+.honours-strip{ display:flex; gap:.75rem; overflow-x:auto; padding:0 1.5rem 1.5rem; scroll-snap-type:x proximity; scrollbar-width:none; }
 .honours-strip::-webkit-scrollbar{ display:none; }
 .honour-tile{
   position:relative; flex:0 0 128px; height:168px; border-radius:var(--r); overflow:hidden;

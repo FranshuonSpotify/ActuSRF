@@ -1385,8 +1385,7 @@ function openPresidenteDetalle(nombre){
   $('pres-title').innerHTML=(presFoto?'<img class="pres-avatar pres-avatar-lg" src="'+esc(presFoto)+'" alt="" referrerpolicy="no-referrer">':'')+esc(nombre);
   $('pres-back').hidden=false;
   $('pres-body').innerHTML=
-    '<div class="honours-label">'+T('pres.honores','Palmarés')+'</div>'+
-    honoursStrip(titulos);
+    '<div class="honours-wrap"><div class="honours-label">'+T('pres.honores','Palmarés')+'</div>'+honoursStrip(titulos)+'</div>';
   $('ov-presidentes').classList.add('open');
 }
 window.openPresidenteDetalle=openPresidenteDetalle;
