@@ -1382,9 +1382,14 @@ function openPresidenteDetalle(nombre){
   var titulos=titulosDePresidente(nombre);
   if(!titulos.length) return;
   var presFoto=presidenteFotoDe(nombre);
-  $('pres-title').innerHTML=(presFoto?'<img class="pres-avatar pres-avatar-lg" src="'+esc(presFoto)+'" alt="" referrerpolicy="no-referrer">':'')+esc(nombre);
+  /* La foto no va en la cabecera junto a "Volver": un control pequeño y un
+     retrato grande en la misma línea competían mal entre sí. Va como su
+     propia franja arriba del contenido, a modo de foto de perfil — y solo
+     si existe, para no dejar un hueco vacío cuando todavía no se ha subido. */
+  $('pres-title').textContent=nombre;
   $('pres-back').hidden=false;
   $('pres-body').innerHTML=
+    (presFoto?'<div class="pres-hero"><img class="pres-avatar-lg" src="'+esc(presFoto)+'" alt="" referrerpolicy="no-referrer"></div>':'')+
     '<div class="honours-wrap"><div class="honours-label">'+T('pres.honores','Palmarés')+'</div>'+honoursStrip(titulos)+'</div>';
   $('ov-presidentes').classList.add('open');
 }
