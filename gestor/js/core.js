@@ -1078,13 +1078,15 @@ function limpiarCamposSinUso(d){
    consume la web (Palmarés); agentes_libres, historial y clasificacion_copa
    sólo los usa el gestor, pero son parte del esquema y se preservan. */
 var CLAVES=['config','equipos','partidos_liga','partidos_ascenso','partidos_copa',
-            'historial','noticias','historial_temporadas','agentes_libres','clasificacion_copa'];
+            'historial','noticias','historial_temporadas','agentes_libres','clasificacion_copa',
+            'presidentes','trofeos'];
 /* clasificacion_copa queda fuera de CLAVES_ARRAY: el gestor no la lee ni la
    escribe, y en el archivo real es un objeto {letra_de_grupo: [tabla]}, no una
    lista. Exigirle forma de array rechazaba el archivo bueno al abrirlo y,
    peor, la habria sobrescrito con [] al normalizar (mas abajo). Se conserva
-   tal cual llegue, como una clave desconocida mas. */
-var CLAVES_ARRAY=CLAVES.filter(function(k){ return k!=='config'&&k!=='clasificacion_copa'; });
+   tal cual llegue, como una clave desconocida mas.
+   presidentes y trofeos son objetos {clave: {foto}}, por el mismo motivo. */
+var CLAVES_ARRAY=CLAVES.filter(function(k){ return k!=='config'&&k!=='clasificacion_copa'&&k!=='presidentes'&&k!=='trofeos'; });
 
 function validarEsquema(d){
   var err=[], avi=[];
@@ -1138,6 +1140,11 @@ function completarEsquema(d){
   });
   if(!d.config.grupos_copa || typeof d.config.grupos_copa!=='object' || Array.isArray(d.config.grupos_copa))
     d.config.grupos_copa={};
+  /* presidentes: {nombre: {foto}} y trofeos: {SUPERLIGA|ASCENSO|COPA: {foto}} —
+     dictionarios sueltos, aditivos, que app.js lee si existen y ya se apaña
+     sin ellos (icono/inicial por defecto) si no. */
+  if(!d.presidentes || typeof d.presidentes!=='object' || Array.isArray(d.presidentes)) d.presidentes={};
+  if(!d.trofeos || typeof d.trofeos!=='object' || Array.isArray(d.trofeos)) d.trofeos={};
   CLAVES_ARRAY.forEach(function(k){ if(!Array.isArray(d[k])) d[k]=[]; });
   d.partidos_copa.forEach(function(p){
     if(p.origen_local===undefined) p.origen_local=null;

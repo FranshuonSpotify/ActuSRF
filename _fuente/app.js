@@ -79,6 +79,9 @@ function afTag(a,cls){ var k=afKey(a); return '<span class="af af-'+k+(cls?' '+c
 
 function team(n){ return bd.equipos.find(function(e){ return e.nombre===n; }); }
 function isHttp(u){ return !!u && /^https?:\/\//.test(u); }
+/* Fotos de presidente/trofeo (gestor: vista-palmares.js) pueden ser una URL
+   o una imagen incrustada como data URI — isHttp() sola las rechazaría. */
+function esImagen(u){ return isHttp(u) || (!!u && /^data:image\//.test(u)); }
 
 /* El CSP de IONOS solo permite img-src desde flagcdn.com, images.weserv.nl
    e i.imgur.com. escudo/foto/afinidad/imagen a veces vienen de wikia.nocookie.net
@@ -741,6 +744,28 @@ window.closeSheets=closeSheets;
 
 function openTeam(id){
   var e=bd.equipos.find(function(x){ return x.id===id; }); if(!e) return;
+  renderFichaEquipo(e);
+}
+
+/* Abre la ficha del equipo TAL COMO ERA en una temporada archivada, no como
+   está hoy: para un título ganado hace tiempo, el club puede haber cambiado
+   de plantilla, presidente o incluso estar archivado ahora. El snapshot de
+   esa temporada (historial_temporadas[idx].equipos) ya tiene todo lo que
+   necesita renderFichaEquipo — id, jugadores, stats — porque es una copia
+   completa del equipo en ese momento (ver instantaneaTemporada en
+   gestor/js/core.js). */
+function openTeamHistorico(idx,equipoId){
+  var t=(bd.historial_temporadas||[])[idx]; if(!t) return;
+  var e=(t.equipos||[]).find(function(x){ return x.id===equipoId; }); if(!e) return;
+  renderFichaEquipo(e,{temporadaNombre:t.nombre||('Temporada #'+(idx+1))});
+}
+window.openTeamHistorico=openTeamHistorico;
+
+/* Cuerpo de la ficha de equipo, a partir de un snapshot cualquiera: el
+   equipo tal como está hoy (bd.equipos, vía openTeam) o tal como quedó
+   archivado en una temporada pasada (vía openTeamHistorico). */
+function renderFichaEquipo(e,opts){
+  opts=opts||{};
   /* La plantilla se lee por líneas, no por dorsal suelto: primero Porteros,
      después Defensas, Medios y Delanteros, y dentro de cada línea por dorsal. */
   var js=sortSquad(e.jugadores||[]);
@@ -802,6 +827,7 @@ function openTeam(id){
         '<div><h1 class="tm-name">'+esc(X(e.nombre))+'</h1>'+
           '<div class="tm-sub">'+(e.division==='SUPERLIGA'?'<span class="badge badge-superliga">'+esc(T('comp.superliga','Superliga Frontier'))+'</span>':'<span class="badge badge-ascenso">'+esc(T('comp.ascenso','Ascenso Frontier'))+'</span>')+
           '<span>'+esc(abbr3(e.nombre,e.abreviatura))+'</span>'+
+          (opts.temporadaNombre?'<span style="color:var(--gold)"><i class="ph-bold ph-clock-counter-clockwise"></i> '+esc(opts.temporadaNombre)+'</span>':'')+
           '<span class="frm" style="margin-left:.5rem">'+form.map(function(r){ return '<i class="f-'+r+'"></i>'; }).join('')+'</span></div>'+
         '</div>'+
       '</div>'+
@@ -1152,6 +1178,19 @@ window.renderAntiguedad=renderAntiguedad;
    la Temporada 2 — un mapa fijo por nombre de equipo habría atribuido mal
    uno de los dos títulos. */
 function presidenteDe(e){ return String((e&&e.ciudad)||'').trim(); }
+/* Fotos opcionales del gestor (vista-palmares.js): bd.presidentes[nombre].foto
+   y bd.trofeos[SUPERLIGA|ASCENSO|COPA].foto. Ninguna de las dos existía antes
+   de esa vista — si el archivo no las trae, se sigue con el icono/inicial de
+   siempre; nunca es un error que falten. */
+function presidenteFotoDe(nombre){
+  var p=nombre&&bd.presidentes&&bd.presidentes[nombre];
+  return (p&&esImagen(p.foto))?p.foto:null;
+}
+function trofeoFotoDe(cls){
+  var clave=cls==='badge-superliga'?'SUPERLIGA':cls==='badge-ascenso'?'ASCENSO':cls==='badge-copa'?'COPA':null;
+  var t=clave&&bd.trofeos&&bd.trofeos[clave];
+  return (t&&esImagen(t.foto))?t.foto:null;
+}
 
 /* Se indexa por posición, no por `nombre`: el snapshot archivado se llama
    "Temporada 1" en el JSON pero es la que la web narra como Temporada 2
@@ -1253,18 +1292,18 @@ function openChamps(idx,label){
   $('champs').innerHTML=list.map(function(c){
     var live=bd.equipos.find(function(x){ return x.nombre===c.e.nombre; });
     var c1=(live&&live.color1)||c.e.color1||'#3A3A3A', c2=(live&&live.color2)||c.e.color2||'#141414';
-    var pres=presidenteDe(c.e);
-    return '<div class="champ"'+(live?' data-team="'+esc(live.id)+'"':'')+'>'+
+    var pres=presidenteDe(c.e), presFoto=presidenteFotoDe(pres), trofeoFoto=trofeoFotoDe(c.cls);
+    return '<div class="champ" data-team-hist="'+esc(idx)+':'+esc(c.e.id)+'">'+
       '<span class="champ-wash" style="background:radial-gradient(ellipse 80% 130% at 0% 50%,'+esc(wash(live||c.e,c1))+',transparent 68%)"></span>'+
       (isHttp(c.e.escudo)?'<img class="champ-crest" src="'+esc(c.e.escudo)+'" alt="'+esc(X(c.e.nombre))+'" loading="lazy">':'<span class="champ-crest noimg">'+esc(abbr3(c.e.nombre))+'</span>')+
       '<div class="champ-id">'+
         '<b>'+esc(X(c.e.nombre))+'</b>'+
         (pres
-          ? '<button type="button" class="pres" data-pres="'+esc(pres)+'"><i class="ph-bold ph-user-circle"></i>'+esc(pres)+'</button>'
+          ? '<button type="button" class="pres" data-pres="'+esc(pres)+'">'+(presFoto?'<img class="pres-avatar" src="'+esc(presFoto)+'" alt="" referrerpolicy="no-referrer">':'<i class="ph-bold ph-user-circle"></i>')+esc(pres)+'</button>'
           : '<span class="pres"><i class="ph-bold ph-user-circle"></i>·</span>')+
       '</div>'+
       '<div class="champ-trophy">'+
-        '<i class="ph-bold ph-trophy"></i>'+
+        (trofeoFoto?'<img class="champ-trophy-foto" src="'+esc(trofeoFoto)+'" alt="" referrerpolicy="no-referrer">':'<i class="ph-bold ph-trophy"></i>')+
         '<span class="badge '+c.cls+'">'+c.comp+'</span>'+
         (c.marcador?'<span class="mono" style="font-size:.6875rem;color:var(--ink-5)">'+esc(c.marcador)+'</span>':'<span class="mono" style="font-size:.6875rem;color:var(--ink-5)">'+(c.e.pts||0)+' pts</span>')+
       '</div>'+
@@ -1280,7 +1319,9 @@ function openPresidentesHall(){
   $('pres-body').innerHTML = list.length
     ? '<div class="pres-grid">'+list.map(function(p){
         var etq=p.titulos.length===1?T('pres.titulo','título'):T('pres.titulos','títulos');
+        var foto=presidenteFotoDe(p.nombre);
         return '<button type="button" class="pres-card" data-pres-card="'+esc(p.nombre)+'">'+
+          (foto?'<img class="pres-avatar" src="'+esc(foto)+'" alt="" referrerpolicy="no-referrer">':'')+
           '<b>'+esc(p.nombre)+'</b>'+
           '<span>'+p.titulos.length+' '+etq+'</span>'+
         '</button>';
@@ -1293,12 +1334,13 @@ window.openPresidentesHall=openPresidentesHall;
 function openPresidenteDetalle(nombre){
   var titulos=titulosDePresidente(nombre);
   if(!titulos.length) return;
-  $('pres-title').textContent=nombre;
+  var presFoto=presidenteFotoDe(nombre);
+  $('pres-title').innerHTML=(presFoto?'<img class="pres-avatar pres-avatar-lg" src="'+esc(presFoto)+'" alt="" referrerpolicy="no-referrer">':'')+esc(nombre);
   $('pres-back').hidden=false;
   $('pres-body').innerHTML='<div class="champs">'+titulos.map(function(x){
     var e=x.equipo, live=bd.equipos.find(function(z){ return z.id===e.id; });
-    var c1=(live&&live.color1)||e.color1||'#3A3A3A';
-    return '<div class="champ" data-team="'+esc(e.id)+'">'+
+    var c1=(live&&live.color1)||e.color1||'#3A3A3A', trofeoFoto=trofeoFotoDe(x.cls);
+    return '<div class="champ" data-team-hist="'+esc(x.idx)+':'+esc(e.id)+'">'+
       '<span class="champ-wash" style="background:radial-gradient(ellipse 80% 130% at 0% 50%,'+esc(wash(live||e,c1))+',transparent 68%)"></span>'+
       (isHttp(e.escudo)?'<img class="champ-crest" src="'+esc(e.escudo)+'" alt="'+esc(X(e.nombre))+'" loading="lazy">':'<span class="champ-crest noimg">'+esc(abbr3(e.nombre))+'</span>')+
       '<div class="champ-id">'+
@@ -1306,7 +1348,7 @@ function openPresidenteDetalle(nombre){
         '<span class="pres"><i class="ph-bold ph-calendar"></i>'+esc(x.temporadaNombre)+'</span>'+
       '</div>'+
       '<div class="champ-trophy">'+
-        '<i class="ph-bold ph-trophy"></i>'+
+        (trofeoFoto?'<img class="champ-trophy-foto" src="'+esc(trofeoFoto)+'" alt="" referrerpolicy="no-referrer">':'<i class="ph-bold ph-trophy"></i>')+
         '<span class="badge '+x.cls+'">'+x.comp+'</span>'+
         (x.marcador?'<span class="mono" style="font-size:.6875rem;color:var(--ink-5)">'+esc(x.marcador)+'</span>':'')+
       '</div>'+
@@ -1329,13 +1371,14 @@ function openTeamTitulos(equipoId){
     .sort(function(a,b){ return b.titulos.length-a.titulos.length||a.nombre.localeCompare(b.nombre,'es'); });
 
   var filas=titulos.map(function(x){
-    return '<div class="champ">'+
+    var trofeoFoto=trofeoFotoDe(x.cls);
+    return '<div class="champ" data-team-hist="'+esc(x.idx)+':'+esc(equipoId)+'">'+
       '<div class="champ-id">'+
         '<b>'+esc(x.temporadaNombre)+'</b>'+
         '<span class="pres"><i class="ph-bold ph-user-circle"></i>'+esc(x.presidente||'·')+'</span>'+
       '</div>'+
       '<div class="champ-trophy">'+
-        '<i class="ph-bold ph-trophy"></i>'+
+        (trofeoFoto?'<img class="champ-trophy-foto" src="'+esc(trofeoFoto)+'" alt="" referrerpolicy="no-referrer">':'<i class="ph-bold ph-trophy"></i>')+
         '<span class="badge '+x.cls+'">'+x.comp+'</span>'+
         (x.marcador?'<span class="mono" style="font-size:.6875rem;color:var(--ink-5)">'+esc(x.marcador)+'</span>':'')+
       '</div>'+
@@ -1866,6 +1909,15 @@ document.addEventListener('click', function(ev){
 
   var tt=t.closest('[data-team-titulos]');
   if(tt){ openTeamTitulos(tt.dataset.teamTitulos); return; }
+
+  /* También antes de data-team: un título va siempre al equipo TAL COMO ERA
+     esa temporada, no al equipo actual — mismo motivo que los dos de arriba. */
+  var th=t.closest('[data-team-hist]');
+  if(th){
+    var partesTh=String(th.dataset.teamHist).split(':');
+    openTeamHistorico(parseInt(partesTh[0],10),partesTh.slice(1).join(':'));
+    return;
+  }
 
   var more=t.closest('.sc-more');
   if(more){
