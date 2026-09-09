@@ -9,6 +9,15 @@
 
 <!-- El Design System v3 entero, sin copiar ni un token: tipografías, .card,
      .btn, .badge, .chip y las variables de :root vienen de aquí. -->
+<!-- shell.html carga estas mismas fuentes con <link>, no con @import, para no
+     bloquear el parseo de styles.css (ver la nota al principio de ese
+     fichero). El gestor no incluye shell.html, así que sin este link
+     styles.css declara --f-sans/--f-mono pero el navegador no tiene Inter ni
+     JetBrains Mono registradas: todo, incluido lo que pinta el generador de
+     redes en <canvas>, caía a la tipografía del sistema sin avisar. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Teko:wght@500;600;700&family=Fraunces:ital,opsz,wght@1,9..144,300;1,9..144,400&family=JetBrains+Mono:wght@400;500;600&display=swap">
 <link rel="stylesheet" href="../_fuente/styles.css">
 <link rel="stylesheet" href="css/gestor.css">
 <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
