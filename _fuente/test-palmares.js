@@ -101,6 +101,19 @@ const ok = (m) => { n++; console.log('  ok  ' + m); };
   assert.strictEqual(salon[0].titulos.length, 3);
   ok('presidentesConTitulos() incluye a los 4 presidentes con título y ordena por nº de títulos');
 
+  /* Antigüedad real en un club. Las etiquetas del historial del jugador
+     están corridas en el archivo (Raleigh figura como "Temporada 1" en
+     Zanark Domain), así que se cuenta por los snapshots de temporada
+     archivada, donde sí aparece en la 2 y en la 3. La Temporada 4, en
+     curso, no cuenta hasta que se cierre. */
+  const raleigh = Array.from(w.temporadasEnClub('Raleigh Greenstreet', 'eq_1777322423802'));
+  assert.deepStrictEqual(raleigh, [2, 3], 'Raleigh Greenstreet jugó en Zanark Domain las temporadas 2 y 3, no la 1');
+  ok('temporadasEnClub() cuenta las temporadas archivadas, no las etiquetas del historial');
+
+  assert.deepStrictEqual(Array.from(w.temporadasEnClub('Nadie De Nadie', 'eq_1777322423802')), [],
+    'un jugador que no aparece en ningún snapshot no tiene temporadas cerradas en el club');
+  ok('temporadasEnClub() devuelve vacío para un fichaje sin temporada cerrada');
+
   dom.window.close();
   console.log(n + ' comprobaciones OK');
 })().catch(function(e){

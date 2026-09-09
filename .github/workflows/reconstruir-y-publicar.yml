@@ -78,6 +78,21 @@ jobs:
           # en el proyecto local). Si esto vuelve a fallar, "ls" imprime en
           # el log qué carpetas hay de verdad ahí, para no tener que
           # adivinar otra vez.
+          #
+          # 404.html y terminos.html van con los otros 10: build.js también
+          # les refresca el <style> inlineado, y al no subirlos se quedaban
+          # con un CSS de hace varios commits (se notó con el rediseño del
+          # palmarés, que nunca llegó a esas dos páginas).
+          #
+          # assets/ va con "mirror -R --only-missing": las imágenes son
+          # estáticas y este workflow corre cada 20 minutos, así que subirlas
+          # siempre sería tirar ancho de banda. --only-missing solo sube lo
+          # que no está ya en el servidor, así que la primera vez publica las
+          # fotos nuevas (los .webp de staff/leyendas/hero) y a partir de ahí
+          # no hace nada. Sin esto, los HTML se publican apuntando a imágenes
+          # que no existen todavía: fotos rotas en toda la sección de staff.
+          # No lleva --delete a propósito: nada de este workflow debe poder
+          # borrar ficheros del hosting.
           lftp -e "
           open -u $SFTP_USER,$SFTP_PASS sftp://$SFTP_HOST;
           set sftp:auto-confirm yes;
@@ -87,6 +102,7 @@ jobs:
           ls;
           cd htdocs;
           pwd;
-          mput index.html en.html pt.html it.html fr.html ja.html ko.html pl.html bg.html sr.html;
+          mput index.html en.html pt.html it.html fr.html ja.html ko.html pl.html bg.html sr.html 404.html terminos.html;
+          mirror -R --only-missing --no-perms assets assets;
           bye
           "

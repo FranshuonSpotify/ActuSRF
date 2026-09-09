@@ -216,6 +216,7 @@ function renderAll(){
   pasoRender(renderScorers,[curGol]);
   pasoRender(renderNews);
   pasoRender(renderStaffClubs);
+  pasoRender(renderAntiguedad);
   pasoRender(observeReveals);
   pasoRender(vigilarDesbordeMovil);
 }
@@ -278,7 +279,7 @@ function vigilarDesbordeMovil(){
 function renderMetrics(){
   var act=bd.equipos.filter(function(e){ return !e.archivado; });
   var players=act.reduce(function(a,e){ return a+(e.jugadores?e.jugadores.length:0); },0);
-  countTo($('m-temp'), parseInt(bd.config.temporada)||3);
+  countTo($('m-temp'), parseInt(bd.config.temporada)||4);
   countTo($('m-teams'), act.length);
   countTo($('m-players'), players);
   countTo($('m-jor'), parseInt(bd.config.jornada_actual)||0);
@@ -641,6 +642,49 @@ function seasonLabel(s){
   return n==null ? '' : T('temporada','Temporada')+' '+n;
 }
 
+/* TEMPORADAS REALES EN UN CLUB
+   Las etiquetas de temporada del historial de jugador vienen de una
+   importación vieja y están corridas: Raleigh Greenstreet figura como
+   "Temporada 1 - Temporada 1" en Zanark Domain cuando de verdad jugó ahí la
+   2 y la 3. Los snapshots de historial_temporadas sí son fiables — son la
+   copia de la plantilla real de cada temporada ya cerrada —, así que la
+   antigüedad se cuenta ahí: en cuántas temporadas archivadas aparece ese
+   jugador en ese club.
+   La temporada en curso no cuenta hasta que se cierra y se archiva, que es
+   justo cómo la cuenta la liga: un fichaje de esta temporada sale con 0
+   hasta que la temporada termine.
+   Limitación conocida: si alguien se fuera y volviera al mismo club, sus dos
+   etapas comparten equipo_id y saldrían con el mismo recuento. Hoy no pasa
+   en ningún jugador del archivo; cuando pase habrá que cortar por temporada.
+   Se indexa una sola vez por carga (unas 900 claves) y se reutiliza en todas
+   las fichas. */
+var _idxTemporadas=null;
+function idxTemporadas(){
+  if(_idxTemporadas) return _idxTemporadas;
+  _idxTemporadas={};
+  (bd.historial_temporadas||[]).forEach(function(t,i){
+    (t.equipos||[]).forEach(function(e){
+      (e.jugadores||[]).forEach(function(j){
+        var k=e.id+'|'+norm(j.nombre);
+        (_idxTemporadas[k]=_idxTemporadas[k]||[]).push(i);
+      });
+    });
+  });
+  return _idxTemporadas;
+}
+/* Números de temporada (2, 3, ...) en las que ese jugador aparece en ese
+   club, sin repetidos y de menor a mayor. Si un snapshot no lleva número en
+   el nombre se usa su posición, que es el orden en que se archivaron. */
+function temporadasEnClub(nombreJugador, equipoId){
+  var hs=bd.historial_temporadas||[];
+  var vistas=(idxTemporadas()[equipoId+'|'+norm(nombreJugador)]||[]).map(function(i){
+    return seasonNum(hs[i]&&hs[i].nombre) || (i+1);
+  });
+  return vistas.filter(function(n,p,a){ return a.indexOf(n)===p; })
+               .sort(function(a,b){ return a-b; });
+}
+window.temporadasEnClub=temporadasEnClub;
+
 var curTeamDiv='SUPERLIGA';
 function renderTeams(div){
   curTeamDiv=div;
@@ -900,13 +944,29 @@ function openPlayer(teamId,nameEnc){
      en el club o ya lo dejó (campo `abierto` del JSON). */
   var hist=(j.historial||[]).map(function(h,hi){
     var cl=clubHist(h), te=cl.e;
-    var ini=h.temporada_inicio||h.temporada||'', fin=h.temporada_fin||ini;
-    var nIni=seasonNum(ini), nFin=seasonNum(fin);
-    var rango=(nIni!=null&&nFin!=null&&nFin!==nIni)
-      ? seasonLabel(ini)+' - '+nFin
-      : (seasonLabel(ini)||'·');
     var activo=h.abierto===true;
-    var temps=(nIni!=null&&nFin!=null)?Math.max(1,nFin-nIni+1):(nIni!=null?1:0);
+    /* Temporadas cerradas en las que ese jugador aparece de verdad en este
+       club. Manda sobre temporada_inicio/temporada_fin del JSON, que están
+       corridas (ver temporadasEnClub). Sólo si el jugador no sale en ningún
+       snapshot —etapas antiguas de clubes que ya no existen— se cae a las
+       etiquetas del archivo. */
+    var temporadas=temporadasEnClub(j.nombre, h.equipo_id);
+    var nIni, nFin, temps;
+    if(temporadas.length){
+      nIni=temporadas[0]; nFin=temporadas[temporadas.length-1];
+      temps=temporadas.length;
+    }else if(activo){
+      /* Fichaje de la temporada en curso: todavía no ha completado ninguna. */
+      nIni=seasonNum(h.temporada_inicio||h.temporada||''); nFin=nIni; temps=0;
+    }else{
+      var ini=h.temporada_inicio||h.temporada||'', fin=h.temporada_fin||ini;
+      nIni=seasonNum(ini); nFin=seasonNum(fin);
+      temps=(nIni!=null&&nFin!=null)?Math.max(1,nFin-nIni+1):(nIni!=null?1:0);
+    }
+    var rango=(nIni==null) ? '·'
+      : (nFin!=null&&nFin!==nIni)
+        ? T('temporada','Temporada')+' '+nIni+' - '+nFin
+        : T('temporada','Temporada')+' '+nIni;
     var divTxt=h.division==='ASCENSO'?T('comp.ascenso','Ascenso Frontier'):(h.division==='SUPERLIGA'?T('comp.superliga','Superliga Frontier'):(h.division||'·'));
     /* La etapa abierta suma también lo marcado en la temporada en curso, que
        el JSON todavía no ha volcado al historial. */
@@ -1161,7 +1221,7 @@ function renderAntiguedad(){
   /* La temporada en curso sale del JSON, no escrita a mano: decía
      "Temporada 2" cuando la config ya iba por la 3. */
   var t=$('hero-temp');
-  if(t) t.textContent=T('temporada','Temporada')+' '+(parseInt(bd.config.temporada)||3)+' · '+T('hero.enjuego','En juego');
+  if(t) t.textContent=T('temporada','Temporada')+' '+(parseInt(bd.config.temporada)||4)+' · '+T('hero.enjuego','En juego');
 }
 /* Se repinta al cambiar de idioma: el texto se compone de claves del
    diccionario y está marcado data-no-tr, así que nadie más lo tocaría. */
@@ -1576,9 +1636,9 @@ window.renderFaq=renderFaq;
    los 10 idiomas (audit Tarea 2.3). En el footer, lo destacado (<b>) es el
    nombre del autor (q.s) y el rol va como subtítulo (<span>). */
 var QUOTES=[
-  {t:'Gracias a esta liga podemos seguir disfrutando el juego y crear una comunidad del juego de nuestras infancias además de todo el trabajo que hay detrás de ella.',a:'superliga',s:'Totti Alcresise',i:'assets/totti_alcresise.png',n:9.5},
-  {t:'Gracias a esta liga aprendí muchas cosas, entre ellas, a saber aceptar consejos. Personalmente, creo que la liga es lo que mantendrá viva a la comunidad del juego.',a:'ascenso',s:'manueljoinazuma788',i:'assets/manu.png',n:9.6},
-  {t:'Llevo tres ligas distintas probadas y esta es la única donde perder no se siente como una excusa de mala suerte del rival.',a:'exjugador',s:'Contenido de ejemplo',i:'assets/payo-aguao.png',n:9.2}
+  {t:'Gracias a esta liga podemos seguir disfrutando el juego y crear una comunidad del juego de nuestras infancias además de todo el trabajo que hay detrás de ella.',a:'superliga',s:'Totti Alcresise',i:'assets/totti_alcresise.webp',n:9.5},
+  {t:'Gracias a esta liga aprendí muchas cosas, entre ellas, a saber aceptar consejos. Personalmente, creo que la liga es lo que mantendrá viva a la comunidad del juego.',a:'ascenso',s:'manueljoinazuma788',i:'assets/manu.webp',n:9.6},
+  {t:'Llevo tres ligas distintas probadas y esta es la única donde perder no se siente como una excusa de mala suerte del rival.',a:'exjugador',s:'Contenido de ejemplo',i:'assets/payo-aguao.webp',n:9.2}
 ];
 function renderQuotes(){
   /* QUOTES es el respaldo: si el archivo trae reseñas propias mandan ellas, con
@@ -2153,7 +2213,9 @@ document.addEventListener('DOMContentLoaded', function(){
        mismo interruptor on/off (confirmado). Se elige una al azar en cada
        carga de página — no hay UI de lista de pistas. */
     var PISTAS = ['assets/web1.mp3','assets/web2.mp3','assets/web3.mp3'];
-    audio.src = PISTAS[Math.floor(Math.random()*PISTAS.length)];
+    function asegurarPista(){
+      if(!audio.src) audio.src = PISTAS[Math.floor(Math.random()*PISTAS.length)];
+    }
 
     var rampa = null;
 
@@ -2188,6 +2250,7 @@ document.addEventListener('DOMContentLoaded', function(){
     }
 
     function sonar(){
+      asegurarPista();
       pararRampa();
       audio.muted = false;
       audio.volume = 0;
@@ -2270,7 +2333,7 @@ document.addEventListener('DOMContentLoaded', function(){
     window.addEventListener('pagehide', function(){ try{ audio.pause(); }catch(e){} });
 
     pintar(false);
-    if(quiere){ avisar(); sonar().catch(function(){ pintar(false); armar(); }); }
+    if(quiere) armar();
   })();
 
 
