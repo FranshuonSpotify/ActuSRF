@@ -42,6 +42,14 @@ AddDefaultCharset UTF-8
 # tal cual están.
 <IfModule mod_rewrite.c>
     RewriteEngine On
+
+    # Search Console marcaba http://superligafrontier.es/ como "página
+    # alternativa con etiqueta canónica adecuada": Google llegaba a la URL
+    # sin cifrar y solo el <link rel="canonical"> evitaba que se indexara
+    # por duplicado. Con este 301 deja de rastrearla directamente.
+    RewriteCond %{HTTPS} off
+    RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
     RewriteCond %{QUERY_STRING} (^|&)lang=(en|pt|it|fr|ja|ko|pl|bg|sr)(&|$)
     RewriteRule ^$ %2.html [L]
 </IfModule>
