@@ -1378,6 +1378,17 @@ function honoursStrip(titulos){
     '</button>';
   }).join('')+'</div>';
 }
+/* Centra los mosaicos como grupo solo cuando caben enteros sin scroll —
+   comprobando el desbordamiento real del layout ya pintado, no adivinándolo
+   por ancho de pantalla (los mismos 3 mosaicos caben o no según haya foto de
+   trofeo o el icono de repuesto, según el idioma, etc.). Sin esto, un flex
+   normal deja los mosaicos pegados a la izquierda y todo el aire sobrante se
+   acumula a la derecha. */
+function ajustarCentradoHonours(){
+  document.querySelectorAll('.honours-strip').forEach(function(el){
+    el.classList.toggle('centrado', el.scrollWidth<=el.clientWidth);
+  });
+}
 
 function openPresidenteDetalle(nombre){
   var titulos=titulosDePresidente(nombre);
@@ -1394,6 +1405,7 @@ function openPresidenteDetalle(nombre){
   elHeadFoto.style.backgroundImage=presFoto?'url("'+presFoto.replace(/"/g,'%22')+'")':'';
   $('pres-body').innerHTML=
     '<div class="honours-wrap"><div class="honours-label">'+T('pres.honores','Palmarés')+'</div>'+honoursStrip(titulos)+'</div>';
+  ajustarCentradoHonours();
   $('ov-presidentes').classList.add('open');
 }
 window.openPresidenteDetalle=openPresidenteDetalle;
@@ -1424,6 +1436,7 @@ function openTeamTitulos(equipoId){
     '<div class="honours-wrap">'+honoursStrip(titulos)+'</div>'+
     '<div class="pres-group-title">'+T('team.titulos.presidentes','Presidentes con título en este club')+'</div>'+
     '<div class="pres-grid" style="padding-top:0">'+grupos+'</div>';
+  ajustarCentradoHonours();
   $('ov-team-titulos').classList.add('open');
 }
 window.openTeamTitulos=openTeamTitulos;

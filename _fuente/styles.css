@@ -1015,11 +1015,32 @@ table.tbl tbody tr:last-child td{ border-bottom:0; }
    nada que cancelar y la tira quedaba pegada al borde del modal, sin hueco
    a la izquierda — justo lo que se veía mal en pantallas pequeñas. */
 .honours-wrap{ padding:1.25rem 0; border-bottom:1px solid var(--line); margin-bottom:1.25rem; }
-.honours-strip{ display:flex; gap:.75rem; overflow-x:auto; padding:0 1.5rem; scroll-snap-type:x proximity; scrollbar-width:none; }
+/* padding-right no se respeta en un contenedor flex con overflow-x cuando
+   el contenido desborda (Chromium): el hueco izquierdo se veía y el
+   derecho no. padding-left sí funciona, así que solo se deja ese, y el
+   hueco derecho se reserva con un ::after como último elemento flex —
+   cuenta como contenido, no como padding, así que el navegador no lo recorta. */
+/* Como mucho hay 3 mosaicos (uno por competición) y en la mayoría de anchos
+   caben sin scroll: sin centrar, un flex normal los deja pegados a la
+   izquierda y todo el aire sobrante se acumula a la derecha.
+   "justify-content:safe center" (centra si cabe, alinea al inicio si no)
+   se probó y se descartó: cuando desborda, el navegador arranca con
+   scrollLeft ya desplazado al padding, así que el hueco izquierdo existe
+   pero no se ve hasta desplazar a mano. Se centra por JS solo cuando de
+   verdad cabe entero (ajustarCentradoHonours en app.js), comprobando el
+   desbordamiento real en vez de intentar adivinarlo con CSS. */
+/* Sin scroll-snap a propósito: combinado con scroll-snap-align:start en los
+   tiles, el navegador arrancaba con scrollLeft ya desplazado al padding
+   (el mismo síntoma que "safe center" antes) — el hueco izquierdo existía
+   pero no se veía hasta desplazar a mano. Con como mucho 3 mosaicos, el
+   ajuste fino de snap no compensa ese efecto secundario. */
+.honours-strip{ display:flex; gap:.75rem; overflow-x:auto; padding-left:1.5rem; scrollbar-width:none; }
+.honours-strip.centrado{ justify-content:center; }
+.honours-strip::after{ content:''; flex:0 0 .75rem; }
 .honours-strip::-webkit-scrollbar{ display:none; }
 .honour-tile{
   position:relative; flex:0 0 128px; height:168px; border-radius:var(--r); overflow:hidden;
-  scroll-snap-align:start; cursor:pointer; background:var(--surface-2); border:0; padding:0;
+  cursor:pointer; background:var(--surface-2); border:0; padding:0;
   transition:transform var(--t2) var(--ease);
 }
 .honour-tile:hover, .honour-tile:focus-visible{ transform:translateY(-4px); }
