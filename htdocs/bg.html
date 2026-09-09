@@ -76,7 +76,12 @@
      descubre hasta haber bajado y empezado a parsear el CSS entero, así que
      añadía una vuelta de red completa antes de siquiera pedir las fuentes.
      Como <link> en el <head>, se pide en paralelo con todo lo demás. -->
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&amp;family=Teko:wght@500;600;700&amp;family=Fraunces:ital,opsz,wght@1,9..144,300;1,9..144,400&amp;family=JetBrains+Mono:wght@400;500;600&amp;family=Noto+Sans+JP:wght@400;500;700&amp;family=Noto+Sans+KR:wght@400;500;700&amp;display=swap">
+<!-- Noto Sans JP y KR NO van aquí: entre las dos declaran cientos de
+     subconjuntos unicode y engordaban esta hoja hasta 641 KB para TODOS los
+     visitantes, también los que leen en español y nunca verán un kanji. Se
+     piden aparte y sólo al pasar a japonés o coreano — ver sfFuentesCJK()
+     en i18n.js. -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&amp;family=Teko:wght@500;600;700&amp;family=Fraunces:ital,opsz,wght@1,9..144,300;1,9..144,400&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap">
 <style>
 /* ==========================================================================
    SUPERLIGA FRONTIER — Design System v3
@@ -127,6 +132,13 @@
   --af-fuego:#FF5A3C; --af-aire:#35D0C6; --af-bosque:#46B45F; --af-montana:#C08A3E; --af-neutro:#9AA0A6;
   --pos-por:#FFC94A; --pos-def:#3E7BFF; --pos-med:#46B45F; --pos-del:#FF3B3B;
 
+  /* Noto Sans JP/KR NO están en esta pila, y es deliberado: el CJK cae al
+     tipo del sistema, como ha hecho siempre. Añadirlas aquí las activaría de
+     verdad, pero eso hace que japonés y coreano se bajen unos 700 KB de
+     subconjuntos woff2 que hoy no se bajan. Si algún día se quiere ese
+     acabado, basta con meter 'Noto Sans JP','Noto Sans KR' detrás de 'Inter':
+     sfFuentesCJK() (i18n.js) ya se encarga de que la hoja sólo se pida en
+     esos dos idiomas. */
   --f-sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
   --f-display:'Teko',var(--f-sans);
   --f-serif:'Fraunces',Georgia,serif;
@@ -1133,11 +1145,20 @@ table.tbl tbody tr:last-child td{ border-bottom:0; }
   transition:transform var(--t2) var(--ease);
 }
 .honour-tile:hover, .honour-tile:focus-visible{ transform:translateY(-4px); }
+/* Las fotos de trofeo van SIEMPRE inclinadas 35 grados a la derecha en el
+   palmarés: aquí, en el detalle de presidente y en "Ver palmarés del club".
+   La lista de campeones (.champ-trophy-foto) NO se inclina, a propósito.
+   --tilt-fill compensa las esquinas que la rotación dejaría vacías: un
+   rectángulo girado 35 grados no cubre el mismo hueco que sin girar, y con
+   object-fit:cover el mosaico enseñaría el fondo por las puntas. 1.6 es el
+   factor que cubre el mosaico más alto (128x168) con margen. */
+.honour-tile{ --tilt:35deg; --tilt-fill:1.6; }
 .honour-tile img{
   position:absolute; inset:0; width:100%; height:100%; object-fit:cover;
+  transform:rotate(var(--tilt)) scale(var(--tilt-fill));
   filter:grayscale(.3) brightness(.6) saturate(1.1); transition:filter var(--t3) var(--ease), transform var(--t3) var(--ease);
 }
-.honour-tile:hover img, .honour-tile:focus-visible img{ filter:grayscale(0) brightness(.68) saturate(1.1); transform:scale(1.07); }
+.honour-tile:hover img, .honour-tile:focus-visible img{ filter:grayscale(0) brightness(.68) saturate(1.1); transform:rotate(var(--tilt)) scale(calc(var(--tilt-fill) * 1.07)); }
 /* Sin foto de trofeo (el estado real hasta que se suban desde el gestor):
    tarjeta plana con un tinte muy suave del color de la competición y el
    icono pequeño en una esquina, como una marca — no un icono enorme
@@ -1663,7 +1684,7 @@ body.locked{ overflow:hidden; }
           }
         ]
       },
-      "dateModified": "2026-09-09T13:15:15.042Z"
+      "dateModified": "2026-09-09T14:11:07.261Z"
     },
     {
       "@type": "FAQPage",
@@ -1994,7 +2015,7 @@ body.locked{ overflow:hidden; }
      asocie a la pestaña (silenciar la pestaña lo calla) y preload="none"
      para que los 2 MB no pesen en la carga inicial. -->
 <!-- El src lo asigna app.js al azar entre las 3 pistas disponibles. -->
-<audio id="sf-audio" loop="" preload="none" playsinline="" src="assets/web3.mp3"></audio>
+<audio id="sf-audio" loop="" preload="none" playsinline=""></audio>
 
 <!-- ================= PANTALLA DE CARGA ================= -->
 <div id="pre" aria-hidden="true">
@@ -2069,7 +2090,7 @@ body.locked{ overflow:hidden; }
     <div class="hero-grid"></div>
     <div class="hero-glow"></div>
   </div>
-  <div class="hero-photo" aria-hidden="true"><img src="assets/jugador-01.png" alt="" id="hero-img"></div>
+  <div class="hero-photo" aria-hidden="true"><img src="assets/jugador-01.webp" alt="" id="hero-img" decoding="async"></div>
   <div class="hero-in">
     <div class="wrap wrap-wide">
       <div class="hero-copy">
@@ -2254,7 +2275,7 @@ body.locked{ overflow:hidden; }
       <span class="eyebrow" data-i18n="resenas.kicker" data-i18n-done="">Гласове от общността</span>
       <h2 class="h1 nowrap" data-i18n="resenas.title" data-i18n-done="">Какво казват мениджърите</h2>
     </div>
-    <div class="quotes" id="quotes"><blockquote class="card spotlight quote rv rv-d1"><div class="q-top"><span class="q-mark" aria-hidden="true">“</span><span class="q-score" title="Оценка"><b>9.5</b><span>/10</span></span></div><p>Gracias a esta liga podemos seguir disfrutando el juego y crear una comunidad del juego de nuestras infancias además de todo el trabajo que hay detrás de ella.”</p><span class="q-bar" aria-hidden="true" style="--w:95%"><i></i></span><footer><img src="assets/totti_alcresise.png" alt="" loading="lazy"><div><b>Totti Alcresise</b><span>Президент на Суперлига Фронтиър</span></div></footer></blockquote><blockquote class="card spotlight quote rv rv-d2"><div class="q-top"><span class="q-mark" aria-hidden="true">“</span><span class="q-score" title="Оценка"><b>9.6</b><span>/10</span></span></div><p>Gracias a esta liga aprendí muchas cosas, entre ellas, a saber aceptar consejos. Personalmente, creo que la liga es lo que mantendrá viva a la comunidad del juego.”</p><span class="q-bar" aria-hidden="true" style="--w:96%"><i></i></span><footer><img src="assets/manu.png" alt="" loading="lazy"><div><b>manueljoinazuma788</b><span>Президент на Фронтиър Чемпиъншип</span></div></footer></blockquote><blockquote class="card spotlight quote rv rv-d3"><div class="q-top"><span class="q-mark" aria-hidden="true">“</span><span class="q-score" title="Оценка"><b>9.2</b><span>/10</span></span></div><p>Llevo tres ligas distintas probadas y esta es la única donde perder no se siente como una excusa de mala suerte del rival.”</p><span class="q-bar" aria-hidden="true" style="--w:92%"><i></i></span><footer><img src="assets/payo-aguao.png" alt="" loading="lazy"><div><b>Contenido de ejemplo</b><span>Привлечен бивш играч</span></div></footer></blockquote></div>
+    <div class="quotes" id="quotes"><blockquote class="card spotlight quote rv rv-d1"><div class="q-top"><span class="q-mark" aria-hidden="true">“</span><span class="q-score" title="Оценка"><b>9.5</b><span>/10</span></span></div><p>Gracias a esta liga podemos seguir disfrutando el juego y crear una comunidad del juego de nuestras infancias además de todo el trabajo que hay detrás de ella.”</p><span class="q-bar" aria-hidden="true" style="--w:95%"><i></i></span><footer><img src="assets/totti_alcresise.webp" alt="" loading="lazy"><div><b>Totti Alcresise</b><span>Президент на Суперлига Фронтиър</span></div></footer></blockquote><blockquote class="card spotlight quote rv rv-d2"><div class="q-top"><span class="q-mark" aria-hidden="true">“</span><span class="q-score" title="Оценка"><b>9.6</b><span>/10</span></span></div><p>Gracias a esta liga aprendí muchas cosas, entre ellas, a saber aceptar consejos. Personalmente, creo que la liga es lo que mantendrá viva a la comunidad del juego.”</p><span class="q-bar" aria-hidden="true" style="--w:96%"><i></i></span><footer><img src="assets/manu.webp" alt="" loading="lazy"><div><b>manueljoinazuma788</b><span>Президент на Фронтиър Чемпиъншип</span></div></footer></blockquote><blockquote class="card spotlight quote rv rv-d3"><div class="q-top"><span class="q-mark" aria-hidden="true">“</span><span class="q-score" title="Оценка"><b>9.2</b><span>/10</span></span></div><p>Llevo tres ligas distintas probadas y esta es la única donde perder no se siente como una excusa de mala suerte del rival.”</p><span class="q-bar" aria-hidden="true" style="--w:92%"><i></i></span><footer><img src="assets/payo-aguao.webp" alt="" loading="lazy"><div><b>Contenido de ejemplo</b><span>Привлечен бивш играч</span></div></footer></blockquote></div>
   </div>
 </section>
 
@@ -2384,7 +2405,7 @@ body.locked{ overflow:hidden; }
 
       <article class="legend-card rv" style="--lc:#7C5BFF">
         <div class="legend-portrait">
-          <img src="assets/d4rkrepulser.png" alt="D4rkRepulser">
+          <img src="assets/d4rkrepulser.webp" alt="D4rkRepulser" loading="lazy" decoding="async">
           <span class="legend-vignette" aria-hidden="true"></span>
           <span class="legend-rank"><i class="ph-bold ph-medal"></i><span data-i18n="leyendas.d4rk.rank" data-i18n-done="">Рекорд</span></span>
         </div>
@@ -2402,7 +2423,7 @@ body.locked{ overflow:hidden; }
 
       <article class="legend-card rv rv-d1" style="--lc:#FF8A4F">
         <div class="legend-portrait">
-          <img src="assets/payo-aguao.png" alt="Payo Aguao">
+          <img src="assets/payo-aguao.webp" alt="Payo Aguao" loading="lazy" decoding="async">
           <span class="legend-vignette" aria-hidden="true"></span>
           <span class="legend-rank"><i class="ph-bold ph-quotes"></i><span data-i18n="leyendas.payo.rank" data-i18n-done="">Фолклор</span></span>
         </div>
@@ -2427,13 +2448,13 @@ body.locked{ overflow:hidden; }
     <div class="sec-head rv">
       <span class="eyebrow" data-i18n="sec.staff.kicker" data-i18n-done="">Кой управлява това?</span>
       <h2 class="h1 nowrap" data-i18n="sec.staff" data-i18n-done="">Организационен екип</h2>
-      <p class="lede" data-i18n="staff.lede" data-i18n-done="">Шестима души, които започнаха като играчи и стигнаха до организацията. Двама от тях продължават да се състезават със своя клуб в Сезон 4; останалите вече се посвещават изцяло на организацията, но никой не ръководи лигата отвън.</p>
+      <p class="lede" data-i18n="staff.lede" data-i18n-done="">Осем души, които започнаха като играчи и стигнаха до организацията. Четирима от тях продължават да се състезават със своя клуб в Сезон 4; останалите вече се посвещават изцяло на организацията, но никой не ръководи лигата отвън.</p>
     </div>
 
     <div class="staff">
 
       <article class="staff-card staff-lead rv rol-fundador">
-        <div class="staff-photo"><img src="assets/franshu.png" alt="Franshu"><span class="staff-vignette" aria-hidden="true"></span></div>
+        <div class="staff-photo"><img src="assets/franshu.webp" alt="Franshu" loading="lazy" decoding="async"><span class="staff-vignette" aria-hidden="true"></span></div>
         <div class="staff-info">
           <span class="staff-role staff-role-lead" data-i18n="staff.franshu.rol">Fundador</span>
           <h3>Franshu</h3>
@@ -2442,7 +2463,7 @@ body.locked{ overflow:hidden; }
       </article>
 
       <article class="staff-card rv rol-admin">
-        <div class="staff-photo"><img src="assets/d4rkrepulser.png" alt="D4rkRepulser"><span class="staff-vignette" aria-hidden="true"></span></div>
+        <div class="staff-photo"><img src="assets/d4rkrepulser.webp" alt="D4rkRepulser" loading="lazy" decoding="async"><span class="staff-vignette" aria-hidden="true"></span></div>
         <div class="staff-info">
           <span class="staff-role" data-i18n="staff.d4rk.rol">Administrador</span>
           <h3>D4rkRepulser</h3>
@@ -2451,7 +2472,7 @@ body.locked{ overflow:hidden; }
       </article>
 
       <article class="staff-card rv rv-d1 rol-admin">
-        <div class="staff-photo"><img src="assets/davidgonzzalezc.png" alt="david.gonzzalezc"><span class="staff-vignette" aria-hidden="true"></span></div>
+        <div class="staff-photo"><img src="assets/davidgonzzalezc.webp" alt="david.gonzzalezc" loading="lazy" decoding="async"><span class="staff-vignette" aria-hidden="true"></span></div>
         <div class="staff-info">
           <span class="staff-role" data-i18n="staff.david.rol">Administrador</span>
           <h3>david.gonzzalezc</h3>
@@ -2459,7 +2480,7 @@ body.locked{ overflow:hidden; }
       </article>
 
       <article class="staff-card rv rv-d1 rol-mod">
-        <div class="staff-photo"><img src="assets/payo-aguao.png" alt="Payo Aguao"><span class="staff-vignette" aria-hidden="true"></span></div>
+        <div class="staff-photo"><img src="assets/payo-aguao.webp" alt="Payo Aguao" loading="lazy" decoding="async"><span class="staff-vignette" aria-hidden="true"></span></div>
         <div class="staff-info">
           <span class="staff-role" data-i18n="staff.payo.rol">Moderador</span>
           <h3>Payo Aguao</h3>
@@ -2467,7 +2488,7 @@ body.locked{ overflow:hidden; }
       </article>
 
       <article class="staff-card rv rv-d2 rol-mod">
-        <div class="staff-photo"><img src="assets/totti_alcresise.png" alt="Totti Alcresise"><span class="staff-vignette" aria-hidden="true"></span></div>
+        <div class="staff-photo"><img src="assets/totti_alcresise.webp" alt="Totti Alcresise" loading="lazy" decoding="async"><span class="staff-vignette" aria-hidden="true"></span></div>
         <div class="staff-info">
           <span class="staff-role" data-i18n="staff.totti.rol">Moderador</span>
           <h3>Totti Alcresise</h3>
@@ -2476,10 +2497,28 @@ body.locked{ overflow:hidden; }
       </article>
 
       <article class="staff-card rv rv-d2 rol-mod">
-        <div class="staff-photo"><img src="assets/gabrii.png" alt="Gabrii"><span class="staff-vignette" aria-hidden="true"></span></div>
+        <div class="staff-photo"><img src="assets/gabrii.webp" alt="Gabrii" loading="lazy" decoding="async"><span class="staff-vignette" aria-hidden="true"></span></div>
         <div class="staff-info">
           <span class="staff-role" data-i18n="staff.gabrii.rol">Moderador</span>
           <h3>Gabrii</h3>
+        </div>
+      </article>
+
+      <article class="staff-card rv rv-d3 rol-mod">
+        <div class="staff-photo"><img src="assets/lulu.webp" alt="Lulu" loading="lazy" decoding="async"><span class="staff-vignette" aria-hidden="true"></span></div>
+        <div class="staff-info">
+          <span class="staff-role" data-i18n="staff.lulu.rol">Moderador</span>
+          <h3>Lulu</h3>
+          <span class="staff-club" data-club="Instituto Zeus"><span class="staff-crest"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2F2%2F20%2FUra_Zeus_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20260612141031" alt="Институто Зевс" loading="lazy"></span>Instituto Zeus</span>
+        </div>
+      </article>
+
+      <article class="staff-card rv rv-d3 rol-mod">
+        <div class="staff-photo"><img src="assets/jade.webp" alt="Jade Beor" loading="lazy" decoding="async"><span class="staff-vignette" aria-hidden="true"></span></div>
+        <div class="staff-info">
+          <span class="staff-role" data-i18n="staff.jade.rol">Moderador</span>
+          <h3>Jade Beor</h3>
+          <span class="staff-club" data-club="Oscuridad Ancestral"><span class="staff-crest"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2F5%2F50%2FAncient_Dark_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251119113334" alt="Оскуридад Анкестрал" loading="lazy"></span>Oscuridad Ancestral</span>
         </div>
       </article>
 
@@ -2750,7 +2789,7 @@ window.SF_DICT = {
 'sec.staff':        ['Equipo organizador','The organising team','Equipa organizadora','Team organizzatore','Équipe organisatrice','運営チーム','운영 팀','Zespół organizacyjny','Организационен екип','Организациони тим'],
 'sec.faq.kicker':   ['Antes de preguntar en Discord','Before you ask on Discord','Antes de perguntar no Discord','Prima di chiedere su Discord','Avant de demander sur Discord','Discordで質問する前に','디스코드에 묻기 전에','Zanim zapytasz na Discordzie','Преди да питаш в Discord','Пре него што питаш на Discord-у'],
 'sec.faq':          ['Preguntas frecuentes','Frequently asked questions','Perguntas frequentes','Domande frequenti','Questions fréquentes','よくある質問','자주 묻는 질문','Najczęstsze pytania','Често задавани въпроси','Често постављана питања'],
-'staff.lede':       ['Seis personas que empezaron jugando y acabaron organizando. Dos siguen compitiendo con su club en la Temporada 4; el resto se dedica ya por completo a la organización, pero ninguna dirige la liga desde fuera de ella.','Six people who started out playing and ended up organising. Two still compete with their own club in Season 4; the rest now devote themselves entirely to running things, but none of them run the league from the outside.','Seis pessoas que começaram a jogar e acabaram a organizar. Duas continuam a competir com o seu clube na Temporada 4; as restantes dedicam-se agora por completo à organização, mas nenhuma dirige a liga de fora dela.','Sei persone che hanno iniziato giocando e sono finite a organizzare. In due competono ancora con il proprio club nella Stagione 4; gli altri si dedicano ormai del tutto all’organizzazione, ma nessuno dirige la lega dall’esterno.','Six personnes qui ont commencé en jouant et ont fini par organiser. Deux compétitionnent encore avec leur club en Saison 4 ; les autres se consacrent désormais entièrement à l’organisation, mais aucune ne dirige la ligue de l’extérieur.','プレイヤーとして始まり、運営に回った6人。2人はシーズン4でも自分のクラブで戦い続けていますが、残りは運営に専念しています。とはいえ誰も外部からリーグを運営してはいません。','선수로 시작해 운영까지 맡게 된 여섯 명. 두 명은 시즌 4에서도 자기 구단으로 계속 경쟁하고, 나머지는 이제 운영에만 전념합니다. 다만 누구도 리그 밖에서 운영하지는 않습니다.','Sześć osób, które zaczęły od grania, a skończyły na organizowaniu. Dwie nadal rywalizują ze swoim klubem w Sezonie 4; reszta poświęca się już wyłącznie organizacji, ale żadna nie kieruje ligą z zewnątrz.','Шестима души, които започнаха като играчи и стигнаха до организацията. Двама от тях продължават да се състезават със своя клуб в Сезон 4; останалите вече се посвещават изцяло на организацията, но никой не ръководи лигата отвън.','Шест људи који су почели играјући, а завршили организујући. Двоје и даље играју са својим клубом у Сезони 4; остали се сада потпуно посвећују организацији, али нико не води лигу споља.'],
+'staff.lede':       ['Ocho personas que empezaron jugando y acabaron organizando. Cuatro siguen compitiendo con su club en la Temporada 4; el resto se dedica ya por completo a la organización, pero ninguna dirige la liga desde fuera de ella.','Eight people who started out playing and ended up organising. Four still compete with their own club in Season 4; the rest now devote themselves entirely to running things, but none of them run the league from the outside.','Oito pessoas que começaram a jogar e acabaram a organizar. Quatro continuam a competir com o seu clube na Temporada 4; as restantes dedicam-se agora por completo à organização, mas nenhuma dirige a liga de fora dela.','Otto persone che hanno iniziato giocando e sono finite a organizzare. In quattro competono ancora con il proprio club nella Stagione 4; gli altri si dedicano ormai del tutto all’organizzazione, ma nessuno dirige la lega dall’esterno.','Huit personnes qui ont commencé en jouant et ont fini par organiser. Quatre compétitionnent encore avec leur club en Saison 4 ; les autres se consacrent désormais entièrement à l’organisation, mais aucune ne dirige la ligue de l’extérieur.','プレイヤーとして始まり、運営に回った8人。4人はシーズン4でも自分のクラブで戦い続けていますが、残りは運営に専念しています。とはいえ誰も外部からリーグを運営してはいません。','선수로 시작해 운영까지 맡게 된 여덟 명. 네 명은 시즌 4에서도 자기 구단으로 계속 경쟁하고, 나머지는 이제 운영에만 전념합니다. 다만 누구도 리그 밖에서 운영하지는 않습니다.','Osiem osób, które zaczęły od grania, a skończyły na organizowaniu. Cztery nadal rywalizują ze swoim klubem w Sezonie 4; reszta poświęca się już wyłącznie organizacji, ale żadna nie kieruje ligą z zewnątrz.','Осем души, които започнаха като играчи и стигнаха до организацията. Четирима от тях продължават да се състезават със своя клуб в Сезон 4; останалите вече се посвещават изцяло на организацията, но никой не ръководи лигата отвън.','Осам људи који су почели играјући, а завршили организујући. Четворо и даље играју са својим клубом у Сезони 4; остали се сада потпуно посвећују организацији, али нико не води лигу споља.'],
 'leyendas.lede':    ['Dos nombres que la liga no habría sido la misma sin ellos. Uno por récord, el otro por haber escrito una frase que ya nadie olvida.','Two names without whom this league would not be the same. One for a record, the other for a line nobody has forgotten.','Dois nomes sem os quais a liga não seria a mesma. Um por recorde, o outro por ter escrito uma frase que já ninguém esquece.','Due nomi senza i quali la lega non sarebbe la stessa. Uno per un record, l’altro per una frase che nessuno dimentica.','Deux noms sans lesquels la ligue ne serait pas la même. L’un pour un record, l’autre pour une phrase que personne n’oublie.','この2人がいなければ、リーグは今の形ではありませんでした。ひとりは記録で、もうひとりは誰もが覚えている一言で。','이 두 사람이 없었다면 리그는 지금과 달랐을 것입니다. 한 명은 기록으로, 다른 한 명은 누구도 잊지 못하는 한마디로.','Dwa nazwiska, bez których liga nie byłaby taka sama. Jedno za rekord, drugie za zdanie, którego nikt nie zapomniał.','Две имена, без които лигата нямаше да е същата. Едното заради рекорд, другото заради реплика, която никой не забравя.','Два имена без којих лига не би била иста. Једно због рекорда, друго због реченице коју нико није заборавио.'],
 'leyendas.d4rk.rank': ['Récord','Record','Recorde','Record','Record','記録','기록','Rekord','Рекорд','Рекорд'],
 'leyendas.payo.rank': ['Folclore','Folklore','Folclore','Folclore','Folklore','語り草','전설의 한마디','Folklor','Фолклор','Фолклор'],
@@ -3709,6 +3748,28 @@ window.SF_FAQ_DICT = {
             return d.textContent.replace(/\s+/g, ' ').trim();
         }
 
+        /* FUENTES CJK BAJO DEMANDA
+           Noto Sans JP/KR sólo se piden cuando el idioma las necesita. Se
+           insertan al aplicar japonés o coreano y se quedan: retirarlas al
+           volver a otro idioma provocaría un reflow del texto sin ahorrar
+           nada que no estuviera ya descargado.
+           El pre-renderizado de build.js ejecuta esta misma función dentro de
+           jsdom, así que ja.html y ko.html salen ya con su <link> en el HTML
+           servido: no hay una vuelta de red extra por culpa de JS. */
+        var SF_CJK = {
+            ja: 'https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap',
+            ko: 'https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap'
+        };
+        function sfFuentesCJK(code) {
+            var href = SF_CJK[code];
+            if (!href || document.querySelector('link[data-cjk="' + code + '"]')) return;
+            var l = document.createElement('link');
+            l.rel = 'stylesheet';
+            l.href = href;
+            l.setAttribute('data-cjk', code);
+            document.head.appendChild(l);
+        }
+
         function sfApplyLang(code) {
             var dict = SF_I18N[code] || SF_I18N.es;
             /* El idioma se persiste ANTES de recorrer el DOM: sfATApply() lee
@@ -3720,6 +3781,7 @@ window.SF_FAQ_DICT = {
                visita. */
             try { localStorage.setItem('sf_lang', code); } catch (e) {}
             document.documentElement.setAttribute('lang', code);
+            sfFuentesCJK(code);
             /* Sólo 28 de las 136 claves data-i18n del HTML existen en el
                diccionario heredado. Antes, cada una de las 108 restantes pedía
                SU PROPIA traducción por separado: decenas de viajes sueltos que
@@ -4491,6 +4553,49 @@ function seasonLabel(s){
   return n==null ? '' : T('temporada','Temporada')+' '+n;
 }
 
+/* TEMPORADAS REALES EN UN CLUB
+   Las etiquetas de temporada del historial de jugador vienen de una
+   importación vieja y están corridas: Raleigh Greenstreet figura como
+   "Temporada 1 - Temporada 1" en Zanark Domain cuando de verdad jugó ahí la
+   2 y la 3. Los snapshots de historial_temporadas sí son fiables — son la
+   copia de la plantilla real de cada temporada ya cerrada —, así que la
+   antigüedad se cuenta ahí: en cuántas temporadas archivadas aparece ese
+   jugador en ese club.
+   La temporada en curso no cuenta hasta que se cierra y se archiva, que es
+   justo cómo la cuenta la liga: un fichaje de esta temporada sale con 0
+   hasta que la temporada termine.
+   Limitación conocida: si alguien se fuera y volviera al mismo club, sus dos
+   etapas comparten equipo_id y saldrían con el mismo recuento. Hoy no pasa
+   en ningún jugador del archivo; cuando pase habrá que cortar por temporada.
+   Se indexa una sola vez por carga (unas 900 claves) y se reutiliza en todas
+   las fichas. */
+var _idxTemporadas=null;
+function idxTemporadas(){
+  if(_idxTemporadas) return _idxTemporadas;
+  _idxTemporadas={};
+  (bd.historial_temporadas||[]).forEach(function(t,i){
+    (t.equipos||[]).forEach(function(e){
+      (e.jugadores||[]).forEach(function(j){
+        var k=e.id+'|'+norm(j.nombre);
+        (_idxTemporadas[k]=_idxTemporadas[k]||[]).push(i);
+      });
+    });
+  });
+  return _idxTemporadas;
+}
+/* Números de temporada (2, 3, ...) en las que ese jugador aparece en ese
+   club, sin repetidos y de menor a mayor. Si un snapshot no lleva número en
+   el nombre se usa su posición, que es el orden en que se archivaron. */
+function temporadasEnClub(nombreJugador, equipoId){
+  var hs=bd.historial_temporadas||[];
+  var vistas=(idxTemporadas()[equipoId+'|'+norm(nombreJugador)]||[]).map(function(i){
+    return seasonNum(hs[i]&&hs[i].nombre) || (i+1);
+  });
+  return vistas.filter(function(n,p,a){ return a.indexOf(n)===p; })
+               .sort(function(a,b){ return a-b; });
+}
+window.temporadasEnClub=temporadasEnClub;
+
 var curTeamDiv='SUPERLIGA';
 function renderTeams(div){
   curTeamDiv=div;
@@ -4750,13 +4855,29 @@ function openPlayer(teamId,nameEnc){
      en el club o ya lo dejó (campo `abierto` del JSON). */
   var hist=(j.historial||[]).map(function(h,hi){
     var cl=clubHist(h), te=cl.e;
-    var ini=h.temporada_inicio||h.temporada||'', fin=h.temporada_fin||ini;
-    var nIni=seasonNum(ini), nFin=seasonNum(fin);
-    var rango=(nIni!=null&&nFin!=null&&nFin!==nIni)
-      ? seasonLabel(ini)+' - '+nFin
-      : (seasonLabel(ini)||'·');
     var activo=h.abierto===true;
-    var temps=(nIni!=null&&nFin!=null)?Math.max(1,nFin-nIni+1):(nIni!=null?1:0);
+    /* Temporadas cerradas en las que ese jugador aparece de verdad en este
+       club. Manda sobre temporada_inicio/temporada_fin del JSON, que están
+       corridas (ver temporadasEnClub). Sólo si el jugador no sale en ningún
+       snapshot —etapas antiguas de clubes que ya no existen— se cae a las
+       etiquetas del archivo. */
+    var temporadas=temporadasEnClub(j.nombre, h.equipo_id);
+    var nIni, nFin, temps;
+    if(temporadas.length){
+      nIni=temporadas[0]; nFin=temporadas[temporadas.length-1];
+      temps=temporadas.length;
+    }else if(activo){
+      /* Fichaje de la temporada en curso: todavía no ha completado ninguna. */
+      nIni=seasonNum(h.temporada_inicio||h.temporada||''); nFin=nIni; temps=0;
+    }else{
+      var ini=h.temporada_inicio||h.temporada||'', fin=h.temporada_fin||ini;
+      nIni=seasonNum(ini); nFin=seasonNum(fin);
+      temps=(nIni!=null&&nFin!=null)?Math.max(1,nFin-nIni+1):(nIni!=null?1:0);
+    }
+    var rango=(nIni==null) ? '·'
+      : (nFin!=null&&nFin!==nIni)
+        ? T('temporada','Temporada')+' '+nIni+' - '+nFin
+        : T('temporada','Temporada')+' '+nIni;
     var divTxt=h.division==='ASCENSO'?T('comp.ascenso','Ascenso Frontier'):(h.division==='SUPERLIGA'?T('comp.superliga','Superliga Frontier'):(h.division||'·'));
     /* La etapa abierta suma también lo marcado en la temporada en curso, que
        el JSON todavía no ha volcado al historial. */
@@ -5426,9 +5547,9 @@ window.renderFaq=renderFaq;
    los 10 idiomas (audit Tarea 2.3). En el footer, lo destacado (<b>) es el
    nombre del autor (q.s) y el rol va como subtítulo (<span>). */
 var QUOTES=[
-  {t:'Gracias a esta liga podemos seguir disfrutando el juego y crear una comunidad del juego de nuestras infancias además de todo el trabajo que hay detrás de ella.',a:'superliga',s:'Totti Alcresise',i:'assets/totti_alcresise.png',n:9.5},
-  {t:'Gracias a esta liga aprendí muchas cosas, entre ellas, a saber aceptar consejos. Personalmente, creo que la liga es lo que mantendrá viva a la comunidad del juego.',a:'ascenso',s:'manueljoinazuma788',i:'assets/manu.png',n:9.6},
-  {t:'Llevo tres ligas distintas probadas y esta es la única donde perder no se siente como una excusa de mala suerte del rival.',a:'exjugador',s:'Contenido de ejemplo',i:'assets/payo-aguao.png',n:9.2}
+  {t:'Gracias a esta liga podemos seguir disfrutando el juego y crear una comunidad del juego de nuestras infancias además de todo el trabajo que hay detrás de ella.',a:'superliga',s:'Totti Alcresise',i:'assets/totti_alcresise.webp',n:9.5},
+  {t:'Gracias a esta liga aprendí muchas cosas, entre ellas, a saber aceptar consejos. Personalmente, creo que la liga es lo que mantendrá viva a la comunidad del juego.',a:'ascenso',s:'manueljoinazuma788',i:'assets/manu.webp',n:9.6},
+  {t:'Llevo tres ligas distintas probadas y esta es la única donde perder no se siente como una excusa de mala suerte del rival.',a:'exjugador',s:'Contenido de ejemplo',i:'assets/payo-aguao.webp',n:9.2}
 ];
 function renderQuotes(){
   /* QUOTES es el respaldo: si el archivo trae reseñas propias mandan ellas, con
@@ -6003,7 +6124,9 @@ document.addEventListener('DOMContentLoaded', function(){
        mismo interruptor on/off (confirmado). Se elige una al azar en cada
        carga de página — no hay UI de lista de pistas. */
     var PISTAS = ['assets/web1.mp3','assets/web2.mp3','assets/web3.mp3'];
-    audio.src = PISTAS[Math.floor(Math.random()*PISTAS.length)];
+    function asegurarPista(){
+      if(!audio.src) audio.src = PISTAS[Math.floor(Math.random()*PISTAS.length)];
+    }
 
     var rampa = null;
 
@@ -6038,6 +6161,7 @@ document.addEventListener('DOMContentLoaded', function(){
     }
 
     function sonar(){
+      asegurarPista();
       pararRampa();
       audio.muted = false;
       audio.volume = 0;
@@ -6120,7 +6244,7 @@ document.addEventListener('DOMContentLoaded', function(){
     window.addEventListener('pagehide', function(){ try{ audio.pause(); }catch(e){} });
 
     pintar(false);
-    if(quiere){ avisar(); sonar().catch(function(){ pintar(false); armar(); }); }
+    if(quiere) armar();
   })();
 
 

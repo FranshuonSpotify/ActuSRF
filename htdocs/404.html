@@ -64,6 +64,13 @@
   --af-fuego:#FF5A3C; --af-aire:#35D0C6; --af-bosque:#46B45F; --af-montana:#C08A3E; --af-neutro:#9AA0A6;
   --pos-por:#FFC94A; --pos-def:#3E7BFF; --pos-med:#46B45F; --pos-del:#FF3B3B;
 
+  /* Noto Sans JP/KR NO están en esta pila, y es deliberado: el CJK cae al
+     tipo del sistema, como ha hecho siempre. Añadirlas aquí las activaría de
+     verdad, pero eso hace que japonés y coreano se bajen unos 700 KB de
+     subconjuntos woff2 que hoy no se bajan. Si algún día se quiere ese
+     acabado, basta con meter 'Noto Sans JP','Noto Sans KR' detrás de 'Inter':
+     sfFuentesCJK() (i18n.js) ya se encarga de que la hoja sólo se pida en
+     esos dos idiomas. */
   --f-sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
   --f-display:'Teko',var(--f-sans);
   --f-serif:'Fraunces',Georgia,serif;
@@ -949,38 +956,158 @@ table.tbl tbody tr:last-child td{ border-bottom:0; }
 }
 @keyframes langSpin{ to{ transform:rotate(360deg); } }
 
-/* ============================ OVERLAY DE CAMPEONES ============================ */
+/* ============================ SALÓN DE PRESIDENTES / PALMARÉS ============================
+   Lista editorial, no tarjetas de juego: sin cajas, sin insignias, sin
+   fondos degradados, casi sin color. Separadores finos entre filas, nombres
+   en Inter (NO Fraunces: el único corte que carga shell.html es italic —
+   ver el <link> de Google Fonts — así que cualquier texto dinámico en serif
+   sale en cursiva, ilegible con nicks que mezclan mayúsculas y números como
+   "D4rkRepulser". Inter es la fuente de UI del sitio; se queda en eso aquí)
+   y cifras en mono — el contenido manda, la decoración no. Una sola señal
+   de interacción: la fila se desplaza un poco a la derecha al
+   enfocarla/pasar el ratón, nada más. */
 .champ-panel{ width:min(94vw,760px); }
-.champs{ display:grid; gap:.625rem; padding:1rem; }
+.champs{ display:flex; flex-direction:column; padding:.25rem 1.5rem 1.5rem; }
 .champ{
-  display:flex; align-items:center; gap:1rem; padding:1rem 1.125rem;
-  border:1px solid var(--line); border-radius:var(--r); background:var(--surface);
-  position:relative; overflow:hidden; cursor:pointer;
-  transition:border-color var(--t2), transform var(--t2) var(--ease);
+  display:flex; align-items:center; gap:1.125rem; padding:1.375rem 0;
+  border-top:1px solid var(--line); background:none; cursor:pointer;
+  transition:padding-left var(--t2) var(--ease);
 }
-.champ:hover{ border-color:var(--line-2); transform:translateX(3px); }
-.champ-wash{ position:absolute; inset:0; opacity:.22; pointer-events:none; }
-.champ > *{ position:relative; z-index:1; }
-.champ-crest{ width:52px; height:52px; object-fit:contain; flex-shrink:0; filter:drop-shadow(0 6px 14px rgba(0,0,0,.6)); }
+.champ:first-child{ border-top:none; }
+.champ:hover, .champ:focus-visible{ padding-left:.5rem; }
+.champ-crest{ width:42px; height:42px; object-fit:contain; flex-shrink:0; }
 .champ-id{ min-width:0; }
-.champ-id b{ display:block; font-size:1.0625rem; font-weight:600; letter-spacing:-.025em; }
-.champ-id .pres{ display:flex; align-items:center; gap:.4rem; margin-top:.3rem; font-size:.8125rem; color:var(--ink-3); }
+.champ-id b{ display:block; font-family:var(--f-sans); font-size:1.0625rem; font-weight:600; letter-spacing:-.015em; line-height:1.3; }
+.champ-id .pres{ display:flex; align-items:center; gap:.4rem; margin-top:.35rem; font-size:.8125rem; color:var(--ink-3); }
 .champ-id .pres i{ color:var(--ink-5); font-size:.875rem; }
-.champ-trophy{ margin-left:auto; display:flex; flex-direction:column; align-items:flex-end; gap:.35rem; flex-shrink:0; text-align:right; }
-.champ-trophy i{ font-size:1.25rem; color:var(--gold); }
-.champ-note{ padding:0 1rem 1.25rem; font-size:.75rem; color:var(--ink-3); line-height:1.6; }
-.pres-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:.625rem; padding:1rem; }
-.pres-card{ display:flex; flex-direction:column; gap:.35rem; padding:1rem 1.125rem; border:1px solid var(--line); border-radius:var(--r); background:var(--surface); font:inherit; text-align:left; cursor:pointer; transition:border-color var(--t2), transform var(--t2) var(--ease); }
-.pres-card:hover{ border-color:var(--line-2); transform:translateY(-2px); }
-.pres-card b{ font-size:1rem; font-weight:600; letter-spacing:-.02em; }
-.pres-card span{ font-size:.75rem; color:var(--ink-3); }
+.champ-trophy{ margin-left:auto; display:flex; align-items:center; gap:1rem; flex-shrink:0; }
+.champ-trophy-badge{ width:30px; height:30px; flex-shrink:0; display:grid; place-items:center; }
+.champ-trophy-badge i{ font-size:1.125rem; color:var(--ink-4); }
+.champ-trophy-foto{ width:30px; height:30px; object-fit:contain; }
+.champ-trophy-meta{ display:flex; flex-direction:column; align-items:flex-end; gap:.35rem; text-align:right; }
+.champ-trophy-meta .badge{ background:none; border:1px solid var(--line-2); font-family:var(--f-mono); font-weight:500; letter-spacing:.04em; }
+.champ-trophy-meta .badge.badge-superliga{ color:var(--accent-2); border-color:rgba(255,81,0,.35); }
+.champ-trophy-meta .badge.badge-ascenso{ color:#7BA3FF; border-color:rgba(62,123,255,.35); }
+.champ-trophy-meta .badge.badge-copa{ color:#FF7B7B; border-color:rgba(255,59,59,.35); }
+.champ-note{ padding:0 1.5rem 1.5rem; font-size:.75rem; color:var(--ink-3); line-height:1.6; }
+.pres-grid{ display:flex; flex-direction:column; padding:.25rem 1.5rem 1.5rem; }
+.pres-card{
+  display:flex; align-items:center; gap:1.125rem; padding:1.25rem 0;
+  border-top:1px solid var(--line); background:none; font:inherit; text-align:left; cursor:pointer;
+  transition:padding-left var(--t2) var(--ease);
+}
+.pres-card:first-child{ border-top:none; }
+.pres-card:hover, .pres-card:focus-visible{ padding-left:.5rem; }
+.pres-card b{ font-family:var(--f-sans); font-size:1rem; font-weight:600; letter-spacing:-.01em; flex:1; min-width:0; }
+.pres-card span{ font-family:var(--f-mono); font-size:.875rem; color:var(--ink-3); flex-shrink:0; }
+.pres-row-static{ display:flex; align-items:center; gap:1.125rem; padding:1.125rem 0; border-top:1px solid var(--line); }
+.pres-row-static:first-child{ border-top:none; }
+.pres-row-static b{ font-family:var(--f-sans); font-size:.9375rem; font-weight:600; flex:1; min-width:0; }
+.pres-row-static span{ font-family:var(--f-mono); font-size:.8125rem; color:var(--ink-3); flex-shrink:0; }
 .pres-back{ display:inline-flex; align-items:center; gap:.4rem; font:inherit; background:none; border:0; padding:0; cursor:pointer; font-family:var(--f-mono); font-size:.6875rem; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-3); }
 .pres-back[hidden]{ display:none; }
 .pres-back:hover{ color:var(--ink-1); }
-.pres-group-title{ padding:1rem 1.125rem .25rem; font-size:.8125rem; font-weight:600; color:var(--ink-2); }
+.pres-group-title{ padding:1.5rem 1.5rem .25rem; font-family:var(--f-mono); font-size:.75rem; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-3); }
 .champ-id button.pres{ background:none; border:0; padding:0; font:inherit; cursor:pointer; text-align:left; }
 .champ-id button.pres:hover, .champ-id button.pres:focus-visible{ color:var(--ink-1); }
+/* Fotos opcionales de presidente/trofeo (gestor: vista-palmares.js). En
+   gris hasta que se pasa el ratón o se enfoca la fila — el color se gana
+   con la interacción, no se regala de entrada. */
+.pres-avatar{ width:22px; height:22px; border-radius:50%; object-fit:cover; flex-shrink:0; filter:grayscale(1); transition:filter var(--t2); }
+.pres-card .pres-avatar, .pres-row-static .pres-avatar{ width:52px; height:52px; }
+.pres-card:hover .pres-avatar, .pres-card:focus-visible .pres-avatar{ filter:none; }
+#pres-title, #champ-title, #ov-team-titulos .ov-head h3{ font-family:var(--f-sans); font-weight:700; font-size:1.125rem; letter-spacing:-.01em; }
+/* Un nombre de presidente largo (nicks reales, no controlados) se salía del
+   panel entero y tapaba el botón de cerrar en pantallas estrechas — sin
+   min-width:0 un hijo flex no se encoge nunca por debajo de su contenido. */
+#pres-title{ min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 #ov-team-titulos{ z-index:900; }
+
+/* ============================ TIRA DE HONORES (estilo Football Manager) ============================
+   Vitrina de trofeos de UNA entidad (un presidente, un club): una tira con
+   scroll horizontal, un mosaico por competición con la foto del trofeo de
+   fondo y el número de veces ganada superpuesto. Sustituye a la lista
+   cronológica en el detalle de presidente y en el palmarés del club — el
+   detalle de temporada (varias competiciones/equipos distintos de una vez)
+   se queda con la lista editorial, porque ahí no hay nada que acumular. */
+.honours-label{
+  display:flex; align-items:center; gap:.5rem; margin:0 1.5rem .875rem;
+  font-family:var(--f-mono); font-size:.75rem; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--accent-2);
+}
+/* Sin truco de margen negativo: .ov-panel no tiene padding propio (cada
+   bloque de contenido pone el suyo), así que "sangrar" el margen no tenía
+   nada que cancelar y la tira quedaba pegada al borde del modal, sin hueco
+   a la izquierda — justo lo que se veía mal en pantallas pequeñas. */
+.honours-wrap{ padding:1.25rem 0; border-bottom:1px solid var(--line); margin-bottom:1.25rem; }
+/* padding-right no se respeta en un contenedor flex con overflow-x cuando
+   el contenido desborda (Chromium): el hueco izquierdo se veía y el
+   derecho no. padding-left sí funciona, así que solo se deja ese, y el
+   hueco derecho se reserva con un ::after como último elemento flex —
+   cuenta como contenido, no como padding, así que el navegador no lo recorta. */
+/* Como mucho hay 3 mosaicos (uno por competición) y en la mayoría de anchos
+   caben sin scroll: sin centrar, un flex normal los deja pegados a la
+   izquierda y todo el aire sobrante se acumula a la derecha.
+   "justify-content:safe center" (centra si cabe, alinea al inicio si no)
+   se probó y se descartó: cuando desborda, el navegador arranca con
+   scrollLeft ya desplazado al padding, así que el hueco izquierdo existe
+   pero no se ve hasta desplazar a mano. Se centra por JS solo cuando de
+   verdad cabe entero (ajustarCentradoHonours en app.js), comprobando el
+   desbordamiento real en vez de intentar adivinarlo con CSS. */
+/* Sin scroll-snap a propósito: combinado con scroll-snap-align:start en los
+   tiles, el navegador arrancaba con scrollLeft ya desplazado al padding
+   (el mismo síntoma que "safe center" antes) — el hueco izquierdo existía
+   pero no se veía hasta desplazar a mano. Con como mucho 3 mosaicos, el
+   ajuste fino de snap no compensa ese efecto secundario. */
+.honours-strip-outer{ position:relative; }
+.honours-strip{ display:flex; gap:.75rem; overflow-x:auto; padding-left:1.5rem; scrollbar-width:none; }
+.honours-strip.centrado{ justify-content:center; }
+.honours-strip::after{ content:''; flex:0 0 .75rem; }
+.honours-strip::-webkit-scrollbar{ display:none; }
+/* No es un hueco vacío recortado por error: hay un mosaico más esperando a
+   la derecha. Fijo (no es hijo de la tira con scroll), solo cuando de
+   verdad desborda. */
+.honours-strip-outer.desborda::after{
+  content:''; position:absolute; top:0; bottom:0; right:0; width:32px;
+  background:linear-gradient(to right, transparent, var(--bg-raised));
+  pointer-events:none;
+}
+.honour-tile{
+  position:relative; flex:0 0 128px; height:168px; border-radius:var(--r); overflow:hidden;
+  cursor:pointer; background:var(--surface-2); border:0; padding:0;
+  transition:transform var(--t2) var(--ease);
+}
+.honour-tile:hover, .honour-tile:focus-visible{ transform:translateY(-4px); }
+/* Las fotos de trofeo van SIEMPRE inclinadas 35 grados a la derecha en el
+   palmarés: aquí, en el detalle de presidente y en "Ver palmarés del club".
+   La lista de campeones (.champ-trophy-foto) NO se inclina, a propósito.
+   --tilt-fill compensa las esquinas que la rotación dejaría vacías: un
+   rectángulo girado 35 grados no cubre el mismo hueco que sin girar, y con
+   object-fit:cover el mosaico enseñaría el fondo por las puntas. 1.6 es el
+   factor que cubre el mosaico más alto (128x168) con margen. */
+.honour-tile{ --tilt:35deg; --tilt-fill:1.6; }
+.honour-tile img{
+  position:absolute; inset:0; width:100%; height:100%; object-fit:cover;
+  transform:rotate(var(--tilt)) scale(var(--tilt-fill));
+  filter:grayscale(.3) brightness(.6) saturate(1.1); transition:filter var(--t3) var(--ease), transform var(--t3) var(--ease);
+}
+.honour-tile:hover img, .honour-tile:focus-visible img{ filter:grayscale(0) brightness(.68) saturate(1.1); transform:rotate(var(--tilt)) scale(calc(var(--tilt-fill) * 1.07)); }
+/* Sin foto de trofeo (el estado real hasta que se suban desde el gestor):
+   tarjeta plana con un tinte muy suave del color de la competición y el
+   icono pequeño en una esquina, como una marca — no un icono enorme
+   flotando solo en el centro simulando una foto que no existe. */
+.honour-tile-noimg{ position:absolute; inset:0; display:flex; align-items:flex-start; justify-content:flex-end; padding:.75rem; background:var(--surface-2); }
+.honour-tile-noimg i{ font-size:1.125rem; color:var(--ink-4); }
+.honour-tile[data-cls="badge-superliga"] .honour-tile-noimg{ background:linear-gradient(155deg,rgba(255,81,0,.16),var(--surface-2) 62%); }
+.honour-tile[data-cls="badge-ascenso"] .honour-tile-noimg{ background:linear-gradient(155deg,rgba(62,123,255,.16),var(--surface-2) 62%); }
+.honour-tile[data-cls="badge-copa"] .honour-tile-noimg{ background:linear-gradient(155deg,rgba(255,59,59,.16),var(--surface-2) 62%); }
+.honour-tile-fade{ position:absolute; inset:0; background:linear-gradient(180deg,transparent 38%,rgba(0,0,0,.82) 100%); pointer-events:none; }
+/* flex-column, no dos <span> inline sueltos: sin esto, el nombre de
+   competición y el número quedaban en la misma línea de texto a tamaños
+   completamente distintos, como si se hubiesen encimado por accidente. */
+.honour-tile-body{ position:absolute; left:0; right:0; bottom:0; padding:.875rem; display:flex; flex-direction:column; gap:.15rem; text-align:left; }
+.honour-tile-comp{ font-family:var(--f-sans); font-size:.6875rem; font-weight:600; letter-spacing:.04em; color:rgba(255,255,255,.75); text-transform:uppercase; line-height:1.3; }
+.honour-tile-count{ font-family:var(--f-sans); font-weight:800; font-size:2rem; letter-spacing:-.02em; line-height:1; color:#fff; }
+@media (max-width:520px){ .honour-tile{ flex-basis:112px; height:148px; } }
 .tl-card[data-champs]{ cursor:pointer; }
 .tl-open{
   display:inline-flex; align-items:center; gap:.45rem; margin-top:1.25rem;
@@ -988,9 +1115,29 @@ table.tbl tbody tr:last-child td{ border-bottom:0; }
   color:var(--gold); transition:gap var(--t1);
 }
 .tl-card:hover .tl-open{ gap:.7rem; }
-@media (max-width:520px){ .champ{ flex-wrap:wrap; } .champ-trophy{ margin-left:0; width:100%; align-items:flex-start; text-align:left; flex-direction:row; } }
+@media (max-width:520px){
+  .champ{ flex-wrap:wrap; }
+  .champ-trophy{ margin-left:0; width:100%; }
+  .champ-trophy-meta{ align-items:flex-start; text-align:left; }
+}
 .ov-head{ display:flex; align-items:center; justify-content:space-between; padding:1rem 1.25rem; border-bottom:1px solid var(--line); }
 .ov-head h3{ font-size:.9375rem; font-weight:550; }
+/* Foto de fondo de la cabecera del detalle de presidente: de fondo tras
+   "Volver" y el nombre, difuminada y poco visible, apagándose hacia la
+   derecha hasta el color liso del resto del panel (mask-image, no un
+   degradado de color aparte que haya que mantener igual a --bg-raised a
+   mano). Solo #ov-presidentes la usa; el resto de cabeceras no cambian. */
+#pres-head{ position:relative; overflow:hidden; }
+#pres-head > *:not(.pres-head-photo){ position:relative; z-index:1; }
+.pres-head-photo{
+  position:absolute; inset:0; z-index:0;
+  background-size:cover; background-position:center;
+  filter:blur(14px) brightness(.55) saturate(1.05);
+  opacity:.55;
+  -webkit-mask-image:linear-gradient(to right, black 0%, black 45%, transparent 90%);
+  mask-image:linear-gradient(to right, black 0%, black 45%, transparent 90%);
+}
+.pres-head-photo[hidden]{ display:none; }
 
 /* ============================ SHEET (pantalla completa) ============================ */
 .sheet{ position:fixed; inset:0; z-index:850; background:var(--bg); opacity:0; visibility:hidden; transition:opacity var(--t2) var(--ease), visibility var(--t2); }

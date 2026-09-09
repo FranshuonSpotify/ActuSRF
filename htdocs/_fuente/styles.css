@@ -47,6 +47,13 @@
   --af-fuego:#FF5A3C; --af-aire:#35D0C6; --af-bosque:#46B45F; --af-montana:#C08A3E; --af-neutro:#9AA0A6;
   --pos-por:#FFC94A; --pos-def:#3E7BFF; --pos-med:#46B45F; --pos-del:#FF3B3B;
 
+  /* Noto Sans JP/KR NO están en esta pila, y es deliberado: el CJK cae al
+     tipo del sistema, como ha hecho siempre. Añadirlas aquí las activaría de
+     verdad, pero eso hace que japonés y coreano se bajen unos 700 KB de
+     subconjuntos woff2 que hoy no se bajan. Si algún día se quiere ese
+     acabado, basta con meter 'Noto Sans JP','Noto Sans KR' detrás de 'Inter':
+     sfFuentesCJK() (i18n.js) ya se encarga de que la hoja sólo se pida en
+     esos dos idiomas. */
   --f-sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
   --f-display:'Teko',var(--f-sans);
   --f-serif:'Fraunces',Georgia,serif;
@@ -1053,11 +1060,20 @@ table.tbl tbody tr:last-child td{ border-bottom:0; }
   transition:transform var(--t2) var(--ease);
 }
 .honour-tile:hover, .honour-tile:focus-visible{ transform:translateY(-4px); }
+/* Las fotos de trofeo van SIEMPRE inclinadas 35 grados a la derecha en el
+   palmarés: aquí, en el detalle de presidente y en "Ver palmarés del club".
+   La lista de campeones (.champ-trophy-foto) NO se inclina, a propósito.
+   --tilt-fill compensa las esquinas que la rotación dejaría vacías: un
+   rectángulo girado 35 grados no cubre el mismo hueco que sin girar, y con
+   object-fit:cover el mosaico enseñaría el fondo por las puntas. 1.6 es el
+   factor que cubre el mosaico más alto (128x168) con margen. */
+.honour-tile{ --tilt:35deg; --tilt-fill:1.6; }
 .honour-tile img{
   position:absolute; inset:0; width:100%; height:100%; object-fit:cover;
+  transform:rotate(var(--tilt)) scale(var(--tilt-fill));
   filter:grayscale(.3) brightness(.6) saturate(1.1); transition:filter var(--t3) var(--ease), transform var(--t3) var(--ease);
 }
-.honour-tile:hover img, .honour-tile:focus-visible img{ filter:grayscale(0) brightness(.68) saturate(1.1); transform:scale(1.07); }
+.honour-tile:hover img, .honour-tile:focus-visible img{ filter:grayscale(0) brightness(.68) saturate(1.1); transform:rotate(var(--tilt)) scale(calc(var(--tilt-fill) * 1.07)); }
 /* Sin foto de trofeo (el estado real hasta que se suban desde el gestor):
    tarjeta plana con un tinte muy suave del color de la competición y el
    icono pequeño en una esquina, como una marca — no un icono enorme

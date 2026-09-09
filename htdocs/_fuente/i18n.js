@@ -792,6 +792,28 @@
             return d.textContent.replace(/\s+/g, ' ').trim();
         }
 
+        /* FUENTES CJK BAJO DEMANDA
+           Noto Sans JP/KR sólo se piden cuando el idioma las necesita. Se
+           insertan al aplicar japonés o coreano y se quedan: retirarlas al
+           volver a otro idioma provocaría un reflow del texto sin ahorrar
+           nada que no estuviera ya descargado.
+           El pre-renderizado de build.js ejecuta esta misma función dentro de
+           jsdom, así que ja.html y ko.html salen ya con su <link> en el HTML
+           servido: no hay una vuelta de red extra por culpa de JS. */
+        var SF_CJK = {
+            ja: 'https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap',
+            ko: 'https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap'
+        };
+        function sfFuentesCJK(code) {
+            var href = SF_CJK[code];
+            if (!href || document.querySelector('link[data-cjk="' + code + '"]')) return;
+            var l = document.createElement('link');
+            l.rel = 'stylesheet';
+            l.href = href;
+            l.setAttribute('data-cjk', code);
+            document.head.appendChild(l);
+        }
+
         function sfApplyLang(code) {
             var dict = SF_I18N[code] || SF_I18N.es;
             /* El idioma se persiste ANTES de recorrer el DOM: sfATApply() lee
@@ -803,6 +825,7 @@
                visita. */
             try { localStorage.setItem('sf_lang', code); } catch (e) {}
             document.documentElement.setAttribute('lang', code);
+            sfFuentesCJK(code);
             /* Sólo 28 de las 136 claves data-i18n del HTML existen en el
                diccionario heredado. Antes, cada una de las 108 restantes pedía
                SU PROPIA traducción por separado: decenas de viajes sueltos que

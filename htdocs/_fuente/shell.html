@@ -77,7 +77,12 @@
      descubre hasta haber bajado y empezado a parsear el CSS entero, así que
      añadía una vuelta de red completa antes de siquiera pedir las fuentes.
      Como <link> en el <head>, se pide en paralelo con todo lo demás. -->
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Teko:wght@500;600;700&family=Fraunces:ital,opsz,wght@1,9..144,300;1,9..144,400&family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+JP:wght@400;500;700&family=Noto+Sans+KR:wght@400;500;700&display=swap">
+<!-- Noto Sans JP y KR NO van aquí: entre las dos declaran cientos de
+     subconjuntos unicode y engordaban esta hoja hasta 641 KB para TODOS los
+     visitantes, también los que leen en español y nunca verán un kanji. Se
+     piden aparte y sólo al pasar a japonés o coreano — ver sfFuentesCJK()
+     en i18n.js. -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Teko:wght@500;600;700&family=Fraunces:ital,opsz,wght@1,9..144,300;1,9..144,400&family=JetBrains+Mono:wght@400;500;600&display=swap">
 <link rel="stylesheet" href="styles.css">
 <link rel="preconnect" href="https://unpkg.com" crossorigin>
 <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
@@ -640,7 +645,7 @@
     <div class="hero-grid"></div>
     <div class="hero-glow"></div>
   </div>
-  <div class="hero-photo" aria-hidden="true"><img src="assets/jugador-01.png" alt="" id="hero-img"></div>
+  <div class="hero-photo" aria-hidden="true"><img src="assets/jugador-01.webp" alt="" id="hero-img" decoding="async"></div>
   <div class="hero-in">
     <div class="wrap wrap-wide">
       <div class="hero-copy">
@@ -955,7 +960,7 @@
 
       <article class="legend-card rv" style="--lc:#7C5BFF">
         <div class="legend-portrait">
-          <img src="assets/d4rkrepulser.png" alt="D4rkRepulser">
+          <img src="assets/d4rkrepulser.webp" alt="D4rkRepulser" loading="lazy" decoding="async">
           <span class="legend-vignette" aria-hidden="true"></span>
           <span class="legend-rank"><i class="ph-bold ph-medal"></i><span data-i18n="leyendas.d4rk.rank">Récord</span></span>
         </div>
@@ -973,7 +978,7 @@
 
       <article class="legend-card rv rv-d1" style="--lc:#FF8A4F">
         <div class="legend-portrait">
-          <img src="assets/payo-aguao.png" alt="Payo Aguao">
+          <img src="assets/payo-aguao.webp" alt="Payo Aguao" loading="lazy" decoding="async">
           <span class="legend-vignette" aria-hidden="true"></span>
           <span class="legend-rank"><i class="ph-bold ph-quotes"></i><span data-i18n="leyendas.payo.rank">Folclore</span></span>
         </div>
@@ -998,13 +1003,13 @@
     <div class="sec-head rv">
       <span class="eyebrow" data-i18n="sec.staff.kicker">¿Quién gestiona esto?</span>
       <h2 class="h1 nowrap" data-i18n="sec.staff">Equipo organizador</h2>
-      <p class="lede" data-i18n="staff.lede">Seis personas que empezaron jugando y acabaron organizando. Todas siguen compitiendo con su club: nadie dirige la liga desde fuera de ella.</p>
+      <p class="lede" data-i18n="staff.lede">Ocho personas que empezaron jugando y acabaron organizando. Cuatro siguen compitiendo con su club en la Temporada 4; el resto se dedica ya por completo a la organización, pero ninguna dirige la liga desde fuera de ella.</p>
     </div>
 
     <div class="staff">
 
       <article class="staff-card staff-lead rv rol-fundador">
-        <div class="staff-photo"><img src="assets/franshu.png" alt="Franshu"><span class="staff-vignette" aria-hidden="true"></span></div>
+        <div class="staff-photo"><img src="assets/franshu.webp" alt="Franshu" loading="lazy" decoding="async"><span class="staff-vignette" aria-hidden="true"></span></div>
         <div class="staff-info">
           <span class="staff-role staff-role-lead" data-i18n="staff.franshu.rol">Fundador</span>
           <h3>Franshu</h3>
@@ -1013,7 +1018,7 @@
       </article>
 
       <article class="staff-card rv rol-admin">
-        <div class="staff-photo"><img src="assets/d4rkrepulser.png" alt="D4rkRepulser"><span class="staff-vignette" aria-hidden="true"></span></div>
+        <div class="staff-photo"><img src="assets/d4rkrepulser.webp" alt="D4rkRepulser" loading="lazy" decoding="async"><span class="staff-vignette" aria-hidden="true"></span></div>
         <div class="staff-info">
           <span class="staff-role" data-i18n="staff.d4rk.rol">Administrador</span>
           <h3>D4rkRepulser</h3>
@@ -1022,7 +1027,7 @@
       </article>
 
       <article class="staff-card rv rv-d1 rol-admin">
-        <div class="staff-photo"><img src="assets/davidgonzzalezc.png" alt="david.gonzzalezc"><span class="staff-vignette" aria-hidden="true"></span></div>
+        <div class="staff-photo"><img src="assets/davidgonzzalezc.webp" alt="david.gonzzalezc" loading="lazy" decoding="async"><span class="staff-vignette" aria-hidden="true"></span></div>
         <div class="staff-info">
           <span class="staff-role" data-i18n="staff.david.rol">Administrador</span>
           <h3>david.gonzzalezc</h3>
@@ -1030,7 +1035,7 @@
       </article>
 
       <article class="staff-card rv rv-d1 rol-mod">
-        <div class="staff-photo"><img src="assets/payo-aguao.png" alt="Payo Aguao"><span class="staff-vignette" aria-hidden="true"></span></div>
+        <div class="staff-photo"><img src="assets/payo-aguao.webp" alt="Payo Aguao" loading="lazy" decoding="async"><span class="staff-vignette" aria-hidden="true"></span></div>
         <div class="staff-info">
           <span class="staff-role" data-i18n="staff.payo.rol">Moderador</span>
           <h3>Payo Aguao</h3>
@@ -1038,7 +1043,7 @@
       </article>
 
       <article class="staff-card rv rv-d2 rol-mod">
-        <div class="staff-photo"><img src="assets/totti_alcresise.png" alt="Totti Alcresise"><span class="staff-vignette" aria-hidden="true"></span></div>
+        <div class="staff-photo"><img src="assets/totti_alcresise.webp" alt="Totti Alcresise" loading="lazy" decoding="async"><span class="staff-vignette" aria-hidden="true"></span></div>
         <div class="staff-info">
           <span class="staff-role" data-i18n="staff.totti.rol">Moderador</span>
           <h3>Totti Alcresise</h3>
@@ -1047,10 +1052,28 @@
       </article>
 
       <article class="staff-card rv rv-d2 rol-mod">
-        <div class="staff-photo"><img src="assets/gabrii.png" alt="Gabrii"><span class="staff-vignette" aria-hidden="true"></span></div>
+        <div class="staff-photo"><img src="assets/gabrii.webp" alt="Gabrii" loading="lazy" decoding="async"><span class="staff-vignette" aria-hidden="true"></span></div>
         <div class="staff-info">
           <span class="staff-role" data-i18n="staff.gabrii.rol">Moderador</span>
           <h3>Gabrii</h3>
+        </div>
+      </article>
+
+      <article class="staff-card rv rv-d3 rol-mod">
+        <div class="staff-photo"><img src="assets/lulu.webp" alt="Lulu" loading="lazy" decoding="async"><span class="staff-vignette" aria-hidden="true"></span></div>
+        <div class="staff-info">
+          <span class="staff-role" data-i18n="staff.lulu.rol">Moderador</span>
+          <h3>Lulu</h3>
+          <span class="staff-club" data-club="Instituto Zeus"><span class="staff-crest"><i class="ph-bold ph-shield-chevron"></i></span>Instituto Zeus</span>
+        </div>
+      </article>
+
+      <article class="staff-card rv rv-d3 rol-mod">
+        <div class="staff-photo"><img src="assets/jade.webp" alt="Jade Beor" loading="lazy" decoding="async"><span class="staff-vignette" aria-hidden="true"></span></div>
+        <div class="staff-info">
+          <span class="staff-role" data-i18n="staff.jade.rol">Moderador</span>
+          <h3>Jade Beor</h3>
+          <span class="staff-club" data-club="Oscuridad Ancestral"><span class="staff-crest"><i class="ph-bold ph-shield-chevron"></i></span>Oscuridad Ancestral</span>
         </div>
       </article>
 
