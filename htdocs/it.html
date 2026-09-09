@@ -41,10 +41,10 @@
 <meta property="og:title" content="Superliga Frontier: Lega Attiva di Inazuma Eleven Victory Road 2026 | Classifica e Risultati">
 <meta property="og:description" content="La lega attiva di Inazuma Eleven: Victory Road. Giocatori verdi, niente reroll delle passive e tetto salariale. Classifica, risultati, squadre e marcatori.">
 <meta property="og:url" content="https://superligafrontier.es/?lang=it">
-<meta property="og:image" content="https://i.imgur.com/oby9bEr.png">
-<meta property="og:image:width" content="512">
-<meta property="og:image:height" content="512">
-<meta property="og:image:alt" content="Logo Superliga Frontier">
+<meta property="og:image" content="https://superligafrontier.es/assets/og-preview.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Superliga Frontier — Liga activa de Inazuma Eleven: Victory Road">
 <meta property="og:locale" content="it">
 <meta property="og:locale:alternate" content="en_US">
 <meta property="og:locale:alternate" content="ja_JP">
@@ -67,8 +67,8 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Superliga Frontier: Lega Attiva di Inazuma Eleven Victory Road 2026 | Classifica e Risultati">
 <meta name="twitter:description" content="La lega attiva di Inazuma Eleven: Victory Road. Giocatori verdi, niente reroll delle passive e tetto salariale. Classifica, risultati, squadre e marcatori.">
-<meta name="twitter:image" content="https://i.imgur.com/oby9bEr.png">
-<meta name="twitter:image:alt" content="Logo Superliga Frontier">
+<meta name="twitter:image" content="https://superligafrontier.es/assets/og-preview.png">
+<meta name="twitter:image:alt" content="Superliga Frontier — Liga activa de Inazuma Eleven: Victory Road">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
@@ -1012,38 +1012,149 @@ table.tbl tbody tr:last-child td{ border-bottom:0; }
 }
 @keyframes langSpin{ to{ transform:rotate(360deg); } }
 
-/* ============================ OVERLAY DE CAMPEONES ============================ */
+/* ============================ SALÓN DE PRESIDENTES / PALMARÉS ============================
+   Lista editorial, no tarjetas de juego: sin cajas, sin insignias, sin
+   fondos degradados, casi sin color. Separadores finos entre filas, nombres
+   en Inter (NO Fraunces: el único corte que carga shell.html es italic —
+   ver el <link> de Google Fonts — así que cualquier texto dinámico en serif
+   sale en cursiva, ilegible con nicks que mezclan mayúsculas y números como
+   "D4rkRepulser". Inter es la fuente de UI del sitio; se queda en eso aquí)
+   y cifras en mono — el contenido manda, la decoración no. Una sola señal
+   de interacción: la fila se desplaza un poco a la derecha al
+   enfocarla/pasar el ratón, nada más. */
 .champ-panel{ width:min(94vw,760px); }
-.champs{ display:grid; gap:.625rem; padding:1rem; }
+.champs{ display:flex; flex-direction:column; padding:.25rem 1.5rem 1.5rem; }
 .champ{
-  display:flex; align-items:center; gap:1rem; padding:1rem 1.125rem;
-  border:1px solid var(--line); border-radius:var(--r); background:var(--surface);
-  position:relative; overflow:hidden; cursor:pointer;
-  transition:border-color var(--t2), transform var(--t2) var(--ease);
+  display:flex; align-items:center; gap:1.125rem; padding:1.375rem 0;
+  border-top:1px solid var(--line); background:none; cursor:pointer;
+  transition:padding-left var(--t2) var(--ease);
 }
-.champ:hover{ border-color:var(--line-2); transform:translateX(3px); }
-.champ-wash{ position:absolute; inset:0; opacity:.22; pointer-events:none; }
-.champ > *{ position:relative; z-index:1; }
-.champ-crest{ width:52px; height:52px; object-fit:contain; flex-shrink:0; filter:drop-shadow(0 6px 14px rgba(0,0,0,.6)); }
+.champ:first-child{ border-top:none; }
+.champ:hover, .champ:focus-visible{ padding-left:.5rem; }
+.champ-crest{ width:42px; height:42px; object-fit:contain; flex-shrink:0; }
 .champ-id{ min-width:0; }
-.champ-id b{ display:block; font-size:1.0625rem; font-weight:600; letter-spacing:-.025em; }
-.champ-id .pres{ display:flex; align-items:center; gap:.4rem; margin-top:.3rem; font-size:.8125rem; color:var(--ink-3); }
+.champ-id b{ display:block; font-family:var(--f-sans); font-size:1.0625rem; font-weight:600; letter-spacing:-.015em; line-height:1.3; }
+.champ-id .pres{ display:flex; align-items:center; gap:.4rem; margin-top:.35rem; font-size:.8125rem; color:var(--ink-3); }
 .champ-id .pres i{ color:var(--ink-5); font-size:.875rem; }
-.champ-trophy{ margin-left:auto; display:flex; flex-direction:column; align-items:flex-end; gap:.35rem; flex-shrink:0; text-align:right; }
-.champ-trophy i{ font-size:1.25rem; color:var(--gold); }
-.champ-note{ padding:0 1rem 1.25rem; font-size:.75rem; color:var(--ink-3); line-height:1.6; }
-.pres-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:.625rem; padding:1rem; }
-.pres-card{ display:flex; flex-direction:column; gap:.35rem; padding:1rem 1.125rem; border:1px solid var(--line); border-radius:var(--r); background:var(--surface); font:inherit; text-align:left; cursor:pointer; transition:border-color var(--t2), transform var(--t2) var(--ease); }
-.pres-card:hover{ border-color:var(--line-2); transform:translateY(-2px); }
-.pres-card b{ font-size:1rem; font-weight:600; letter-spacing:-.02em; }
-.pres-card span{ font-size:.75rem; color:var(--ink-3); }
+.champ-trophy{ margin-left:auto; display:flex; align-items:center; gap:1rem; flex-shrink:0; }
+.champ-trophy-badge{ width:30px; height:30px; flex-shrink:0; display:grid; place-items:center; }
+.champ-trophy-badge i{ font-size:1.125rem; color:var(--ink-4); }
+.champ-trophy-foto{ width:30px; height:30px; object-fit:contain; }
+.champ-trophy-meta{ display:flex; flex-direction:column; align-items:flex-end; gap:.35rem; text-align:right; }
+.champ-trophy-meta .badge{ background:none; border:1px solid var(--line-2); font-family:var(--f-mono); font-weight:500; letter-spacing:.04em; }
+.champ-trophy-meta .badge.badge-superliga{ color:var(--accent-2); border-color:rgba(255,81,0,.35); }
+.champ-trophy-meta .badge.badge-ascenso{ color:#7BA3FF; border-color:rgba(62,123,255,.35); }
+.champ-trophy-meta .badge.badge-copa{ color:#FF7B7B; border-color:rgba(255,59,59,.35); }
+.champ-note{ padding:0 1.5rem 1.5rem; font-size:.75rem; color:var(--ink-3); line-height:1.6; }
+.pres-grid{ display:flex; flex-direction:column; padding:.25rem 1.5rem 1.5rem; }
+.pres-card{
+  display:flex; align-items:center; gap:1.125rem; padding:1.25rem 0;
+  border-top:1px solid var(--line); background:none; font:inherit; text-align:left; cursor:pointer;
+  transition:padding-left var(--t2) var(--ease);
+}
+.pres-card:first-child{ border-top:none; }
+.pres-card:hover, .pres-card:focus-visible{ padding-left:.5rem; }
+.pres-card b{ font-family:var(--f-sans); font-size:1rem; font-weight:600; letter-spacing:-.01em; flex:1; min-width:0; }
+.pres-card span{ font-family:var(--f-mono); font-size:.875rem; color:var(--ink-3); flex-shrink:0; }
+.pres-row-static{ display:flex; align-items:center; gap:1.125rem; padding:1.125rem 0; border-top:1px solid var(--line); }
+.pres-row-static:first-child{ border-top:none; }
+.pres-row-static b{ font-family:var(--f-sans); font-size:.9375rem; font-weight:600; flex:1; min-width:0; }
+.pres-row-static span{ font-family:var(--f-mono); font-size:.8125rem; color:var(--ink-3); flex-shrink:0; }
 .pres-back{ display:inline-flex; align-items:center; gap:.4rem; font:inherit; background:none; border:0; padding:0; cursor:pointer; font-family:var(--f-mono); font-size:.6875rem; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-3); }
 .pres-back[hidden]{ display:none; }
 .pres-back:hover{ color:var(--ink-1); }
-.pres-group-title{ padding:1rem 1.125rem .25rem; font-size:.8125rem; font-weight:600; color:var(--ink-2); }
+.pres-group-title{ padding:1.5rem 1.5rem .25rem; font-family:var(--f-mono); font-size:.75rem; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-3); }
 .champ-id button.pres{ background:none; border:0; padding:0; font:inherit; cursor:pointer; text-align:left; }
 .champ-id button.pres:hover, .champ-id button.pres:focus-visible{ color:var(--ink-1); }
+/* Fotos opcionales de presidente/trofeo (gestor: vista-palmares.js). En
+   gris hasta que se pasa el ratón o se enfoca la fila — el color se gana
+   con la interacción, no se regala de entrada. */
+.pres-avatar{ width:22px; height:22px; border-radius:50%; object-fit:cover; flex-shrink:0; filter:grayscale(1); transition:filter var(--t2); }
+.pres-card .pres-avatar, .pres-row-static .pres-avatar{ width:52px; height:52px; }
+.pres-card:hover .pres-avatar, .pres-card:focus-visible .pres-avatar{ filter:none; }
+#pres-title, #champ-title, #ov-team-titulos .ov-head h3{ font-family:var(--f-sans); font-weight:700; font-size:1.125rem; letter-spacing:-.01em; }
+/* Un nombre de presidente largo (nicks reales, no controlados) se salía del
+   panel entero y tapaba el botón de cerrar en pantallas estrechas — sin
+   min-width:0 un hijo flex no se encoge nunca por debajo de su contenido. */
+#pres-title{ min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 #ov-team-titulos{ z-index:900; }
+
+/* ============================ TIRA DE HONORES (estilo Football Manager) ============================
+   Vitrina de trofeos de UNA entidad (un presidente, un club): una tira con
+   scroll horizontal, un mosaico por competición con la foto del trofeo de
+   fondo y el número de veces ganada superpuesto. Sustituye a la lista
+   cronológica en el detalle de presidente y en el palmarés del club — el
+   detalle de temporada (varias competiciones/equipos distintos de una vez)
+   se queda con la lista editorial, porque ahí no hay nada que acumular. */
+.honours-label{
+  display:flex; align-items:center; gap:.5rem; margin:0 1.5rem .875rem;
+  font-family:var(--f-mono); font-size:.75rem; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--accent-2);
+}
+/* Sin truco de margen negativo: .ov-panel no tiene padding propio (cada
+   bloque de contenido pone el suyo), así que "sangrar" el margen no tenía
+   nada que cancelar y la tira quedaba pegada al borde del modal, sin hueco
+   a la izquierda — justo lo que se veía mal en pantallas pequeñas. */
+.honours-wrap{ padding:1.25rem 0; border-bottom:1px solid var(--line); margin-bottom:1.25rem; }
+/* padding-right no se respeta en un contenedor flex con overflow-x cuando
+   el contenido desborda (Chromium): el hueco izquierdo se veía y el
+   derecho no. padding-left sí funciona, así que solo se deja ese, y el
+   hueco derecho se reserva con un ::after como último elemento flex —
+   cuenta como contenido, no como padding, así que el navegador no lo recorta. */
+/* Como mucho hay 3 mosaicos (uno por competición) y en la mayoría de anchos
+   caben sin scroll: sin centrar, un flex normal los deja pegados a la
+   izquierda y todo el aire sobrante se acumula a la derecha.
+   "justify-content:safe center" (centra si cabe, alinea al inicio si no)
+   se probó y se descartó: cuando desborda, el navegador arranca con
+   scrollLeft ya desplazado al padding, así que el hueco izquierdo existe
+   pero no se ve hasta desplazar a mano. Se centra por JS solo cuando de
+   verdad cabe entero (ajustarCentradoHonours en app.js), comprobando el
+   desbordamiento real en vez de intentar adivinarlo con CSS. */
+/* Sin scroll-snap a propósito: combinado con scroll-snap-align:start en los
+   tiles, el navegador arrancaba con scrollLeft ya desplazado al padding
+   (el mismo síntoma que "safe center" antes) — el hueco izquierdo existía
+   pero no se veía hasta desplazar a mano. Con como mucho 3 mosaicos, el
+   ajuste fino de snap no compensa ese efecto secundario. */
+.honours-strip-outer{ position:relative; }
+.honours-strip{ display:flex; gap:.75rem; overflow-x:auto; padding-left:1.5rem; scrollbar-width:none; }
+.honours-strip.centrado{ justify-content:center; }
+.honours-strip::after{ content:''; flex:0 0 .75rem; }
+.honours-strip::-webkit-scrollbar{ display:none; }
+/* No es un hueco vacío recortado por error: hay un mosaico más esperando a
+   la derecha. Fijo (no es hijo de la tira con scroll), solo cuando de
+   verdad desborda. */
+.honours-strip-outer.desborda::after{
+  content:''; position:absolute; top:0; bottom:0; right:0; width:32px;
+  background:linear-gradient(to right, transparent, var(--bg-raised));
+  pointer-events:none;
+}
+.honour-tile{
+  position:relative; flex:0 0 128px; height:168px; border-radius:var(--r); overflow:hidden;
+  cursor:pointer; background:var(--surface-2); border:0; padding:0;
+  transition:transform var(--t2) var(--ease);
+}
+.honour-tile:hover, .honour-tile:focus-visible{ transform:translateY(-4px); }
+.honour-tile img{
+  position:absolute; inset:0; width:100%; height:100%; object-fit:cover;
+  filter:grayscale(.3) brightness(.6) saturate(1.1); transition:filter var(--t3) var(--ease), transform var(--t3) var(--ease);
+}
+.honour-tile:hover img, .honour-tile:focus-visible img{ filter:grayscale(0) brightness(.68) saturate(1.1); transform:scale(1.07); }
+/* Sin foto de trofeo (el estado real hasta que se suban desde el gestor):
+   tarjeta plana con un tinte muy suave del color de la competición y el
+   icono pequeño en una esquina, como una marca — no un icono enorme
+   flotando solo en el centro simulando una foto que no existe. */
+.honour-tile-noimg{ position:absolute; inset:0; display:flex; align-items:flex-start; justify-content:flex-end; padding:.75rem; background:var(--surface-2); }
+.honour-tile-noimg i{ font-size:1.125rem; color:var(--ink-4); }
+.honour-tile[data-cls="badge-superliga"] .honour-tile-noimg{ background:linear-gradient(155deg,rgba(255,81,0,.16),var(--surface-2) 62%); }
+.honour-tile[data-cls="badge-ascenso"] .honour-tile-noimg{ background:linear-gradient(155deg,rgba(62,123,255,.16),var(--surface-2) 62%); }
+.honour-tile[data-cls="badge-copa"] .honour-tile-noimg{ background:linear-gradient(155deg,rgba(255,59,59,.16),var(--surface-2) 62%); }
+.honour-tile-fade{ position:absolute; inset:0; background:linear-gradient(180deg,transparent 38%,rgba(0,0,0,.82) 100%); pointer-events:none; }
+/* flex-column, no dos <span> inline sueltos: sin esto, el nombre de
+   competición y el número quedaban en la misma línea de texto a tamaños
+   completamente distintos, como si se hubiesen encimado por accidente. */
+.honour-tile-body{ position:absolute; left:0; right:0; bottom:0; padding:.875rem; display:flex; flex-direction:column; gap:.15rem; text-align:left; }
+.honour-tile-comp{ font-family:var(--f-sans); font-size:.6875rem; font-weight:600; letter-spacing:.04em; color:rgba(255,255,255,.75); text-transform:uppercase; line-height:1.3; }
+.honour-tile-count{ font-family:var(--f-sans); font-weight:800; font-size:2rem; letter-spacing:-.02em; line-height:1; color:#fff; }
+@media (max-width:520px){ .honour-tile{ flex-basis:112px; height:148px; } }
 .tl-card[data-champs]{ cursor:pointer; }
 .tl-open{
   display:inline-flex; align-items:center; gap:.45rem; margin-top:1.25rem;
@@ -1051,9 +1162,29 @@ table.tbl tbody tr:last-child td{ border-bottom:0; }
   color:var(--gold); transition:gap var(--t1);
 }
 .tl-card:hover .tl-open{ gap:.7rem; }
-@media (max-width:520px){ .champ{ flex-wrap:wrap; } .champ-trophy{ margin-left:0; width:100%; align-items:flex-start; text-align:left; flex-direction:row; } }
+@media (max-width:520px){
+  .champ{ flex-wrap:wrap; }
+  .champ-trophy{ margin-left:0; width:100%; }
+  .champ-trophy-meta{ align-items:flex-start; text-align:left; }
+}
 .ov-head{ display:flex; align-items:center; justify-content:space-between; padding:1rem 1.25rem; border-bottom:1px solid var(--line); }
 .ov-head h3{ font-size:.9375rem; font-weight:550; }
+/* Foto de fondo de la cabecera del detalle de presidente: de fondo tras
+   "Volver" y el nombre, difuminada y poco visible, apagándose hacia la
+   derecha hasta el color liso del resto del panel (mask-image, no un
+   degradado de color aparte que haya que mantener igual a --bg-raised a
+   mano). Solo #ov-presidentes la usa; el resto de cabeceras no cambian. */
+#pres-head{ position:relative; overflow:hidden; }
+#pres-head > *:not(.pres-head-photo){ position:relative; z-index:1; }
+.pres-head-photo{
+  position:absolute; inset:0; z-index:0;
+  background-size:cover; background-position:center;
+  filter:blur(14px) brightness(.55) saturate(1.05);
+  opacity:.55;
+  -webkit-mask-image:linear-gradient(to right, black 0%, black 45%, transparent 90%);
+  mask-image:linear-gradient(to right, black 0%, black 45%, transparent 90%);
+}
+.pres-head-photo[hidden]{ display:none; }
 
 /* ============================ SHEET (pantalla completa) ============================ */
 .sheet{ position:fixed; inset:0; z-index:850; background:var(--bg); opacity:0; visibility:hidden; transition:opacity var(--t2) var(--ease), visibility var(--t2); }
@@ -1399,7 +1530,7 @@ body.locked{ overflow:hidden; }
       "url": "https://superligafrontier.es",
       "logo": {
         "@type": "ImageObject",
-        "url": "https://i.imgur.com/oby9bEr.png",
+        "url": "https://superligafrontier.es/assets/og-preview.png",
         "width": 512,
         "height": 512
       },
@@ -1532,7 +1663,7 @@ body.locked{ overflow:hidden; }
           }
         ]
       },
-      "dateModified": "2026-08-30T19:30:38.772Z"
+      "dateModified": "2026-09-09T13:15:12.193Z"
     },
     {
       "@type": "FAQPage",
@@ -1863,7 +1994,7 @@ body.locked{ overflow:hidden; }
      asocie a la pestaña (silenciar la pestaña lo calla) y preload="none"
      para que los 2 MB no pesen en la carga inicial. -->
 <!-- El src lo asigna app.js al azar entre las 3 pistas disponibles. -->
-<audio id="sf-audio" loop="" preload="none" playsinline="" src="assets/web3.mp3"></audio>
+<audio id="sf-audio" loop="" preload="none" playsinline="" src="assets/web1.mp3"></audio>
 
 <!-- ================= PANTALLA DE CARGA ================= -->
 <div id="pre" aria-hidden="true">
@@ -1942,7 +2073,7 @@ body.locked{ overflow:hidden; }
   <div class="hero-in">
     <div class="wrap wrap-wide">
       <div class="hero-copy">
-        <span class="eyebrow rv"><span id="hero-temp" data-no-tr="">Stagione 3 · In corso</span></span>
+        <span class="eyebrow rv"><span id="hero-temp" data-no-tr="">Stagione 4 · In corso</span></span>
         <h1 class="h-display hero-title rv rv-d1">
           <span class="sr-only">Superliga Frontier: Liga de Inazuma Eleven Victory Road</span>
           <span class="grad-text" data-i18n="hero.line1" data-i18n-done="">Non sai cosa ti stai perdendo</span>
@@ -1967,10 +2098,10 @@ body.locked{ overflow:hidden; }
 <!-- ================= MÉTRICAS ================= -->
 <section class="metrics">
   <div class="wrap wrap-wide metrics-in">
-    <div class="metric rv"><b class="mono" id="m-temp">3</b><span data-i18n="stats.temporada" data-i18n-done="">Stagione</span></div>
+    <div class="metric rv"><b class="mono" id="m-temp">4</b><span data-i18n="stats.temporada" data-i18n-done="">Stagione</span></div>
     <div class="metric rv rv-d1"><b class="mono" id="m-teams">20</b><span data-i18n="stats.equipos" data-i18n-done="">Squadre attive</span></div>
     <div class="metric rv rv-d2"><b class="mono" id="m-players">397</b><span data-i18n="stats.jugadores" data-i18n-done="">Giocatori</span></div>
-    <div class="metric rv rv-d3"><b class="mono" id="m-jor">11</b><span data-i18n="stats.jornada" data-i18n-done="">Giornata</span></div>
+    <div class="metric rv rv-d3"><b class="mono" id="m-jor">1</b><span data-i18n="stats.jornada" data-i18n-done="">Giornata</span></div>
   </div>
 </section>
 
@@ -2096,7 +2227,7 @@ body.locked{ overflow:hidden; }
           <span class="tl-node tl-node-live">T.4</span>
           <article class="card spotlight tl-card">
             <div class="tl-head">
-              <span class="badge badge-gold" data-i18n="historia.t4.tag" data-i18n-done="">In preparazione</span>
+              <span class="badge badge-gold" data-i18n="historia.t4.tag" data-i18n-done="">In corso</span>
               <span class="tl-year" data-i18n="historia.t4.tag2" data-i18n-done="">Quella che ormai si regge da sola</span>
             </div>
             <h3 data-i18n="historia.t4.title" data-i18n-done="">La prova che il progetto non dipende più da nessuno in particolare</h3>
@@ -2104,7 +2235,7 @@ body.locked{ overflow:hidden; }
             <div class="tl-facts">
               <span class="tl-fact"><i class="ph ph-arrow-u-right-down"></i><b data-i18n="historia.t4.f1" data-i18n-done="">Continuità totale</b></span>
               <span class="tl-fact"><i class="ph ph-stack"></i><b>3</b> <span data-i18n="historia.t4.f2" data-i18n-done="">competizioni</span></span>
-              <span class="tl-fact"><i class="ph ph-wrench"></i><span data-i18n="historia.t4.f3" data-i18n-done="">In preparazione</span></span>
+              <span class="tl-fact"><i class="ph ph-play"></i><span data-i18n="historia.t4.f3" data-i18n-done="">In corso</span></span>
             </div>
           </article>
         </li>
@@ -2156,13 +2287,13 @@ body.locked{ overflow:hidden; }
           <th class="hide-sm" data-i18n="th.gf" data-i18n-done="">GF</th><th class="hide-sm" data-i18n="th.gc" data-i18n-done="">GS</th>
           <th class="hide-xs" data-i18n="th.dg" data-i18n-done="">DR</th><th data-i18n="th.pts" data-i18n-done="">Pti</th><th class="hide-sm" data-i18n="th.forma" data-i18n-done="">Forma</th>
         </tr></thead>
-        <tbody id="tbody-clas"><tr data-team="eq_1777322423802"><td class="pos"><span class="zone z-po"></span>1 <span class="tr-s">·</span></td><td><span class="tm"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2Fb%2Fb7%2FZanark_Domain_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251119122313" alt="Zanark Domain" loading="lazy">Zanark Domain</span></td><td class="mono">11</td><td class="mono hide-sm">11</td><td class="mono hide-sm">0</td><td class="mono hide-sm">0</td><td class="mono hide-sm">38</td><td class="mono hide-sm">3</td><td class="mono hide-xs">+35</td><td class="pts">33</td><td class="hide-sm"><span class="frm"><i class="f-w"></i><i class="f-w"></i><i class="f-w"></i><i class="f-w"></i><i class="f-w"></i></span></td></tr><tr data-team="eq_1777122380280"><td class="pos"><span class="zone z-po"></span>2 <span class="tr-s">·</span></td><td><span class="tm"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2F7%2F7b%2FSP_Fixers_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251118144153" alt="Servicio Secreto" loading="lazy">Servicio Secreto</span></td><td class="mono">11</td><td class="mono hide-sm">10</td><td class="mono hide-sm">0</td><td class="mono hide-sm">1</td><td class="mono hide-sm">27</td><td class="mono hide-sm">5</td><td class="mono hide-xs">+22</td><td class="pts">30</td><td class="hide-sm"><span class="frm"><i class="f-w"></i><i class="f-w"></i><i class="f-w"></i><i class="f-w"></i><i class="f-l"></i></span></td></tr><tr data-team="eq_1776985198182"><td class="pos"><span class="zone z-po"></span>3 <span class="tr-s">·</span></td><td><span class="tm"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2Ff%2Ff6%2FInazuma_KFC_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251118130810" alt="Inazuma Kids FC" loading="lazy">Inazuma Kids FC</span></td><td class="mono">11</td><td class="mono hide-sm">7</td><td class="mono hide-sm">1</td><td class="mono hide-sm">3</td><td class="mono hide-sm">22</td><td class="mono hide-sm">10</td><td class="mono hide-xs">+12</td><td class="pts">22</td><td class="hide-sm"><span class="frm"><i class="f-l"></i><i class="f-w"></i><i class="f-l"></i><i class="f-e"></i><i class="f-l"></i></span></td></tr><tr data-team="eq_1777121960890"><td class="pos"><span class="zone z-pi"></span>4 <span class="tr-s">·</span></td><td><span class="tm"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2F6%2F6f%2FMannouzaka_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251119113316" alt="Colegio Poderosa Fe" loading="lazy">Colegio Poderosa Fe</span></td><td class="mono">11</td><td class="mono hide-sm">6</td><td class="mono hide-sm">3</td><td class="mono hide-sm">2</td><td class="mono hide-sm">18</td><td class="mono hide-sm">11</td><td class="mono hide-xs">+7</td><td class="pts">21</td><td class="hide-sm"><span class="frm"><i class="f-w"></i><i class="f-l"></i><i class="f-w"></i><i class="f-e"></i><i class="f-l"></i></span></td></tr><tr data-team="eq_1776649500479"><td class="pos"><span class="zone z-pp"></span>5 <span class="tr-u">▲</span></td><td><span class="tm"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2F6%2F6b%2FOutei_Tsukinomiya_emblem.png%2Frevision%2Flatest%3Fcb%3D20240331224724.png" alt="Academia Plenilunio" loading="lazy">Academia Plenilunio</span></td><td class="mono">11</td><td class="mono hide-sm">6</td><td class="mono hide-sm">1</td><td class="mono hide-sm">4</td><td class="mono hide-sm">19</td><td class="mono hide-sm">10</td><td class="mono hide-xs">+9</td><td class="pts">19</td><td class="hide-sm"><span class="frm"><i class="f-w"></i><i class="f-e"></i><i class="f-w"></i><i class="f-w"></i><i class="f-l"></i></span></td></tr><tr data-team="eq_1777122337032"><td class="pos"><span class="zone z-pp"></span>6 <span class="tr-u">▲</span></td><td><span class="tm"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2Fc%2Fc5%2FGaru_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251119122237" alt="Gar" loading="lazy">Gar</span></td><td class="mono">11</td><td class="mono hide-sm">5</td><td class="mono hide-sm">1</td><td class="mono hide-sm">5</td><td class="mono hide-sm">16</td><td class="mono hide-sm">19</td><td class="mono hide-xs">-3</td><td class="pts">16</td><td class="hide-sm"><span class="frm"><i class="f-w"></i><i class="f-w"></i><i class="f-w"></i><i class="f-l"></i><i class="f-w"></i></span></td></tr><tr data-team="eq_1776988822956"><td class="pos"><span class="zone "></span>7 <span class="tr-d">▼</span></td><td><span class="tm"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2F2%2F20%2FUra_Zeus_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20260612141031" alt="Instituto Zeus" loading="lazy">Instituto Zeus</span></td><td class="mono">11</td><td class="mono hide-sm">4</td><td class="mono hide-sm">2</td><td class="mono hide-sm">5</td><td class="mono hide-sm">16</td><td class="mono hide-sm">11</td><td class="mono hide-xs">+5</td><td class="pts">14</td><td class="hide-sm"><span class="frm"><i class="f-w"></i><i class="f-l"></i><i class="f-w"></i><i class="f-w"></i><i class="f-l"></i></span></td></tr><tr data-team="eq_1776649179181"><td class="pos"><span class="zone "></span>8 <span class="tr-s">·</span></td><td><span class="tm"><img src="https://i.imgur.com/vHWASV1.png" alt="Criaturas de la Noche" loading="lazy">Criaturas de la Noche</span></td><td class="mono">11</td><td class="mono hide-sm">4</td><td class="mono hide-sm">1</td><td class="mono hide-sm">6</td><td class="mono hide-sm">16</td><td class="mono hide-sm">21</td><td class="mono hide-xs">-5</td><td class="pts">13</td><td class="hide-sm"><span class="frm"><i class="f-l"></i><i class="f-w"></i><i class="f-l"></i><i class="f-w"></i><i class="f-l"></i></span></td></tr><tr data-team="eq_1783122669226"><td class="pos"><span class="zone z-desc"></span>9 <span class="tr-s">·</span></td><td><span class="tm"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2F9%2F95%2FOumihara_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251118144148" alt="Mary Times" loading="lazy">Mary Times</span></td><td class="mono">11</td><td class="mono hide-sm">4</td><td class="mono hide-sm">0</td><td class="mono hide-sm">7</td><td class="mono hide-sm">13</td><td class="mono hide-sm">21</td><td class="mono hide-xs">-8</td><td class="pts">12</td><td class="hide-sm"><span class="frm"><i class="f-l"></i><i class="f-l"></i><i class="f-w"></i><i class="f-l"></i><i class="f-l"></i></span></td></tr><tr data-team="eq_1776725568226"><td class="pos"><span class="zone z-desc"></span>10 <span class="tr-s">·</span></td><td><span class="tm"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2F2%2F2e%2FHakuren_%2528GO%2529_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251119113305.png" alt="Alpino" loading="lazy">Alpino</span></td><td class="mono">11</td><td class="mono hide-sm">3</td><td class="mono hide-sm">1</td><td class="mono hide-sm">7</td><td class="mono hide-sm">8</td><td class="mono hide-sm">22</td><td class="mono hide-xs">-14</td><td class="pts">10</td><td class="hide-sm"><span class="frm"><i class="f-l"></i><i class="f-w"></i><i class="f-l"></i><i class="f-l"></i><i class="f-l"></i></span></td></tr><tr data-team="teikoku"><td class="pos"><span class="zone z-desc"></span>11 <span class="tr-s">·</span></td><td><span class="tm"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma%2Fimages%2F7%2F71%2FMonte_Olimpo_%2528Logo%2529.png%2Frevision%2Flatest%3Fcb%3D20250202134830%26path-prefix%3Des" alt="Monte Olimpo" loading="lazy">Monte Olimpo</span></td><td class="mono">11</td><td class="mono hide-sm">1</td><td class="mono hide-sm">0</td><td class="mono hide-sm">10</td><td class="mono hide-sm">3</td><td class="mono hide-sm">30</td><td class="mono hide-xs">-27</td><td class="pts">3</td><td class="hide-sm"><span class="frm"><i class="f-l"></i><i class="f-l"></i><i class="f-l"></i><i class="f-l"></i><i class="f-w"></i></span></td></tr></tbody>
+        <tbody id="tbody-clas"><tr data-team="eq_1776649500479"><td class="pos"><span class="zone z-po"></span>1 <span class="tr-s">·</span></td><td><span class="tm"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2F6%2F6b%2FOutei_Tsukinomiya_emblem.png%2Frevision%2Flatest%3Fcb%3D20240331224724.png" alt="Academia Plenilunio" loading="lazy">Academia Plenilunio</span></td><td class="mono">0</td><td class="mono hide-sm">0</td><td class="mono hide-sm">0</td><td class="mono hide-sm">0</td><td class="mono hide-sm">0</td><td class="mono hide-sm">0</td><td class="mono hide-xs">0</td><td class="pts">0</td><td class="hide-sm"><span class="frm"></span></td></tr><tr data-team="eq_1776725568226"><td class="pos"><span class="zone z-po"></span>2 <span class="tr-s">·</span></td><td><span class="tm"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2F2%2F2e%2FHakuren_%2528GO%2529_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251119113305.png" alt="Alpino" loading="lazy">Alpino</span></td><td class="mono">0</td><td class="mono hide-sm">0</td><td class="mono hide-sm">0</td><td class="mono hide-sm">0</td><td class="mono hide-sm">0</td><td class="mono hide-sm">0</td><td class="mono hide-xs">0</td><td class="pts">0</td><td class="hide-sm"><span class="frm"></span></td></tr><tr data-team="eq_1777121960890"><td class="pos"><span class="zone z-po"></span>3 <span class="tr-s">·</span></td><td><span class="tm"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2F6%2F6f%2FMannouzaka_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251119113316" alt="Colegio Poderosa Fe" loading="lazy">Colegio Poderosa Fe</span></td><td class="mono">0</td><td class="mono hide-sm">0</td><td class="mono hide-sm">0</td><td class="mono hide-sm">0</td><td class="mono hide-sm">0</td><td class="mono hide-sm">0</td><td class="mono hide-xs">0</td><td class="pts">0</td><td class="hide-sm"><span class="frm"></span></td></tr><tr data-team="eq_1776649179181"><td class="pos"><span class="zone z-pi"></span>4 <span class="tr-s">·</span></td><td><span class="tm"><img src="https://i.imgur.com/vHWASV1.png" alt="Criaturas de la Noche" loading="lazy">Criaturas de la Noche</span></td><td class="mono">0</td><td class="mono hide-sm">0</td><td class="mono hide-sm">0</td><td class="mono hide-sm">0</td><td class="mono hide-sm">0</td><td class="mono hide-sm">0</td><td class="mono hide-xs">0</td><td class="pts">0</td><td class="hide-sm"><span class="frm"></span></td></tr><tr data-team="eq_1777122337032"><td class="pos"><span class="zone z-pp"></span>5 <span class="tr-s">·</span></td><td><span class="tm"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2Fc%2Fc5%2FGaru_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251119122237" alt="Gar" loading="lazy">Gar</span></td><td class="mono">0</td><td class="mono hide-sm">0</td><td class="mono hide-sm">0</td><td class="mono hide-sm">0</td><td class="mono hide-sm">0</td><td class="mono hide-sm">0</td><td class="mono hide-xs">0</td><td class="pts">0</td><td class="hide-sm"><span class="frm"></span></td></tr><tr data-team="eq_1776985198182"><td class="pos"><span class="zone z-pp"></span>6 <span class="tr-s">·</span></td><td><span class="tm"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2Ff%2Ff6%2FInazuma_KFC_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251118130810" alt="Inazuma Kids FC" loading="lazy">Inazuma Kids FC</span></td><td class="mono">0</td><td class="mono hide-sm">0</td><td class="mono hide-sm">0</td><td class="mono hide-sm">0</td><td class="mono hide-sm">0</td><td class="mono hide-sm">0</td><td class="mono hide-xs">0</td><td class="pts">0</td><td class="hide-sm"><span class="frm"></span></td></tr><tr data-team="eq_1776988822956"><td class="pos"><span class="zone "></span>7 <span class="tr-s">·</span></td><td><span class="tm"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2F2%2F20%2FUra_Zeus_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20260612141031" alt="Instituto Zeus" loading="lazy">Instituto Zeus</span></td><td class="mono">0</td><td class="mono hide-sm">0</td><td class="mono hide-sm">0</td><td class="mono hide-sm">0</td><td class="mono hide-sm">0</td><td class="mono hide-sm">0</td><td class="mono hide-xs">0</td><td class="pts">0</td><td class="hide-sm"><span class="frm"></span></td></tr><tr data-team="eq_1783122669226"><td class="pos"><span class="zone "></span>8 <span class="tr-s">·</span></td><td><span class="tm"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2F9%2F95%2FOumihara_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251118144148" alt="Mary Times" loading="lazy">Mary Times</span></td><td class="mono">0</td><td class="mono hide-sm">0</td><td class="mono hide-sm">0</td><td class="mono hide-sm">0</td><td class="mono hide-sm">0</td><td class="mono hide-sm">0</td><td class="mono hide-xs">0</td><td class="pts">0</td><td class="hide-sm"><span class="frm"></span></td></tr><tr data-team="teikoku"><td class="pos"><span class="zone z-desc"></span>9 <span class="tr-s">·</span></td><td><span class="tm"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma%2Fimages%2F7%2F71%2FMonte_Olimpo_%2528Logo%2529.png%2Frevision%2Flatest%3Fcb%3D20250202134830%26path-prefix%3Des" alt="Monte Olimpo" loading="lazy">Monte Olimpo</span></td><td class="mono">0</td><td class="mono hide-sm">0</td><td class="mono hide-sm">0</td><td class="mono hide-sm">0</td><td class="mono hide-sm">0</td><td class="mono hide-sm">0</td><td class="mono hide-xs">0</td><td class="pts">0</td><td class="hide-sm"><span class="frm"></span></td></tr><tr data-team="eq_1777122380280"><td class="pos"><span class="zone z-desc"></span>10 <span class="tr-s">·</span></td><td><span class="tm"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2F7%2F7b%2FSP_Fixers_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251118144153" alt="Servicio Secreto" loading="lazy">Servicio Secreto</span></td><td class="mono">0</td><td class="mono hide-sm">0</td><td class="mono hide-sm">0</td><td class="mono hide-sm">0</td><td class="mono hide-sm">0</td><td class="mono hide-sm">0</td><td class="mono hide-xs">0</td><td class="pts">0</td><td class="hide-sm"><span class="frm"></span></td></tr><tr data-team="eq_1777322423802"><td class="pos"><span class="zone z-desc"></span>11 <span class="tr-s">·</span></td><td><span class="tm"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2Fb%2Fb7%2FZanark_Domain_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251119122313" alt="Zanark Domain" loading="lazy">Zanark Domain</span></td><td class="mono">0</td><td class="mono hide-sm">0</td><td class="mono hide-sm">0</td><td class="mono hide-sm">0</td><td class="mono hide-sm">0</td><td class="mono hide-sm">0</td><td class="mono hide-xs">0</td><td class="pts">0</td><td class="hide-sm"><span class="frm"></span></td></tr></tbody>
       </table></div></div>
       <div class="legend rv" id="legend-clas"><span><i class="z-po"></i>Play Off</span><span><i class="z-pi"></i>Play In</span><span><i class="z-pp"></i>Spareggio Play In</span><span><i class="z-desc"></i>Retrocessione</span></div>
       <div style="margin-top: 4rem;" class="rv" id="playoff-wrap">
         <span class="eyebrow" data-i18n="bracket.playoff.kicker" data-i18n-done="">Fase finale</span>
         <h3 class="h3 nowrap" style="margin:.875rem 0 2rem" data-i18n="bracket.playoff.title" data-i18n-done="">Tabellone Play Off / Play In</h3>
-        <div class="bracket" id="bracket-playoff"><div class="br-round"><div class="br-label">Spareggio Play In</div><div class="br-match" data-comp="liga" data-idx="66"><div class="br-side br-lose"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2F6%2F6b%2FOutei_Tsukinomiya_emblem.png%2Frevision%2Flatest%3Fcb%3D20240331224724.png" alt="Academia Plenilunio" loading="lazy"><span class="nm">Academia Plenilunio</span><span class="sc">0</span></div><div class="br-side br-win"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2F2%2F20%2FUra_Zeus_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20260612141031" alt="Instituto Zeus" loading="lazy"><span class="nm">Instituto Zeus</span><span class="sc">3</span></div></div></div><div class="br-round"><div class="br-label">Play In</div><div class="br-match" data-comp="liga" data-idx="67"><div class="br-side br-lose"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2F6%2F6f%2FMannouzaka_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251119113316" alt="Colegio Poderosa Fe" loading="lazy"><span class="nm">Colegio Poderosa Fe</span><span class="sc">2</span></div><div class="br-side br-win"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2F2%2F20%2FUra_Zeus_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20260612141031" alt="Instituto Zeus" loading="lazy"><span class="nm">Instituto Zeus</span><span class="sc">3</span></div></div></div><div class="br-round"><div class="br-label">Semifinali</div><div class="br-match" data-comp="liga" data-idx="68"><div class="br-side br-win"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2Fb%2Fb7%2FZanark_Domain_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251119122313" alt="Zanark Domain" loading="lazy"><span class="nm">Zanark Domain</span><span class="sc">2</span></div><div class="br-side br-lose"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2F2%2F20%2FUra_Zeus_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20260612141031" alt="Instituto Zeus" loading="lazy"><span class="nm">Instituto Zeus</span><span class="sc">1</span></div></div><div class="br-match" data-comp="liga" data-idx="69"><div class="br-side br-win"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2F7%2F7b%2FSP_Fixers_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251118144153" alt="Servicio Secreto" loading="lazy"><span class="nm">Servicio Secreto</span><span class="sc">2</span></div><div class="br-side br-lose"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2Ff%2Ff6%2FInazuma_KFC_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251118130810" alt="Inazuma Kids FC" loading="lazy"><span class="nm">Inazuma Kids FC</span><span class="sc">1</span></div></div></div><div class="br-round"><div class="br-label">Finale</div><div class="br-match" data-comp="liga" data-idx="70"><div class="br-side br-win"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2Fb%2Fb7%2FZanark_Domain_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251119122313" alt="Zanark Domain" loading="lazy"><span class="nm">Zanark Domain</span><span class="sc">3</span></div><div class="br-side br-lose"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2F7%2F7b%2FSP_Fixers_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251118144153" alt="Servicio Secreto" loading="lazy"><span class="nm">Servicio Secreto</span><span class="sc">1</span></div></div></div></div>
+        <div class="bracket" id="bracket-playoff"><div class="br-round"><div class="br-label">Spareggio Play In</div><div class="br-match"><div class="br-side"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2Fc%2Fc5%2FGaru_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251119122237" alt="Gar" loading="lazy"><span class="nm">Gar</span><span class="sc" style="color:var(--ink-5);font-size:.6875rem">5º</span></div><div class="br-side"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2Ff%2Ff6%2FInazuma_KFC_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251118130810" alt="Inazuma Kids FC" loading="lazy"><span class="nm">Inazuma Kids FC</span><span class="sc" style="color:var(--ink-5);font-size:.6875rem">6º</span></div></div></div><div class="br-round"><div class="br-label">Play In</div><div class="br-match"><div class="br-side"><img src="https://i.imgur.com/vHWASV1.png" alt="Criaturas de la Noche" loading="lazy"><span class="nm">Criaturas de la Noche</span><span class="sc" style="color:var(--ink-5);font-size:.6875rem">4º</span></div><div class="br-side br-tbd"><span class="nm">Vincente 5º-6º</span></div></div></div><div class="br-round"><div class="br-label">Semifinali</div><div class="br-match"><div class="br-side"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2F6%2F6b%2FOutei_Tsukinomiya_emblem.png%2Frevision%2Flatest%3Fcb%3D20240331224724.png" alt="Academia Plenilunio" loading="lazy"><span class="nm">Academia Plenilunio</span><span class="sc" style="color:var(--ink-5);font-size:.6875rem">1º</span></div><div class="br-side br-tbd"><span class="nm">Vincente Play In</span></div></div><div class="br-match"><div class="br-side"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2F2%2F2e%2FHakuren_%2528GO%2529_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251119113305.png" alt="Alpino" loading="lazy"><span class="nm">Alpino</span><span class="sc" style="color:var(--ink-5);font-size:.6875rem">2º</span></div><div class="br-side"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2F6%2F6f%2FMannouzaka_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251119113316" alt="Colegio Poderosa Fe" loading="lazy"><span class="nm">Colegio Poderosa Fe</span><span class="sc" style="color:var(--ink-5);font-size:.6875rem">3º</span></div></div></div><div class="br-round"><div class="br-label">Finale</div><div class="br-match"><div class="br-side br-tbd"><span class="nm">Da definire</span></div><div class="br-side br-tbd"><span class="nm">Da definire</span></div></div></div></div>
       </div>
     </div>
   </div>
@@ -2179,12 +2310,12 @@ body.locked{ overflow:hidden; }
           </div>
           <div class="jnav" id="jnav">
             <button class="btn btn-icon" id="j-prev" aria-label="Anterior"><i class="ph ph-caret-left"></i></button>
-            <b id="j-label" data-no-tr="">Finale</b>
+            <b id="j-label" data-no-tr="">Giornata ·</b>
             <button class="btn btn-icon" id="j-next" aria-label="Siguiente"><i class="ph ph-caret-right"></i></button>
           </div>
         </div>
       </div>
-      <div class="matches rv" id="matches"><article class="card spotlight match" data-comp="liga" data-idx="70"><div class="match-top"><span class="badge badge-superliga">Superlega Frontier</span></div><div class="match-side "><span class="ms-color" style="background:linear-gradient(180deg,#100d10,#e1b945)"></span><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2Fb%2Fb7%2FZanark_Domain_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251119122313" alt="Zanark Domain" loading="lazy"><span class="nm">Zanark Domain</span><span class="ms-pos" title="Pos">1º</span><span class="sc">3</span></div><div class="match-side match-lose"><span class="ms-color" style="background:linear-gradient(180deg,#000000,#ffffff)"></span><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2F7%2F7b%2FSP_Fixers_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251118144153" alt="Servicio Secreto" loading="lazy"><span class="nm">Servicio Secreto</span><span class="ms-pos" title="Pos">2º</span><span class="sc">1</span></div><div class="match-foot"><span data-no-tr="">Finale</span><span>Terminata</span></div></article></div>
+      <div class="matches rv" id="matches"><p class="muted">Nessuna partita in questa vista.</p></div>
     </div>
   </div>
 
@@ -2193,8 +2324,8 @@ body.locked{ overflow:hidden; }
       <div class="block-head rv">
         <div><span class="eyebrow" data-i18n="sec.copa.kicker" data-i18n-done="">Gironi + eliminazione diretta</span><h2 class="h2 nowrap" style="margin-top:.875rem" data-i18n="sec.copa" data-i18n-done="">Coppa Calcio Frontier</h2></div>
       </div>
-      <div class="bracket rv" id="bracket-copa"><div class="br-round"><div class="br-label">Turno 1 (preliminare)</div><div class="br-match" data-comp="copa" data-idx="0"><div class="br-side br-lose"><img class="ms-div" src="assets/af-icono.png" alt="Cadetta Frontier" title="Cadetta Frontier" loading="lazy"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2Fe%2Fe3%2FTeikoku_Gakuen_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20260214134442" alt="Royal Academy" loading="lazy"><span class="nm">Royal Academy</span><span class="sc">0</span></div><div class="br-side br-win"><img class="ms-div" src="assets/af-icono.png" alt="Cadetta Frontier" title="Cadetta Frontier" loading="lazy"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2Fa%2Fa0%2FShuuyou_Meito_Gakuen_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251118130821" alt="Instituto Otaku" loading="lazy"><span class="nm">Instituto Otaku</span><span class="sc">3</span></div></div><div class="br-match" data-comp="copa" data-idx="1"><div class="br-side br-win"><img class="ms-div" src="assets/af-icono.png" alt="Cadetta Frontier" title="Cadetta Frontier" loading="lazy"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2F5%2F5f%2FOosaka_Gals_CCC_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251118144145" alt="Triple C" loading="lazy"><span class="nm">Triple C</span><span class="sc">3</span></div><div class="br-side br-lose"><img class="ms-div" src="assets/af-icono.png" alt="Cadetta Frontier" title="Cadetta Frontier" loading="lazy"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2Fd%2Fd0%2FShinsei_Raimon_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20240331224724" alt="Raimon" loading="lazy"><span class="nm">Raimon</span><span class="sc">0</span></div></div></div><div class="br-round"><div class="br-label">Turno 2</div><div class="br-match" data-comp="copa" data-idx="2"><div class="br-side br-lose"><img class="ms-div" src="assets/af-icono.png" alt="Cadetta Frontier" title="Cadetta Frontier" loading="lazy"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2Fe%2Fe3%2FTeikoku_Gakuen_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20260214134442" alt="Royal Academy" loading="lazy"><span class="nm">Royal Academy</span><span class="sc">0</span></div><div class="br-side br-win"><img class="ms-div" src="assets/af-icono.png" alt="Cadetta Frontier" title="Cadetta Frontier" loading="lazy"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2F5%2F5f%2FOosaka_Gals_CCC_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251118144145" alt="Triple C" loading="lazy"><span class="nm">Triple C</span><span class="sc">3</span></div></div><div class="br-match" data-comp="copa" data-idx="3"><div class="br-side br-win"><img class="ms-div" src="assets/af-icono.png" alt="Cadetta Frontier" title="Cadetta Frontier" loading="lazy"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2Fc%2Fcc%2FSenbayama_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251118130818" alt="Instituto Farm" loading="lazy"><span class="nm">Instituto Farm</span><span class="sc">3</span></div><div class="br-side br-lose"><img class="ms-div" src="assets/af-icono.png" alt="Cadetta Frontier" title="Cadetta Frontier" loading="lazy"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2Fa%2Fa0%2FShuuyou_Meito_Gakuen_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251118130821" alt="Instituto Otaku" loading="lazy"><span class="nm">Instituto Otaku</span><span class="sc">0</span></div></div><div class="br-match" data-comp="copa" data-idx="4"><div class="br-side br-lose"><img class="ms-div" src="assets/af-icono.png" alt="Cadetta Frontier" title="Cadetta Frontier" loading="lazy"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2Ff%2Ffd%2FKaiou_Gakuen_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251119113309" alt="Cala Pirata" loading="lazy"><span class="nm">Cala Pirata</span><span class="sc">0</span></div><div class="br-side br-win"><img class="ms-div" src="assets/af-icono.png" alt="Cadetta Frontier" title="Cadetta Frontier" loading="lazy"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2F6%2F6d%2FOccult_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251118130815" alt="Instituto Occult" loading="lazy"><span class="nm">Instituto Occult</span><span class="sc">1</span></div></div><div class="br-match" data-comp="copa" data-idx="5"><div class="br-side br-lose"><img class="ms-div" src="assets/af-icono.png" alt="Cadetta Frontier" title="Cadetta Frontier" loading="lazy"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2F9%2F9d%2FEpsilon_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251118144204" alt="Épsilon" loading="lazy"><span class="nm">Épsilon</span><span class="sc">0</span></div><div class="br-side br-win"><img class="ms-div" src="assets/af-icono.png" alt="Cadetta Frontier" title="Cadetta Frontier" loading="lazy"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2F6%2F62%2FKidokawa_Seishuu_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251118130812" alt="Instituto Kirkwood" loading="lazy"><span class="nm">Instituto Kirkwood</span><span class="sc">3</span></div></div></div><div class="br-round"><div class="br-label">Quarti di finale</div><div class="br-match" data-comp="copa" data-idx="30"><div class="br-side br-win"><img class="ms-div" src="assets/sf-icono.png" alt="Superlega Frontier" title="Superlega Frontier" loading="lazy"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2Fb%2Fb7%2FZanark_Domain_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251119122313" alt="Zanark Domain" loading="lazy"><span class="nm">Zanark Domain</span><span class="sc">4</span></div><div class="br-side br-lose"><img class="ms-div" src="assets/sf-icono.png" alt="Superlega Frontier" title="Superlega Frontier" loading="lazy"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2F2%2F20%2FUra_Zeus_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20260612141031" alt="Instituto Zeus" loading="lazy"><span class="nm">Instituto Zeus</span><span class="sc">0</span></div></div><div class="br-match" data-comp="copa" data-idx="31"><div class="br-side br-win"><img class="ms-div" src="assets/sf-icono.png" alt="Superlega Frontier" title="Superlega Frontier" loading="lazy"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2F7%2F7b%2FSP_Fixers_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251118144153" alt="Servicio Secreto" loading="lazy"><span class="nm">Servicio Secreto</span><span class="sc">3</span></div><div class="br-side br-lose"><img class="ms-div" src="assets/sf-icono.png" alt="Superlega Frontier" title="Superlega Frontier" loading="lazy"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2F6%2F6b%2FOutei_Tsukinomiya_emblem.png%2Frevision%2Flatest%3Fcb%3D20240331224724.png" alt="Academia Plenilunio" loading="lazy"><span class="nm">Academia Plenilunio</span><span class="sc">0</span></div></div><div class="br-match" data-comp="copa" data-idx="32"><div class="br-side br-win"><img class="ms-div" src="assets/sf-icono.png" alt="Superlega Frontier" title="Superlega Frontier" loading="lazy"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2F6%2F6f%2FMannouzaka_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251119113316" alt="Colegio Poderosa Fe" loading="lazy"><span class="nm">Colegio Poderosa Fe</span><span class="sc">2</span></div><div class="br-side br-lose"><img class="ms-div" src="assets/af-icono.png" alt="Cadetta Frontier" title="Cadetta Frontier" loading="lazy"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2F6%2F6d%2FOccult_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251118130815" alt="Instituto Occult" loading="lazy"><span class="nm">Instituto Occult</span><span class="sc">0</span></div></div><div class="br-match" data-comp="copa" data-idx="33"><div class="br-side br-win"><img class="ms-div" src="assets/sf-icono.png" alt="Superlega Frontier" title="Superlega Frontier" loading="lazy"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2Ff%2Ff6%2FInazuma_KFC_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251118130810" alt="Inazuma Kids FC" loading="lazy"><span class="nm">Inazuma Kids FC</span><span class="sc">3</span></div><div class="br-side br-lose"><img class="ms-div" src="assets/sf-icono.png" alt="Superlega Frontier" title="Superlega Frontier" loading="lazy"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2F9%2F95%2FOumihara_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251118144148" alt="Mary Times" loading="lazy"><span class="nm">Mary Times</span><span class="sc">0</span></div></div></div><div class="br-round"><div class="br-label">Semifinali</div><div class="br-match" data-comp="copa" data-idx="34"><div class="br-side br-win"><img class="ms-div" src="assets/sf-icono.png" alt="Superlega Frontier" title="Superlega Frontier" loading="lazy"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2Fb%2Fb7%2FZanark_Domain_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251119122313" alt="Zanark Domain" loading="lazy"><span class="nm">Zanark Domain</span><span class="sc">2</span></div><div class="br-side br-lose"><img class="ms-div" src="assets/sf-icono.png" alt="Superlega Frontier" title="Superlega Frontier" loading="lazy"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2F7%2F7b%2FSP_Fixers_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251118144153" alt="Servicio Secreto" loading="lazy"><span class="nm">Servicio Secreto</span><span class="sc">0</span></div></div><div class="br-match" data-comp="copa" data-idx="35"><div class="br-side br-lose"><img class="ms-div" src="assets/sf-icono.png" alt="Superlega Frontier" title="Superlega Frontier" loading="lazy"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2F6%2F6f%2FMannouzaka_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251119113316" alt="Colegio Poderosa Fe" loading="lazy"><span class="nm">Colegio Poderosa Fe</span><span class="sc">1</span></div><div class="br-side br-win"><img class="ms-div" src="assets/sf-icono.png" alt="Superlega Frontier" title="Superlega Frontier" loading="lazy"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2Ff%2Ff6%2FInazuma_KFC_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251118130810" alt="Inazuma Kids FC" loading="lazy"><span class="nm">Inazuma Kids FC</span><span class="sc">2</span></div></div></div><div class="br-round"><div class="br-label">Finale</div><div class="br-match" data-comp="copa" data-idx="36"><div class="br-side br-win"><img class="ms-div" src="assets/sf-icono.png" alt="Superlega Frontier" title="Superlega Frontier" loading="lazy"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2Fb%2Fb7%2FZanark_Domain_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251119122313" alt="Zanark Domain" loading="lazy"><span class="nm">Zanark Domain</span><span class="sc">3</span></div><div class="br-side br-lose"><img class="ms-div" src="assets/sf-icono.png" alt="Superlega Frontier" title="Superlega Frontier" loading="lazy"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2Ff%2Ff6%2FInazuma_KFC_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251118130810" alt="Inazuma Kids FC" loading="lazy"><span class="nm">Inazuma Kids FC</span><span class="sc">1</span></div></div></div></div>
-      <div class="groups" id="groups-copa"><div class="card group"><h4>Grupo A</h4><div class="group-row group-q"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2Fb%2Fb7%2FZanark_Domain_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251119122313" alt="Zanark Domain" loading="lazy"><span class="nm">Zanark Domain</span><span class="p">9</span></div><div class="group-row group-q"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2F6%2F6b%2FOutei_Tsukinomiya_emblem.png%2Frevision%2Flatest%3Fcb%3D20240331224724.png" alt="Academia Plenilunio" loading="lazy"><span class="nm">Academia Plenilunio</span><span class="p">6</span></div><div class="group-row "><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2F2%2F2e%2FHakuren_%2528GO%2529_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251119113305.png" alt="Alpino" loading="lazy"><span class="nm">Alpino</span><span class="p">3</span></div><div class="group-row "><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2F6%2F62%2FKidokawa_Seishuu_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251118130812" alt="Instituto Kirkwood" loading="lazy"><span class="nm">Instituto Kirkwood</span><span class="p">0</span></div></div><div class="card group"><h4>Grupo B</h4><div class="group-row group-q"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2F7%2F7b%2FSP_Fixers_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251118144153" alt="Servicio Secreto" loading="lazy"><span class="nm">Servicio Secreto</span><span class="p">9</span></div><div class="group-row group-q"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2F2%2F20%2FUra_Zeus_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20260612141031" alt="Instituto Zeus" loading="lazy"><span class="nm">Instituto Zeus</span><span class="p">4</span></div><div class="group-row "><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2Fc%2Fcc%2FSenbayama_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251118130818" alt="Instituto Farm" loading="lazy"><span class="nm">Instituto Farm</span><span class="p">4</span></div><div class="group-row "><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2F5%2F5a%2FBig_Bang_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251119130628" alt="Big Bang" loading="lazy"><span class="nm">Big Bang</span><span class="p">0</span></div></div><div class="card group"><h4>Grupo C</h4><div class="group-row group-q"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2F6%2F6f%2FMannouzaka_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251119113316" alt="Colegio Poderosa Fe" loading="lazy"><span class="nm">Colegio Poderosa Fe</span><span class="p">7</span></div><div class="group-row group-q"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2F9%2F95%2FOumihara_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251118144148" alt="Mary Times" loading="lazy"><span class="nm">Mary Times</span><span class="p">6</span></div><div class="group-row "><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2F5%2F5f%2FOosaka_Gals_CCC_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251118144145" alt="Triple C" loading="lazy"><span class="nm">Triple C</span><span class="p">4</span></div><div class="group-row "><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2Fc%2Fc5%2FGaru_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251119122237" alt="Gar" loading="lazy"><span class="nm">Gar</span><span class="p">0</span></div></div><div class="card group"><h4>Grupo D</h4><div class="group-row group-q"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2Ff%2Ff6%2FInazuma_KFC_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251118130810" alt="Inazuma Kids FC" loading="lazy"><span class="nm">Inazuma Kids FC</span><span class="p">9</span></div><div class="group-row group-q"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2F6%2F6d%2FOccult_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251118130815" alt="Instituto Occult" loading="lazy"><span class="nm">Instituto Occult</span><span class="p">6</span></div><div class="group-row "><img src="https://i.imgur.com/vHWASV1.png" alt="Criaturas de la Noche" loading="lazy"><span class="nm">Criaturas de la Noche</span><span class="p">3</span></div><div class="group-row "><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma%2Fimages%2F7%2F71%2FMonte_Olimpo_%2528Logo%2529.png%2Frevision%2Flatest%3Fcb%3D20250202134830%26path-prefix%3Des" alt="Monte Olimpo" loading="lazy"><span class="nm">Monte Olimpo</span><span class="p">0</span></div></div></div>
+      <div class="bracket rv" id="bracket-copa"><p class="muted">Il tabellone di Coppa non è ancora pubblicato.</p></div>
+      <div class="groups" id="groups-copa"></div>
     </div>
   </div>
 
@@ -2207,7 +2338,7 @@ body.locked{ overflow:hidden; }
           <button data-div="ASCENSO" data-i18n="comp.ascenso" data-i18n-done="">Cadetta Frontier</button>
         </div>
       </div>
-      <div class="teams rv" id="teams"><article class="card spotlight team" data-team="eq_1777322423802"><span class="team-accent" style="background:linear-gradient(90deg,#100d10,#e1b945)"></span><div class="team-top"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2Fb%2Fb7%2FZanark_Domain_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251119122313" alt="Zanark Domain" loading="lazy"><div><h3 class="pn">Zanark Domain</h3><span class="pn">ZDO · D4rkRepulser</span></div></div><div class="team-stats"><div><b class="mono">33</b><span>Punti</span></div><div><b class="mono">11</b><span>Giocate</span></div><div><b class="mono">+35</b><span>Diff.</span></div></div></article><article class="card spotlight team" data-team="eq_1777122380280"><span class="team-accent" style="background:linear-gradient(90deg,#000000,#ffffff)"></span><div class="team-top"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2F7%2F7b%2FSP_Fixers_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251118144153" alt="Servicio Secreto" loading="lazy"><div><h3 class="pn">Servicio Secreto</h3><span class="pn">SSE · Mega</span></div></div><div class="team-stats"><div><b class="mono">30</b><span>Punti</span></div><div><b class="mono">11</b><span>Giocate</span></div><div><b class="mono">+22</b><span>Diff.</span></div></div></article><article class="card spotlight team" data-team="eq_1776985198182"><span class="team-accent" style="background:linear-gradient(90deg,#ff0000,#fbff0a)"></span><div class="team-top"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2Ff%2Ff6%2FInazuma_KFC_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251118130810" alt="Inazuma Kids FC" loading="lazy"><div><h3 class="pn">Inazuma Kids FC</h3><span class="pn">IKI · Totti Alcresise</span></div></div><div class="team-stats"><div><b class="mono">22</b><span>Punti</span></div><div><b class="mono">11</b><span>Giocate</span></div><div><b class="mono">+12</b><span>Diff.</span></div></div></article><article class="card spotlight team" data-team="eq_1777121960890"><span class="team-accent" style="background:linear-gradient(90deg,#35336b,#871434)"></span><div class="team-top"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2F6%2F6f%2FMannouzaka_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251119113316" alt="Colegio Poderosa Fe" loading="lazy"><div><h3 class="pn">Colegio Poderosa Fe</h3><span class="pn">CPF · Simko</span></div></div><div class="team-stats"><div><b class="mono">21</b><span>Punti</span></div><div><b class="mono">11</b><span>Giocate</span></div><div><b class="mono">+7</b><span>Diff.</span></div></div></article><article class="card spotlight team" data-team="eq_1776649500479"><span class="team-accent" style="background:linear-gradient(90deg,#616161,#616161)"></span><div class="team-top"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2F6%2F6b%2FOutei_Tsukinomiya_emblem.png%2Frevision%2Flatest%3Fcb%3D20240331224724.png" alt="Academia Plenilunio" loading="lazy"><div><h3 class="pn">Academia Plenilunio</h3><span class="pn">PLE · Payo Aguao</span></div></div><div class="team-stats"><div><b class="mono">19</b><span>Punti</span></div><div><b class="mono">11</b><span>Giocate</span></div><div><b class="mono">+9</b><span>Diff.</span></div></div></article><article class="card spotlight team" data-team="eq_1777122337032"><span class="team-accent" style="background:linear-gradient(90deg,#b1fd7b,#1c343a)"></span><div class="team-top"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2Fc%2Fc5%2FGaru_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251119122237" alt="Gar" loading="lazy"><div><h3 class="pn">Gar</h3><span class="pn">GAR · Gabrii</span></div></div><div class="team-stats"><div><b class="mono">16</b><span>Punti</span></div><div><b class="mono">11</b><span>Giocate</span></div><div><b class="mono">-3</b><span>Diff.</span></div></div></article><article class="card spotlight team" data-team="eq_1776988822956"><span class="team-accent" style="background:linear-gradient(90deg,#ffffff,#bac5c9)"></span><div class="team-top"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2F2%2F20%2FUra_Zeus_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20260612141031" alt="Instituto Zeus" loading="lazy"><div><h3 class="pn">Instituto Zeus</h3><span class="pn">ZEU · Lulu</span></div></div><div class="team-stats"><div><b class="mono">14</b><span>Punti</span></div><div><b class="mono">11</b><span>Giocate</span></div><div><b class="mono">+5</b><span>Diff.</span></div></div></article><article class="card spotlight team" data-team="eq_1776649179181"><span class="team-accent" style="background:linear-gradient(90deg,#ffffff,#08178c)"></span><div class="team-top"><img src="https://i.imgur.com/vHWASV1.png" alt="Criaturas de la Noche" loading="lazy"><div><h3 class="pn">Criaturas de la Noche</h3><span class="pn">CNO · Franshu</span></div></div><div class="team-stats"><div><b class="mono">13</b><span>Punti</span></div><div><b class="mono">11</b><span>Giocate</span></div><div><b class="mono">-5</b><span>Diff.</span></div></div></article><article class="card spotlight team" data-team="eq_1783122669226"><span class="team-accent" style="background:linear-gradient(90deg,#19a193,#ffffff)"></span><div class="team-top"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2F9%2F95%2FOumihara_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251118144148" alt="Mary Times" loading="lazy"><div><h3 class="pn">Mary Times</h3><span class="pn">MTI · Raptor</span></div></div><div class="team-stats"><div><b class="mono">12</b><span>Punti</span></div><div><b class="mono">11</b><span>Giocate</span></div><div><b class="mono">-8</b><span>Diff.</span></div></div></article><article class="card spotlight team" data-team="eq_1776725568226"><span class="team-accent" style="background:linear-gradient(90deg,#dff1ff,#96bbe3)"></span><div class="team-top"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2F2%2F2e%2FHakuren_%2528GO%2529_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251119113305.png" alt="Alpino" loading="lazy"><div><h3 class="pn">Alpino</h3><span class="pn">ALP · david.gonzzalezc</span></div></div><div class="team-stats"><div><b class="mono">10</b><span>Punti</span></div><div><b class="mono">11</b><span>Giocate</span></div><div><b class="mono">-14</b><span>Diff.</span></div></div></article><article class="card spotlight team" data-team="teikoku"><span class="team-accent" style="background:linear-gradient(90deg,#d45908,#ffffff)"></span><div class="team-top"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma%2Fimages%2F7%2F71%2FMonte_Olimpo_%2528Logo%2529.png%2Frevision%2Flatest%3Fcb%3D20250202134830%26path-prefix%3Des" alt="Monte Olimpo" loading="lazy"><div><h3 class="pn">Monte Olimpo</h3><span class="pn">MOL · Juani</span></div></div><div class="team-stats"><div><b class="mono">3</b><span>Punti</span></div><div><b class="mono">11</b><span>Giocate</span></div><div><b class="mono">-27</b><span>Diff.</span></div></div></article></div>
+      <div class="teams rv" id="teams"><article class="card spotlight team" data-team="eq_1776649500479"><span class="team-accent" style="background:linear-gradient(90deg,#616161,#616161)"></span><div class="team-top"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2F6%2F6b%2FOutei_Tsukinomiya_emblem.png%2Frevision%2Flatest%3Fcb%3D20240331224724.png" alt="Academia Plenilunio" loading="lazy"><div><h3 class="pn">Academia Plenilunio</h3><span class="pn">PLE · Payo Aguao</span></div></div><div class="team-stats"><div><b class="mono">0</b><span>Punti</span></div><div><b class="mono">0</b><span>Giocate</span></div><div><b class="mono">0</b><span>Diff.</span></div></div></article><article class="card spotlight team" data-team="eq_1776725568226"><span class="team-accent" style="background:linear-gradient(90deg,#dff1ff,#96bbe3)"></span><div class="team-top"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2F2%2F2e%2FHakuren_%2528GO%2529_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251119113305.png" alt="Alpino" loading="lazy"><div><h3 class="pn">Alpino</h3><span class="pn">ALP · david.gonzzalezc</span></div></div><div class="team-stats"><div><b class="mono">0</b><span>Punti</span></div><div><b class="mono">0</b><span>Giocate</span></div><div><b class="mono">0</b><span>Diff.</span></div></div></article><article class="card spotlight team" data-team="eq_1777121960890"><span class="team-accent" style="background:linear-gradient(90deg,#35336b,#871434)"></span><div class="team-top"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2F6%2F6f%2FMannouzaka_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251119113316" alt="Colegio Poderosa Fe" loading="lazy"><div><h3 class="pn">Colegio Poderosa Fe</h3><span class="pn">CPF · Simko</span></div></div><div class="team-stats"><div><b class="mono">0</b><span>Punti</span></div><div><b class="mono">0</b><span>Giocate</span></div><div><b class="mono">0</b><span>Diff.</span></div></div></article><article class="card spotlight team" data-team="eq_1776649179181"><span class="team-accent" style="background:linear-gradient(90deg,#ffffff,#08178c)"></span><div class="team-top"><img src="https://i.imgur.com/vHWASV1.png" alt="Criaturas de la Noche" loading="lazy"><div><h3 class="pn">Criaturas de la Noche</h3><span class="pn">CNO · Franshu</span></div></div><div class="team-stats"><div><b class="mono">0</b><span>Punti</span></div><div><b class="mono">0</b><span>Giocate</span></div><div><b class="mono">0</b><span>Diff.</span></div></div></article><article class="card spotlight team" data-team="eq_1777122337032"><span class="team-accent" style="background:linear-gradient(90deg,#b1fd7b,#1c343a)"></span><div class="team-top"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2Fc%2Fc5%2FGaru_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251119122237" alt="Gar" loading="lazy"><div><h3 class="pn">Gar</h3><span class="pn">GAR · Gabrii</span></div></div><div class="team-stats"><div><b class="mono">0</b><span>Punti</span></div><div><b class="mono">0</b><span>Giocate</span></div><div><b class="mono">0</b><span>Diff.</span></div></div></article><article class="card spotlight team" data-team="eq_1776985198182"><span class="team-accent" style="background:linear-gradient(90deg,#ff0000,#fbff0a)"></span><div class="team-top"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2Ff%2Ff6%2FInazuma_KFC_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251118130810" alt="Inazuma Kids FC" loading="lazy"><div><h3 class="pn">Inazuma Kids FC</h3><span class="pn">IKI · Totti Alcresise</span></div></div><div class="team-stats"><div><b class="mono">0</b><span>Punti</span></div><div><b class="mono">0</b><span>Giocate</span></div><div><b class="mono">0</b><span>Diff.</span></div></div></article><article class="card spotlight team" data-team="eq_1776988822956"><span class="team-accent" style="background:linear-gradient(90deg,#ffffff,#bac5c9)"></span><div class="team-top"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2F2%2F20%2FUra_Zeus_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20260612141031" alt="Instituto Zeus" loading="lazy"><div><h3 class="pn">Instituto Zeus</h3><span class="pn">ZEU · Lulu</span></div></div><div class="team-stats"><div><b class="mono">0</b><span>Punti</span></div><div><b class="mono">0</b><span>Giocate</span></div><div><b class="mono">0</b><span>Diff.</span></div></div></article><article class="card spotlight team" data-team="eq_1783122669226"><span class="team-accent" style="background:linear-gradient(90deg,#19a193,#ffffff)"></span><div class="team-top"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2F9%2F95%2FOumihara_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251118144148" alt="Mary Times" loading="lazy"><div><h3 class="pn">Mary Times</h3><span class="pn">MTI · Raptor</span></div></div><div class="team-stats"><div><b class="mono">0</b><span>Punti</span></div><div><b class="mono">0</b><span>Giocate</span></div><div><b class="mono">0</b><span>Diff.</span></div></div></article><article class="card spotlight team" data-team="teikoku"><span class="team-accent" style="background:linear-gradient(90deg,#d45908,#ffffff)"></span><div class="team-top"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma%2Fimages%2F7%2F71%2FMonte_Olimpo_%2528Logo%2529.png%2Frevision%2Flatest%3Fcb%3D20250202134830%26path-prefix%3Des" alt="Monte Olimpo" loading="lazy"><div><h3 class="pn">Monte Olimpo</h3><span class="pn">MOL · Juani</span></div></div><div class="team-stats"><div><b class="mono">0</b><span>Punti</span></div><div><b class="mono">0</b><span>Giocate</span></div><div><b class="mono">0</b><span>Diff.</span></div></div></article><article class="card spotlight team" data-team="eq_1777122380280"><span class="team-accent" style="background:linear-gradient(90deg,#000000,#ffffff)"></span><div class="team-top"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2F7%2F7b%2FSP_Fixers_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251118144153" alt="Servicio Secreto" loading="lazy"><div><h3 class="pn">Servicio Secreto</h3><span class="pn">SSE · Mega</span></div></div><div class="team-stats"><div><b class="mono">0</b><span>Punti</span></div><div><b class="mono">0</b><span>Giocate</span></div><div><b class="mono">0</b><span>Diff.</span></div></div></article><article class="card spotlight team" data-team="eq_1777322423802"><span class="team-accent" style="background:linear-gradient(90deg,#100d10,#e1b945)"></span><div class="team-top"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2Fb%2Fb7%2FZanark_Domain_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251119122313" alt="Zanark Domain" loading="lazy"><div><h3 class="pn">Zanark Domain</h3><span class="pn">ZDO · D4rkRepulser</span></div></div><div class="team-stats"><div><b class="mono">0</b><span>Punti</span></div><div><b class="mono">0</b><span>Giocate</span></div><div><b class="mono">0</b><span>Diff.</span></div></div></article></div>
     </div>
   </div>
 
@@ -2221,7 +2352,7 @@ body.locked{ overflow:hidden; }
           <button data-comp="copa" data-i18n="sec.copa" data-i18n-done="">Coppa Calcio Frontier</button>
         </div>
       </div>
-      <div class="scorers rv" id="scorers"><div class="sc-row sc-1" data-team="eq_1777322423802" data-player="Raleigh%20Greenstreet"><span class="sc-rank">1</span><div class="sc-who"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fdxi4wb638ujep.cloudfront.net%2F1%2Fk%2Fk%2Fw%2Fkwnrreyrwb8.webp" alt="Raleigh Greenstreet" class="" loading="lazy" referrerpolicy="no-referrer"><span class="sc-name">Raleigh Greenstreet</span><span class="sc-pos">ATT</span><span class="af-dot" style="--afc:#46B45F" title="Foresta"></span><span class="sc-team"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2Fb%2Fb7%2FZanark_Domain_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251119122313" alt="Zanark Domain" loading="lazy"><span>Zanark Domain</span></span></div><span class="sc-goals mono">17<small>G</small></span></div><div class="sc-row sc-2" data-team="eq_1777122380280" data-player="Jade%20Beor"><span class="sc-rank">2</span><div class="sc-who"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fdxi4wb638ujep.cloudfront.net%2F1%2Fk%2Fw%2Fu%2Fwudrz8tm3gk.webp" alt="Jade Beor" class="" loading="lazy" referrerpolicy="no-referrer"><span class="sc-name">Jade Beor</span><span class="sc-pos">ATT</span><span class="af-dot" style="--afc:#46B45F" title="Foresta"></span><span class="sc-team"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2F7%2F7b%2FSP_Fixers_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251118144153" alt="Servicio Secreto" loading="lazy"><span>Servicio Secreto</span></span></div><span class="sc-goals mono">8<small>G</small></span></div><div class="sc-row sc-3" data-team="eq_1776988822956" data-player="Mystral%20Callous"><span class="sc-rank">3</span><div class="sc-who"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fdxi4wb638ujep.cloudfront.net%2F1%2Fk%2Fp%2Fb%2Fpbdy9xvhxnc.webp" alt="Mystral Callous" class="" loading="lazy" referrerpolicy="no-referrer"><span class="sc-name">Mystral Callous</span><span class="sc-pos">ATT</span><span class="af-dot" style="--afc:#C08A3E" title="Montagna"></span><span class="sc-team"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2F2%2F20%2FUra_Zeus_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20260612141031" alt="Instituto Zeus" loading="lazy"><span>Instituto Zeus</span></span></div><span class="sc-goals mono">6<small>G</small></span></div><div class="sc-row " data-team="eq_1776985198182" data-player="Barbara%20Bitt"><span class="sc-rank">4</span><div class="sc-who"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fdxi4wb638ujep.cloudfront.net%2F1%2Fk%2Fp%2Fq%2Fpqpgn4zvsfu.webp" alt="Barbara Bitt" class="" loading="lazy" referrerpolicy="no-referrer"><span class="sc-name">Barbara Bitt</span><span class="sc-pos">ATT</span><span class="af-dot" style="--afc:#46B45F" title="Foresta"></span><span class="sc-team"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2Ff%2Ff6%2FInazuma_KFC_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251118130810" alt="Inazuma Kids FC" loading="lazy"><span>Inazuma Kids FC</span></span></div><span class="sc-goals mono">5<small>G</small></span></div><div class="sc-row " data-team="eq_1777322423802" data-player="Gentian"><span class="sc-rank">5</span><div class="sc-who"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fdxi4wb638ujep.cloudfront.net%2F1%2Fk%2Fs%2Ft%2Fstqwetblhdm.webp" alt="Gentian" class="" loading="lazy" referrerpolicy="no-referrer"><span class="sc-name">Gentian</span><span class="sc-pos">ATT</span><span class="af-dot" style="--afc:#C08A3E" title="Montagna"></span><span class="sc-team"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2Fb%2Fb7%2FZanark_Domain_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251119122313" alt="Zanark Domain" loading="lazy"><span>Zanark Domain</span></span></div><span class="sc-goals mono">5<small>G</small></span></div><div class="sc-row " data-team="eq_1777122380280" data-player="Stan%20Roller"><span class="sc-rank">6</span><div class="sc-who"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fdxi4wb638ujep.cloudfront.net%2F1%2Fk%2Fc%2F7%2Fc7nphneflj0.webp" alt="Stan Roller" class="" loading="lazy" referrerpolicy="no-referrer"><span class="sc-name">Stan Roller</span><span class="sc-pos">ATT</span><span class="af-dot" style="--afc:#35D0C6" title="Aria"></span><span class="sc-team"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2F7%2F7b%2FSP_Fixers_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251118144153" alt="Servicio Secreto" loading="lazy"><span>Servicio Secreto</span></span></div><span class="sc-goals mono">5<small>G</small></span></div><div class="sc-row " data-team="eq_1776985198182" data-player="Vier%20Whitely"><span class="sc-rank">7</span><div class="sc-who"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fdxi4wb638ujep.cloudfront.net%2F1%2Fk%2Fg%2Fm%2Fgmsrzvmuxce.webp" alt="Vier Whitely" class="" loading="lazy" referrerpolicy="no-referrer"><span class="sc-name">Vier Whitely</span><span class="sc-pos">ATT</span><span class="af-dot" style="--afc:#35D0C6" title="Aria"></span><span class="sc-team"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2Ff%2Ff6%2FInazuma_KFC_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251118130810" alt="Inazuma Kids FC" loading="lazy"><span>Inazuma Kids FC</span></span></div><span class="sc-goals mono">5<small>G</small></span></div><div class="sc-row " data-team="eq_1777121960890" data-player="Adora%20Shivers"><span class="sc-rank">8</span><div class="sc-who"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fdxi4wb638ujep.cloudfront.net%2F1%2Fk%2Fg%2F-%2Fg-d4savpmnm.webp" alt="Adora Shivers" class="" loading="lazy" referrerpolicy="no-referrer"><span class="sc-name">Adora Shivers</span><span class="sc-pos">CEN</span><span class="af-dot" style="--afc:#35D0C6" title="Aria"></span><span class="sc-team"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2F6%2F6f%2FMannouzaka_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251119113316" alt="Colegio Poderosa Fe" loading="lazy"><span>Colegio Poderosa Fe</span></span></div><span class="sc-goals mono">4<small>G</small></span></div><div class="sc-row " data-team="eq_1777121960890" data-player="Infinity%20Beyond"><span class="sc-rank">9</span><div class="sc-who"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fdxi4wb638ujep.cloudfront.net%2F1%2Fk%2Fw%2Fx%2Fwxhrxfc_gfu.webp" alt="Infinity Beyond" class="" loading="lazy" referrerpolicy="no-referrer"><span class="sc-name">Infinity Beyond</span><span class="sc-pos">ATT</span><span class="af-dot" style="--afc:#FF5A3C" title="Fuoco"></span><span class="sc-team"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2F6%2F6f%2FMannouzaka_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251119113316" alt="Colegio Poderosa Fe" loading="lazy"><span>Colegio Poderosa Fe</span></span></div><span class="sc-goals mono">4<small>G</small></span></div><div class="sc-row " data-team="eq_1777322423802" data-player="Scaris%20Cowler"><span class="sc-rank">10</span><div class="sc-who"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fdxi4wb638ujep.cloudfront.net%2F1%2Fk%2Fp%2F_%2Fp_mlfuxmhfs.webp" alt="Scaris Cowler" class="" loading="lazy" referrerpolicy="no-referrer"><span class="sc-name">Scaris Cowler</span><span class="sc-pos">ATT</span><span class="af-dot" style="--afc:#FF5A3C" title="Fuoco"></span><span class="sc-team"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2Fb%2Fb7%2FZanark_Domain_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251119122313" alt="Zanark Domain" loading="lazy"><span>Zanark Domain</span></span></div><span class="sc-goals mono">4<small>G</small></span></div><div class="sc-rest"><div class="sc-row " data-team="eq_1776988822956" data-player="Njord%20Snio"><span class="sc-rank">11</span><div class="sc-who"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fdxi4wb638ujep.cloudfront.net%2F1%2Fk%2Fx%2Fh%2Fxhakvrbs3k0.png" alt="Njord Snio" class="" loading="lazy" referrerpolicy="no-referrer"><span class="sc-name">Njord Snio</span><span class="sc-pos">ATT</span><span class="af-dot" style="--afc:#35D0C6" title="Aria"></span><span class="sc-team"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2F2%2F20%2FUra_Zeus_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20260612141031" alt="Instituto Zeus" loading="lazy"><span>Instituto Zeus</span></span></div><span class="sc-goals mono">3<small>G</small></span></div><div class="sc-row " data-team="eq_1777122380280" data-player="Seth%20Bael"><span class="sc-rank">12</span><div class="sc-who"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fdxi4wb638ujep.cloudfront.net%2F1%2Fk%2Fe%2Fy%2Feyjdj13wsze.webp" alt="Seth Bael" class="" loading="lazy" referrerpolicy="no-referrer"><span class="sc-name">Seth Bael</span><span class="sc-pos">ATT</span><span class="af-dot" style="--afc:#C08A3E" title="Montagna"></span><span class="sc-team"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2F7%2F7b%2FSP_Fixers_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251118144153" alt="Servicio Secreto" loading="lazy"><span>Servicio Secreto</span></span></div><span class="sc-goals mono">3<small>G</small></span></div><div class="sc-row " data-team="eq_1777322423802" data-player="Zanark%20Avalonic"><span class="sc-rank">13</span><div class="sc-who"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fdxi4wb638ujep.cloudfront.net%2F1%2Fk%2Fk%2F2%2Fk2rrbkajamu.png" alt="Zanark Avalonic" class="" loading="lazy" referrerpolicy="no-referrer"><span class="sc-name">Zanark Avalonic</span><span class="sc-pos">ATT</span><span class="af-dot" style="--afc:#C08A3E" title="Montagna"></span><span class="sc-team"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2Fb%2Fb7%2FZanark_Domain_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251119122313" alt="Zanark Domain" loading="lazy"><span>Zanark Domain</span></span></div><span class="sc-goals mono">3<small>G</small></span></div><div class="sc-row " data-team="eq_1776649179181" data-player="Beta"><span class="sc-rank">14</span><div class="sc-who"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fdxi4wb638ujep.cloudfront.net%2F1%2Fk%2Fu%2Fh%2Fuhsign1h3ek.webp" alt="Beta" class="" loading="lazy" referrerpolicy="no-referrer"><span class="sc-name">Beta</span><span class="sc-pos">ATT</span><span class="af-dot" style="--afc:#35D0C6" title="Aria"></span><span class="sc-team"><img src="https://i.imgur.com/vHWASV1.png" alt="Criaturas de la Noche" loading="lazy"><span>Criaturas de la Noche</span></span></div><span class="sc-goals mono">2<small>G</small></span></div><div class="sc-row " data-team="eq_1777122380280" data-player="Dekih"><span class="sc-rank">15</span><div class="sc-who"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fdxi4wb638ujep.cloudfront.net%2F1%2Fk%2F2%2Fp%2F2pp6qy0ttp8.webp" alt="Dekih" class="" loading="lazy" referrerpolicy="no-referrer"><span class="sc-name">Dekih</span><span class="sc-pos">CEN</span><span class="af-dot" style="--afc:#46B45F" title="Foresta"></span><span class="sc-team"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2F7%2F7b%2FSP_Fixers_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251118144153" alt="Servicio Secreto" loading="lazy"><span>Servicio Secreto</span></span></div><span class="sc-goals mono">2<small>G</small></span></div><div class="sc-row " data-team="eq_1776985198182" data-player="Lucia"><span class="sc-rank">16</span><div class="sc-who"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fdxi4wb638ujep.cloudfront.net%2F1%2Fk%2Fk%2Fd%2Fkdbju-9yebm.webp" alt="Lucia" class="" loading="lazy" referrerpolicy="no-referrer"><span class="sc-name">Lucia</span><span class="sc-pos">ATT</span><span class="af-dot" style="--afc:#C08A3E" title="Montagna"></span><span class="sc-team"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2Ff%2Ff6%2FInazuma_KFC_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251118130810" alt="Inazuma Kids FC" loading="lazy"><span>Inazuma Kids FC</span></span></div><span class="sc-goals mono">2<small>G</small></span></div><div class="sc-row " data-team="eq_1777122337032" data-player="Sol%20Daystar"><span class="sc-rank">17</span><div class="sc-who"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fdxi4wb638ujep.cloudfront.net%2F1%2Fk%2Fb%2Fb%2Fbbdhqusqicm.webp" alt="Sol Daystar" class="" loading="lazy" referrerpolicy="no-referrer"><span class="sc-name">Sol Daystar</span><span class="sc-pos">ATT</span><span class="af-dot" style="--afc:#FF5A3C" title="Fuoco"></span><span class="sc-team"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2Fc%2Fc5%2FGaru_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251119122237" alt="Gar" loading="lazy"><span>Gar</span></span></div><span class="sc-goals mono">2<small>G</small></span></div><div class="sc-row " data-team="eq_1777121960890" data-player="Thaddeus%20Bellefax"><span class="sc-rank">18</span><div class="sc-who"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fdxi4wb638ujep.cloudfront.net%2F1%2Fk%2Fj%2Ft%2Fjtd_bxxkk6u.webp" alt="Thaddeus Bellefax" class="" loading="lazy" referrerpolicy="no-referrer"><span class="sc-name">Thaddeus Bellefax</span><span class="sc-pos">CEN</span><span class="af-dot" style="--afc:#46B45F" title="Foresta"></span><span class="sc-team"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2F6%2F6f%2FMannouzaka_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251119113316" alt="Colegio Poderosa Fe" loading="lazy"><span>Colegio Poderosa Fe</span></span></div><span class="sc-goals mono">2<small>G</small></span></div><div class="sc-row " data-team="eq_1777322423802" data-player="Zack%20Avalon"><span class="sc-rank">19</span><div class="sc-who"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fdxi4wb638ujep.cloudfront.net%2F1%2Fk%2Fu%2Fl%2Fulxd28hgdm8.png" alt="Zack Avalon" class="" loading="lazy" referrerpolicy="no-referrer"><span class="sc-name">Zack Avalon</span><span class="sc-pos">ATT</span><span class="af-dot" style="--afc:#46B45F" title="Foresta"></span><span class="sc-team"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2Fb%2Fb7%2FZanark_Domain_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251119122313" alt="Zanark Domain" loading="lazy"><span>Zanark Domain</span></span></div><span class="sc-goals mono">2<small>G</small></span></div><div class="sc-row " data-team="eq_1776985198182" data-player="Angelo%20Gabrini"><span class="sc-rank">20</span><div class="sc-who"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fdxi4wb638ujep.cloudfront.net%2F1%2Fk%2Fv%2F0%2Fv0ytbvceies.webp" alt="Angelo Gabrini" class="" loading="lazy" referrerpolicy="no-referrer"><span class="sc-name">Angelo Gabrini</span><span class="sc-pos">CEN</span><span class="af-dot" style="--afc:#35D0C6" title="Aria"></span><span class="sc-team"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2Ff%2Ff6%2FInazuma_KFC_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251118130810" alt="Inazuma Kids FC" loading="lazy"><span>Inazuma Kids FC</span></span></div><span class="sc-goals mono">1<small>G</small></span></div><div class="sc-row " data-team="eq_1776649179181" data-player="Brom%20Hexine"><span class="sc-rank">21</span><div class="sc-who"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fdxi4wb638ujep.cloudfront.net%2F1%2Fk%2Fj%2Fr%2Fjrvwwe1jgq0.webp" alt="Brom Hexine" class="" loading="lazy" referrerpolicy="no-referrer"><span class="sc-name">Brom Hexine</span><span class="sc-pos">ATT</span><span class="af-dot" style="--afc:#FF5A3C" title="Fuoco"></span><span class="sc-team"><img src="https://i.imgur.com/vHWASV1.png" alt="Criaturas de la Noche" loading="lazy"><span>Criaturas de la Noche</span></span></div><span class="sc-goals mono">1<small>G</small></span></div><div class="sc-row " data-team="eq_1777122337032" data-player="Desmodus%20Drakul"><span class="sc-rank">22</span><div class="sc-who"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fdxi4wb638ujep.cloudfront.net%2F1%2Fk%2Fk%2Fx%2Fkx_rjdhzs6m.webp" alt="Desmodus Drakul" class="" loading="lazy" referrerpolicy="no-referrer"><span class="sc-name">Desmodus Drakul</span><span class="sc-pos">ATT</span><span class="af-dot" style="--afc:#C08A3E" title="Montagna"></span><span class="sc-team"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2Fc%2Fc5%2FGaru_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251119122237" alt="Gar" loading="lazy"><span>Gar</span></span></div><span class="sc-goals mono">1<small>G</small></span></div><div class="sc-row " data-team="eq_1777121960890" data-player="Grant%20Stodgell"><span class="sc-rank">23</span><div class="sc-who"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fdxi4wb638ujep.cloudfront.net%2F1%2Fk%2Fu%2Fn%2Fun1lvhfgnfc.webp" alt="Grant Stodgell" class="" loading="lazy" referrerpolicy="no-referrer"><span class="sc-name">Grant Stodgell</span><span class="sc-pos">ATT</span><span class="af-dot" style="--afc:#FF5A3C" title="Fuoco"></span><span class="sc-team"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2F6%2F6f%2FMannouzaka_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251119113316" alt="Colegio Poderosa Fe" loading="lazy"><span>Colegio Poderosa Fe</span></span></div><span class="sc-goals mono">1<small>G</small></span></div><div class="sc-row " data-team="eq_1776725568226" data-player="Joan%20Asensi"><span class="sc-rank">24</span><div class="sc-who"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fdxi4wb638ujep.cloudfront.net%2F1%2Fk%2Fp%2Fr%2Fpr0tr1nbxqk.webp" alt="Joan Asensi" class="" loading="lazy" referrerpolicy="no-referrer"><span class="sc-name">Joan Asensi</span><span class="sc-pos">ATT</span><span class="af-dot" style="--afc:#FF5A3C" title="Fuoco"></span><span class="sc-team"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2F2%2F2e%2FHakuren_%2528GO%2529_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251119113305.png" alt="Alpino" loading="lazy"><span>Alpino</span></span></div><span class="sc-goals mono">1<small>G</small></span></div><div class="sc-row " data-team="eq_1783122669226" data-player="Keines%20Elvain"><span class="sc-rank">25</span><div class="sc-who"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fdxi4wb638ujep.cloudfront.net%2F1%2Fk%2Fl%2F2%2Fl2wnu1mn95k.webp" alt="Keines Elvain" class="" loading="lazy" referrerpolicy="no-referrer"><span class="sc-name">Keines Elvain</span><span class="sc-pos">ATT</span><span class="af-dot" style="--afc:#46B45F" title="Foresta"></span><span class="sc-team"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2F9%2F95%2FOumihara_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251118144148" alt="Mary Times" loading="lazy"><span>Mary Times</span></span></div><span class="sc-goals mono">1<small>G</small></span></div><div class="sc-row " data-team="eq_1776985198182" data-player="Lucia"><span class="sc-rank">26</span><div class="sc-who"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fdxi4wb638ujep.cloudfront.net%2F1%2Fk%2Fk%2Fd%2Fkdbju-9yebm.webp" alt="Lucia" class="" loading="lazy" referrerpolicy="no-referrer"><span class="sc-name">Lucia</span><span class="sc-pos">ATT</span><span class="af-dot" style="--afc:#C08A3E" title="Montagna"></span><span class="sc-team"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2Ff%2Ff6%2FInazuma_KFC_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251118130810" alt="Inazuma Kids FC" loading="lazy"><span>Inazuma Kids FC</span></span></div><span class="sc-goals mono">1<small>G</small></span></div><div class="sc-row " data-team="eq_1776649500479" data-player="Nora%20Flexion"><span class="sc-rank">27</span><div class="sc-who"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fdxi4wb638ujep.cloudfront.net%2F1%2Fk%2Fv%2Fx%2Fvxvh-joqgle.png" alt="Nora Flexion" class="" loading="lazy" referrerpolicy="no-referrer"><span class="sc-name">Nora Flexion</span><span class="sc-pos">ATT</span><span class="af-dot" style="--afc:#46B45F" title="Foresta"></span><span class="sc-team"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2F6%2F6b%2FOutei_Tsukinomiya_emblem.png%2Frevision%2Flatest%3Fcb%3D20240331224724.png" alt="Academia Plenilunio" loading="lazy"><span>Academia Plenilunio</span></span></div><span class="sc-goals mono">1<small>G</small></span></div><div class="sc-row " data-team="eq_1777122337032" data-player="Romica%20Glimmerly"><span class="sc-rank">28</span><div class="sc-who"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fdxi4wb638ujep.cloudfront.net%2F1%2Fk%2Fg%2Ff%2Fgftuwpo3l98.webp" alt="Romica Glimmerly" class="" loading="lazy" referrerpolicy="no-referrer"><span class="sc-name">Romica Glimmerly</span><span class="sc-pos">ATT</span><span class="af-dot" style="--afc:#C08A3E" title="Montagna"></span><span class="sc-team"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2Fc%2Fc5%2FGaru_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251119122237" alt="Gar" loading="lazy"><span>Gar</span></span></div><span class="sc-goals mono">1<small>G</small></span></div><div class="sc-row " data-team="eq_1776725568226" data-player="Shawn%20Froste"><span class="sc-rank">29</span><div class="sc-who"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fdxi4wb638ujep.cloudfront.net%2F1%2Fk%2Fw%2Fk%2Fwk5ezxf-7dm.png" alt="Shawn Froste" class="" loading="lazy" referrerpolicy="no-referrer"><span class="sc-name">Shawn Froste</span><span class="sc-pos">ATT</span><span class="af-dot" style="--afc:#35D0C6" title="Aria"></span><span class="sc-team"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2F2%2F2e%2FHakuren_%2528GO%2529_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251119113305.png" alt="Alpino" loading="lazy"><span>Alpino</span></span></div><span class="sc-goals mono">1<small>G</small></span></div><div class="sc-row " data-team="eq_1776988822956" data-player="Terri%20Ann%20Thrope"><span class="sc-rank">30</span><div class="sc-who"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fdxi4wb638ujep.cloudfront.net%2F1%2Fk%2Fq%2Fx%2Fqxrt9vklyde.webp" alt="Terri Ann Thrope" class="" loading="lazy" referrerpolicy="no-referrer"><span class="sc-name">Terri Ann Thrope</span><span class="sc-pos">ATT</span><span class="af-dot" style="--afc:#46B45F" title="Foresta"></span><span class="sc-team"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2F2%2F20%2FUra_Zeus_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20260612141031" alt="Instituto Zeus" loading="lazy"><span>Instituto Zeus</span></span></div><span class="sc-goals mono">1<small>G</small></span></div><div class="sc-row " data-team="eq_1776988822956" data-player="Tom%20Skipper"><span class="sc-rank">31</span><div class="sc-who"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fdxi4wb638ujep.cloudfront.net%2F1%2Fk%2F6%2Fa%2F6a-qmb-ah4s.webp" alt="Tom Skipper" class="" loading="lazy" referrerpolicy="no-referrer"><span class="sc-name">Tom Skipper</span><span class="sc-pos">ATT</span><span class="af-dot" style="--afc:#35D0C6" title="Aria"></span><span class="sc-team"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2F2%2F20%2FUra_Zeus_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20260612141031" alt="Instituto Zeus" loading="lazy"><span>Instituto Zeus</span></span></div><span class="sc-goals mono">1<small>G</small></span></div><div class="sc-row " data-team="eq_1776649179181" data-player="Van%20Yamano"><span class="sc-rank">32</span><div class="sc-who"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fdxi4wb638ujep.cloudfront.net%2F1%2Fk%2Fb%2Fy%2Fbylcaoyvnsk.webp" alt="Van Yamano" class="" loading="lazy" referrerpolicy="no-referrer"><span class="sc-name">Van Yamano</span><span class="sc-pos">ATT</span><span class="af-dot" style="--afc:#C08A3E" title="Montagna"></span><span class="sc-team"><img src="https://i.imgur.com/vHWASV1.png" alt="Criaturas de la Noche" loading="lazy"><span>Criaturas de la Noche</span></span></div><span class="sc-goals mono">1<small>G</small></span></div></div><button class="sc-more" type="button" aria-expanded="false"><span class="sc-more-txt" data-no-tr="">Vedi gli altri 22 marcatori</span><i class="ph-bold ph-caret-down"></i></button></div>
+      <div class="scorers rv" id="scorers"><div class="ev-empty">Nessun gol registrato in questa competizione.</div></div>
     </div>
   </div>
 </section>
@@ -2442,8 +2573,9 @@ body.locked{ overflow:hidden; }
 
 <div class="ov" id="ov-presidentes">
   <div class="ov-panel champ-panel">
-    <div class="ov-head">
-      <div style="display:flex;align-items:center;gap:.5rem;min-width:0">
+    <div class="ov-head" id="pres-head">
+      <div class="pres-head-photo" id="pres-head-photo" hidden=""></div>
+      <div style="display:flex;align-items:center;gap:1rem;min-width:0">
         <button type="button" class="pres-back" id="pres-back" hidden=""><i class="ph-bold ph-arrow-left"></i> <span data-i18n="pres.back">Volver</span></button>
         <h3 id="pres-title" data-no-tr="">Salón de presidentes</h3>
       </div>
@@ -2586,12 +2718,12 @@ window.SF_DICT = {
 'historia.t3.f2':    ['competiciones','competitions','competições','competizioni','compétitions','大会','대회','rozgrywki','състезания','такмичења'],
 'historia.t3.f3':    ['Temporada completada','Season completed','Temporada concluída','Stagione completata','Saison terminée','シーズン完走','시즌 완주','Sezon ukończony','Завършен сезон','Завршена сезона'],
 'historia.t3.ver':   ['Ver campeones','See the champions','Ver campeões','Vedi i campioni','Voir les champions','優勝チームを見る','우승팀 보기','Zobacz mistrzów','Виж шампионите','Погледај шампионе'],
-'historia.t4.tag':   ['En preparación','In preparation','Em preparação','In preparazione','En préparation','準備中','준비 중','W przygotowaniu','В подготовка','У припреми'],
+'historia.t4.tag':   ['En juego','Under way','A decorrer','In corso','En cours','開催中','진행 중','W toku','В ход','У току'],
 'historia.t4.tag2':  ['La que ya se sostiene sola','The one that stands on its own now','A que já se sustenta sozinha','Quella che ormai si regge da sola','Celle qui tient déjà toute seule','もう自立して続くシーズン','이제는 스스로 굴러가는 시즌','Ta, która już utrzymuje się sama','Тази, която вече се крепи сама','Она која се сада одржава сама'],
 'historia.t4.title': ['La prueba de que el proyecto ya no depende de nadie en concreto','The proof the project no longer depends on any one person','A prova de que o projeto já não depende de ninguém em concreto','La prova che il progetto non dipende più da nessuno in particolare','La preuve que le projet ne dépend plus de personne en particulier','プロジェクトがもう特定の誰かに依存していない証拠','프로젝트가 더 이상 특정 누군가에게 의존하지 않는다는 증거','Dowód na to, że projekt nie zależy już od nikogo konkretnego','Доказателството, че проектът вече не зависи от никого конкретно','Доказ да пројекат више не зависи ни од кога конкретно'],
 'historia.t4.f1':    ['Continuidad total','Full continuity','Continuidade total','Continuità totale','Continuité totale','完全な継続','완전한 연속성','Pełna ciągłość','Пълна приемственост','Потпуни континуитет'],
 'historia.t4.f2':    ['competiciones','competitions','competições','competizioni','compétitions','大会','대회','rozgrywki','състезания','такмичења'],
-'historia.t4.f3':    ['En preparación','In preparation','Em preparação','In preparazione','En préparation','準備中','준비 중','W przygotowaniu','В подготовка','У припреми'],
+'historia.t4.f3':    ['En juego','Under way','A decorrer','In corso','En cours','開催中','진행 중','W toku','В ход','У току'],
 'historia.note':     ['El fundador, Franshu, ha jugado las tres temporadas como manager (Kirkwood, Ragnah y Criaturas de la Noche) antes de dedicarse por completo a organizar.','Founder Franshu played all three seasons as a manager (Kirkwood, Ragnah and Criaturas de la Noche) before devoting himself entirely to running the league.','O fundador, Franshu, jogou as três temporadas como treinador (Kirkwood, Ragnah e Criaturas de la Noche) antes de se dedicar totalmente a organizar.','Il fondatore, Franshu, ha giocato tutte e tre le stagioni da allenatore (Kirkwood, Ragnah e Criaturas de la Noche) prima di dedicarsi completamente all’organizzazione.','Le fondateur, Franshu, a joué les trois saisons comme manager (Kirkwood, Ragnah et Criaturas de la Noche) avant de se consacrer entièrement à l’organisation.','創設者のFranshuは、運営に専念する前に3シーズンとも監督として参加していました（Kirkwood、Ragnah、Criaturas de la Noche）。','창립자 Franshu는 운영에 전념하기 전 세 시즌 모두 감독으로 참가했습니다(Kirkwood, Ragnah, Criaturas de la Noche).','Założyciel Franshu grał we wszystkich trzech sezonach jako menedżer (Kirkwood, Ragnah i Criaturas de la Noche), zanim poświęcił się wyłącznie organizacji.','Основателят Franshu е играл и трите сезона като мениджър (Kirkwood, Ragnah и Criaturas de la Noche), преди да се посвети изцяло на организацията.','Оснивач Franshu играо је све три сезоне као менаџер (Kirkwood, Ragnah и Criaturas de la Noche) пре него што се потпуно посветио организацији.'],
 
 /* ─────────────────── SECCIONES ─────────────────── */
@@ -2995,7 +3127,7 @@ window.SF_FAQ_DICT = {
             var key = _sfATKey(text, lang);
             if (_sfATCache[key] !== undefined) return _sfATCache[key];
             try {
-                var url = 'https://translate.googleapis.com/translate_a/single?client=gtx&sl=es&tl=' + lang + '&dt=t&q=' + encodeURIComponent(text);
+                var url = 'https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=' + lang + '&dt=t&q=' + encodeURIComponent(text);
                 var resp = await fetch(url);
                 if (!resp.ok) throw new Error('translate fail');
                 var data = await resp.json();
@@ -3008,15 +3140,31 @@ window.SF_FAQ_DICT = {
             }
         }
 
-        function sfATApply(el, text) {
+        /* forzar=true traduce también hacia español. Por defecto español es
+           "no tocar" porque el resto del sitio se escribe en español y
+           traducirlo consigo mismo no aporta nada —pero un texto libre de
+           origen desconocido (p.ej. el nombre de una supertécnica, que
+           puede haberlo escrito un presidente en cualquier idioma) sí debe
+           traducirse aunque el idioma activo sea español. */
+        /* Google devuelve frases sueltas cortas (sin puntuación de cierre)
+           a veces en minúscula aunque el original empezara en mayúscula
+           ("Tornade de Feu" -> "tornado de fuego"). Un nombre de técnica
+           debe leerse como tal, así que se capitaliza la inicial al vuelo;
+           no toca nada más de la frase. */
+        function sfCapitalizarInicial(s) {
+            s = String(s || '');
+            return s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
+        }
+
+        function sfATApply(el, text, forzar) {
             if (!el || !text) return;
             var lang = sfGetLang();
-            if (lang === 'es') { el.textContent = text; return; }
+            if (lang === 'es' && !forzar) { el.textContent = text; return; }
             el.textContent = text;
             var key = _sfATKey(text, lang);
-            if (_sfATCache[key] !== undefined) { el.textContent = _sfATCache[key]; return; }
+            if (_sfATCache[key] !== undefined) { el.textContent = sfCapitalizarInicial(_sfATCache[key]); return; }
             sfATFetch(text, lang).then(function(res) {
-                if (sfGetLang() === lang) el.textContent = res;
+                if (sfGetLang() === lang) el.textContent = sfCapitalizarInicial(res);
             });
         }
 
@@ -3045,6 +3193,29 @@ window.SF_FAQ_DICT = {
             var lang = sfGetLang();
             var entry = SF_AFINIDADES_MAP[String(afi || '').toLowerCase().trim()];
             if (!entry) entry = SF_AF_NEUTRO;
+            return entry[lang] || entry.es;
+        }
+
+        /* Los cuatro tipos de supertécnica (tiro/regate/bloqueo/parada) son
+           términos de fútbol/Inazuma Eleven, igual que las afinidades:
+           terminología del juego, no traducción literal palabra por
+           palabra. Mismo patrón que SF_AFINIDADES_MAP de arriba. */
+        var SF_TIPO_TIRO    = {es:'Tiro',en:'Shot',pt:'Chute',it:'Tiro',fr:'Tir',ja:'シュート',ko:'슛',pl:'Strzał',bg:'Удар',sr:'Шут'};
+        var SF_TIPO_REGATE  = {es:'Regate',en:'Dribble',pt:'Drible',it:'Dribbling',fr:'Dribble',ja:'ドリブル',ko:'드리블',pl:'Drybling',bg:'Дрибъл',sr:'Дриблинг'};
+        var SF_TIPO_BLOQUEO = {es:'Bloqueo',en:'Block',pt:'Bloqueio',it:'Blocco',fr:'Blocage',ja:'ブロック',ko:'블록',pl:'Blok',bg:'Блок',sr:'Блок'};
+        var SF_TIPO_PARADA  = {es:'Parada',en:'Save',pt:'Defesa',it:'Parata',fr:'Arrêt',ja:'セーブ',ko:'세이브',pl:'Obrona',bg:'Спасяване',sr:'Одбрана'};
+        var SF_TIPO_MAP = {
+            'tiro': SF_TIPO_TIRO, 'shot': SF_TIPO_TIRO,
+            'regate': SF_TIPO_REGATE, 'dribble': SF_TIPO_REGATE,
+            'bloqueo': SF_TIPO_BLOQUEO, 'block': SF_TIPO_BLOQUEO,
+            'parada': SF_TIPO_PARADA, 'save': SF_TIPO_PARADA
+        };
+        function sfTipoLabel(tipo) {
+            var lang = sfGetLang();
+            var clave = String(tipo || '').toLowerCase().trim();
+            if (!clave) return '';
+            var entry = SF_TIPO_MAP[clave];
+            if (!entry) return '';
             return entry[lang] || entry.es;
         }
 
@@ -3188,7 +3359,7 @@ window.SF_FAQ_DICT = {
         async function sfATBatch(list, lang) {
             var joined = list.join('\n');
             try {
-                var url = 'https://translate.googleapis.com/translate_a/single?client=gtx&sl=es&tl='
+                var url = 'https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl='
                     + lang + '&dt=t&q=' + encodeURIComponent(joined);
                 var resp = await fetch(url);
                 if (!resp.ok) throw new Error('translate fail');
@@ -3523,6 +3694,7 @@ window.SF_FAQ_DICT = {
         window.sfATFetch = sfATFetch;
         window.sfAfinidadLabel = sfAfinidadLabel;
         window.sfGetLang = sfGetLang;
+        window.sfTipoLabel = sfTipoLabel;
 
         /* Copia española original de cada nodo traducible. Se captura ANTES de
            la primera sustitución para no traducir nunca sobre una traducción. */
@@ -3746,10 +3918,19 @@ var AF_LABEL={fuego:'Fuego',montana:'Montaña',bosque:'Bosque',aire:'Aire',neutr
 var AF_HEX={fuego:'#FF5A3C',montana:'#C08A3E',bosque:'#46B45F',aire:'#35D0C6',neutro:'#9AA0A6'};
 function afKey(a){ return AF_MAP[norm(a||'').replace(/[^a-zñ]/g,'')]||'neutro'; }
 function afName(a){ return window.sfAfinidadLabel ? sfAfinidadLabel(a) : AF_LABEL[afKey(a)]; }
+var TIPO_LABEL={tiro:'Tiro',regate:'Regate',bloqueo:'Bloqueo',parada:'Parada'};
+function tipoName(t){
+  var k=String(t||'').toLowerCase().trim();
+  if(!k) return '';
+  return window.sfTipoLabel ? (sfTipoLabel(k)||TIPO_LABEL[k]||t) : (TIPO_LABEL[k]||t);
+}
 function afTag(a,cls){ var k=afKey(a); return '<span class="af af-'+k+(cls?' '+cls:'')+'"><i></i><span class="pn">'+esc(afName(a))+'</span></span>'; }
 
 function team(n){ return bd.equipos.find(function(e){ return e.nombre===n; }); }
 function isHttp(u){ return !!u && /^https?:\/\//.test(u); }
+/* Fotos de presidente/trofeo (gestor: vista-palmares.js) pueden ser una URL
+   o una imagen incrustada como data URI — isHttp() sola las rechazaría. */
+function esImagen(u){ return isHttp(u) || (!!u && /^data:image\//.test(u)); }
 
 /* El CSP de IONOS solo permite img-src desde flagcdn.com, images.weserv.nl
    e i.imgur.com. escudo/foto/afinidad/imagen a veces vienen de wikia.nocookie.net
@@ -3884,6 +4065,7 @@ function renderAll(){
   pasoRender(renderScorers,[curGol]);
   pasoRender(renderNews);
   pasoRender(renderStaffClubs);
+  pasoRender(renderAntiguedad);
   pasoRender(observeReveals);
   pasoRender(vigilarDesbordeMovil);
 }
@@ -3946,7 +4128,7 @@ function vigilarDesbordeMovil(){
 function renderMetrics(){
   var act=bd.equipos.filter(function(e){ return !e.archivado; });
   var players=act.reduce(function(a,e){ return a+(e.jugadores?e.jugadores.length:0); },0);
-  countTo($('m-temp'), parseInt(bd.config.temporada)||3);
+  countTo($('m-temp'), parseInt(bd.config.temporada)||4);
   countTo($('m-teams'), act.length);
   countTo($('m-players'), players);
   countTo($('m-jor'), parseInt(bd.config.jornada_actual)||0);
@@ -4412,6 +4594,28 @@ window.closeSheets=closeSheets;
 
 function openTeam(id){
   var e=bd.equipos.find(function(x){ return x.id===id; }); if(!e) return;
+  renderFichaEquipo(e);
+}
+
+/* Abre la ficha del equipo TAL COMO ERA en una temporada archivada, no como
+   está hoy: para un título ganado hace tiempo, el club puede haber cambiado
+   de plantilla, presidente o incluso estar archivado ahora. El snapshot de
+   esa temporada (historial_temporadas[idx].equipos) ya tiene todo lo que
+   necesita renderFichaEquipo — id, jugadores, stats — porque es una copia
+   completa del equipo en ese momento (ver instantaneaTemporada en
+   gestor/js/core.js). */
+function openTeamHistorico(idx,equipoId){
+  var t=(bd.historial_temporadas||[])[idx]; if(!t) return;
+  var e=(t.equipos||[]).find(function(x){ return x.id===equipoId; }); if(!e) return;
+  renderFichaEquipo(e,{temporadaNombre:t.nombre||('Temporada #'+(idx+1))});
+}
+window.openTeamHistorico=openTeamHistorico;
+
+/* Cuerpo de la ficha de equipo, a partir de un snapshot cualquiera: el
+   equipo tal como está hoy (bd.equipos, vía openTeam) o tal como quedó
+   archivado en una temporada pasada (vía openTeamHistorico). */
+function renderFichaEquipo(e,opts){
+  opts=opts||{};
   /* La plantilla se lee por líneas, no por dorsal suelto: primero Porteros,
      después Defensas, Medios y Delanteros, y dentro de cada línea por dorsal. */
   var js=sortSquad(e.jugadores||[]);
@@ -4473,6 +4677,7 @@ function openTeam(id){
         '<div><h1 class="tm-name">'+esc(X(e.nombre))+'</h1>'+
           '<div class="tm-sub">'+(e.division==='SUPERLIGA'?'<span class="badge badge-superliga">'+esc(T('comp.superliga','Superliga Frontier'))+'</span>':'<span class="badge badge-ascenso">'+esc(T('comp.ascenso','Ascenso Frontier'))+'</span>')+
           '<span>'+esc(abbr3(e.nombre,e.abreviatura))+'</span>'+
+          (opts.temporadaNombre?'<span style="color:var(--gold)"><i class="ph-bold ph-clock-counter-clockwise"></i> '+esc(opts.temporadaNombre)+'</span>':'')+
           '<span class="frm" style="margin-left:.5rem">'+form.map(function(r){ return '<i class="f-'+r+'"></i>'; }).join('')+'</span></div>'+
         '</div>'+
       '</div>'+
@@ -4526,8 +4731,17 @@ function openPlayer(teamId,nameEnc){
   var k=afKey(j.afinidad), hex=AF_HEX[k];
   var posCls=String(j.posicion||'').toLowerCase();
 
-  var techs=(j.supertecnicas||[]).map(function(t){
-    return '<div class="tech"><div class="tech-top"><b>'+esc(t.nombre)+'</b>'+(t.tipo?'<span class="badge">'+esc(t.tipo)+'</span>':'')+'</div>'+(t.descripcion?'<p>'+esc(t.descripcion)+'</p>':'')+'</div>';
+  /* nombre/descripcion son texto libre del presidente, en el idioma que sea
+     (español, francés, inglés...). El recorrido automático de la página los
+     traduce en LOTE junto con el resto de textos sueltos —y ahí es donde se
+     rompía: el lote junta muchas cadenas en una sola petición con sl=auto,
+     Google detecta UN idioma de origen para el lote entero (normalmente
+     español, porque el resto del lote sí lo es) y una frase en otro idioma
+     dentro de ese lote sale intacta, sin traducir. data-no-tr los saca del
+     recorrido en lote; sfATApply() de abajo los traduce de uno en uno, cada
+     cual con su propia detección de idioma. */
+  var techs=(j.supertecnicas||[]).map(function(t,ti){
+    return '<div class="tech"><div class="tech-top"><b data-no-tr data-tech-nombre="'+ti+'">'+esc(t.nombre)+'</b>'+(t.tipo?'<span class="badge" data-no-tr>'+esc(tipoName(t.tipo))+'</span>':'')+'</div>'+(t.descripcion?'<p data-no-tr data-tech-desc="'+ti+'">'+esc(t.descripcion)+'</p>':'')+'</div>';
   }).join('');
 
   /* HISTORIAL DE EQUIPOS — un logo enorme con nombre y temporada no decía
@@ -4604,6 +4818,13 @@ function openPlayer(teamId,nameEnc){
         '<button class="btn btn-secondary" data-share-player="'+esc(e.id)+'|'+esc(encodeURIComponent(j.nombre))+'"><i class="ph-bold ph-download-simple"></i> Descargar carta</button>'+
       '</div>'+
     '</div>';
+  (j.supertecnicas||[]).forEach(function(t,ti){
+    if(!window.sfATApply) return;
+    var elN=document.querySelector('#sheet-player-body [data-tech-nombre="'+ti+'"]');
+    if(elN && t.nombre) sfATApply(elN, t.nombre, true);
+    var elD=document.querySelector('#sheet-player-body [data-tech-desc="'+ti+'"]');
+    if(elD && t.descripcion) sfATApply(elD, t.descripcion, true);
+  });
   openSheet('sheet-player');
 }
 
@@ -4790,7 +5011,7 @@ function renderAntiguedad(){
   /* La temporada en curso sale del JSON, no escrita a mano: decía
      "Temporada 2" cuando la config ya iba por la 3. */
   var t=$('hero-temp');
-  if(t) t.textContent=T('temporada','Temporada')+' '+(parseInt(bd.config.temporada)||3)+' · '+T('hero.enjuego','En juego');
+  if(t) t.textContent=T('temporada','Temporada')+' '+(parseInt(bd.config.temporada)||4)+' · '+T('hero.enjuego','En juego');
 }
 /* Se repinta al cambiar de idioma: el texto se compone de claves del
    diccionario y está marcado data-no-tr, así que nadie más lo tocaría. */
@@ -4807,6 +5028,19 @@ window.renderAntiguedad=renderAntiguedad;
    la Temporada 2 — un mapa fijo por nombre de equipo habría atribuido mal
    uno de los dos títulos. */
 function presidenteDe(e){ return String((e&&e.ciudad)||'').trim(); }
+/* Fotos opcionales del gestor (vista-palmares.js): bd.presidentes[nombre].foto
+   y bd.trofeos[SUPERLIGA|ASCENSO|COPA].foto. Ninguna de las dos existía antes
+   de esa vista — si el archivo no las trae, se sigue con el icono/inicial de
+   siempre; nunca es un error que falten. */
+function presidenteFotoDe(nombre){
+  var p=nombre&&bd.presidentes&&bd.presidentes[nombre];
+  return (p&&esImagen(p.foto))?p.foto:null;
+}
+function trofeoFotoDe(cls){
+  var clave=cls==='badge-superliga'?'SUPERLIGA':cls==='badge-ascenso'?'ASCENSO':cls==='badge-copa'?'COPA':null;
+  var t=clave&&bd.trofeos&&bd.trofeos[clave];
+  return (t&&esImagen(t.foto))?t.foto:null;
+}
 
 /* Se indexa por posición, no por `nombre`: el snapshot archivado se llama
    "Temporada 1" en el JSON pero es la que la web narra como Temporada 2
@@ -4906,22 +5140,21 @@ function openChamps(idx,label){
   var list=palmares(idx); if(!list) return;
   $('champ-title').textContent=T('champs.title','Palmarés')+' · '+label;
   $('champs').innerHTML=list.map(function(c){
-    var live=bd.equipos.find(function(x){ return x.nombre===c.e.nombre; });
-    var c1=(live&&live.color1)||c.e.color1||'#3A3A3A', c2=(live&&live.color2)||c.e.color2||'#141414';
-    var pres=presidenteDe(c.e);
-    return '<div class="champ"'+(live?' data-team="'+esc(live.id)+'"':'')+'>'+
-      '<span class="champ-wash" style="background:radial-gradient(ellipse 80% 130% at 0% 50%,'+esc(wash(live||c.e,c1))+',transparent 68%)"></span>'+
+    var pres=presidenteDe(c.e), presFoto=presidenteFotoDe(pres), trofeoFoto=trofeoFotoDe(c.cls);
+    return '<div class="champ" data-team-hist="'+esc(idx)+':'+esc(c.e.id)+'" tabindex="0" role="button">'+
       (isHttp(c.e.escudo)?'<img class="champ-crest" src="'+esc(c.e.escudo)+'" alt="'+esc(X(c.e.nombre))+'" loading="lazy">':'<span class="champ-crest noimg">'+esc(abbr3(c.e.nombre))+'</span>')+
       '<div class="champ-id">'+
         '<b>'+esc(X(c.e.nombre))+'</b>'+
         (pres
-          ? '<button type="button" class="pres" data-pres="'+esc(pres)+'"><i class="ph-bold ph-user-circle"></i>'+esc(pres)+'</button>'
+          ? '<button type="button" class="pres" data-pres="'+esc(pres)+'">'+(presFoto?'<img class="pres-avatar" src="'+esc(presFoto)+'" alt="" referrerpolicy="no-referrer">':'<i class="ph-bold ph-user-circle"></i>')+esc(pres)+'</button>'
           : '<span class="pres"><i class="ph-bold ph-user-circle"></i>·</span>')+
       '</div>'+
       '<div class="champ-trophy">'+
-        '<i class="ph-bold ph-trophy"></i>'+
-        '<span class="badge '+c.cls+'">'+c.comp+'</span>'+
-        (c.marcador?'<span class="mono" style="font-size:.6875rem;color:var(--ink-5)">'+esc(c.marcador)+'</span>':'<span class="mono" style="font-size:.6875rem;color:var(--ink-5)">'+(c.e.pts||0)+' pts</span>')+
+        '<span class="champ-trophy-badge">'+(trofeoFoto?'<img class="champ-trophy-foto" src="'+esc(trofeoFoto)+'" alt="" referrerpolicy="no-referrer">':'<i class="ph-bold ph-trophy"></i>')+'</span>'+
+        '<span class="champ-trophy-meta">'+
+          '<span class="badge '+c.cls+'">'+c.comp+'</span>'+
+          (c.marcador?'<span class="mono" style="font-size:.6875rem;color:var(--ink-5)">'+esc(c.marcador)+'</span>':'<span class="mono" style="font-size:.6875rem;color:var(--ink-5)">'+(c.e.pts||0)+' pts</span>')+
+        '</span>'+
       '</div>'+
     '</div>';
   }).join('');
@@ -4932,10 +5165,13 @@ function openPresidentesHall(){
   var list=presidentesConTitulos();
   $('pres-title').textContent=T('pres.hall.title','Salón de presidentes');
   $('pres-back').hidden=true;
+  $('pres-head-photo').hidden=true;
   $('pres-body').innerHTML = list.length
     ? '<div class="pres-grid">'+list.map(function(p){
         var etq=p.titulos.length===1?T('pres.titulo','título'):T('pres.titulos','títulos');
+        var foto=presidenteFotoDe(p.nombre);
         return '<button type="button" class="pres-card" data-pres-card="'+esc(p.nombre)+'">'+
+          (foto?'<img class="pres-avatar" src="'+esc(foto)+'" alt="" referrerpolicy="no-referrer">':'')+
           '<b>'+esc(p.nombre)+'</b>'+
           '<span>'+p.titulos.length+' '+etq+'</span>'+
         '</button>';
@@ -4945,28 +5181,94 @@ function openPresidentesHall(){
 }
 window.openPresidentesHall=openPresidentesHall;
 
+/* Agrupa una lista de títulos (mismo shape que titulosDePresidente/
+   titulosDeEquipo) por competición, para la tira de honores estilo Football
+   Manager: un mosaico por competición con el nº de veces ganada, no una fila
+   por título suelto. Orden fijo (Superliga, Ascenso, Copa), y dentro de cada
+   grupo el más reciente primero (la lista de entrada ya viene así). */
+function agruparPorCompeticion(titulos){
+  var map={};
+  titulos.forEach(function(x){
+    (map[x.cls]=map[x.cls]||{cls:x.cls, comp:x.comp, instancias:[]}).instancias.push(x);
+  });
+  return ['badge-superliga','badge-ascenso','badge-copa']
+    .map(function(k){ return map[k]; })
+    .filter(Boolean);
+}
+
+/* Tira de honores: un tile por competición, con la foto del trofeo de fondo
+   (o el icono si no hay foto) y el nº de veces ganada superpuesto. Un clic
+   abre el equipo TAL COMO ERA la vez más reciente que se ganó — para ver
+   una edición concreta más antigua, se entra por el club (openTeamTitulos)
+   o por el presidente, no hay desglose dentro del propio tile: con como
+   mucho un puñado de títulos por competición en esta liga, no compensa la
+   complejidad de un desplegable por ahora. */
+/* Nombre corto para el mosaico: "Copa Fútbol Frontier" no cabe en 128px sin
+   partirse a media palabra. El nombre completo (T('sec.copa',...)) se sigue
+   usando en todos los demás sitios (badges, títulos de sección). */
+var HONOUR_NOMBRE_CORTO={
+  'badge-superliga':T('honours.superliga','Superliga'),
+  'badge-ascenso':T('honours.ascenso','Ascenso'),
+  'badge-copa':T('honours.copa','Copa')
+};
+function honoursStrip(titulos){
+  var grupos=agruparPorCompeticion(titulos);
+  if(!grupos.length) return '';
+  /* .honours-strip-outer envuelve la tira sin más motivo que dar un sitio
+     fijo (que no se desplaza con el contenido) al desvanecido del borde
+     derecho: como hijo de la propia tira con scroll, se iría de la vista
+     en cuanto se deslizara. */
+  return '<div class="honours-strip-outer"><div class="honours-strip">'+grupos.map(function(g){
+    var ultima=g.instancias[0], foto=trofeoFotoDe(g.cls);
+    return '<button type="button" class="honour-tile" data-cls="'+esc(g.cls)+'" data-team-hist="'+esc(ultima.idx)+':'+esc(ultima.equipo.id)+'">'+
+      (foto
+        ? '<img src="'+esc(foto)+'" alt="" referrerpolicy="no-referrer">'
+        : '<span class="honour-tile-noimg"><i class="ph-bold ph-trophy"></i></span>')+
+      '<span class="honour-tile-fade"></span>'+
+      '<span class="honour-tile-body">'+
+        '<span class="honour-tile-comp">'+esc(HONOUR_NOMBRE_CORTO[g.cls]||g.comp)+'</span>'+
+        '<span class="honour-tile-count">'+g.instancias.length+'</span>'+
+      '</span>'+
+    '</button>';
+  }).join('')+'</div></div>';
+}
+/* Centra los mosaicos como grupo solo cuando caben enteros sin scroll —
+   comprobando el desbordamiento real del layout ya pintado, no adivinándolo
+   por ancho de pantalla (los mismos 3 mosaicos caben o no según haya foto de
+   trofeo o el icono de repuesto, según el idioma, etc.). Sin esto, un flex
+   normal deja los mosaicos pegados a la izquierda y todo el aire sobrante se
+   acumula a la derecha.
+   Cuando NO caben (pantallas muy estrechas), no hay margen simétrico
+   posible de verdad — el último mosaico sigue existiendo fuera de la vista,
+   no es un hueco vacío. En vez de perseguir una simetría que no tiene
+   sentido ahí, se añade un desvanecido en el borde derecho (.desborda) para
+   que se note que hay más contenido esperando a deslizar, no que se cortó
+   por error. */
+function ajustarCentradoHonours(){
+  document.querySelectorAll('.honours-strip').forEach(function(el){
+    var desborda=el.scrollWidth>el.clientWidth;
+    el.classList.toggle('centrado', !desborda);
+    var outer=el.closest('.honours-strip-outer');
+    if(outer) outer.classList.toggle('desborda', desborda);
+  });
+}
+
 function openPresidenteDetalle(nombre){
   var titulos=titulosDePresidente(nombre);
   if(!titulos.length) return;
+  var presFoto=presidenteFotoDe(nombre);
   $('pres-title').textContent=nombre;
   $('pres-back').hidden=false;
-  $('pres-body').innerHTML='<div class="champs">'+titulos.map(function(x){
-    var e=x.equipo, live=bd.equipos.find(function(z){ return z.id===e.id; });
-    var c1=(live&&live.color1)||e.color1||'#3A3A3A';
-    return '<div class="champ" data-team="'+esc(e.id)+'">'+
-      '<span class="champ-wash" style="background:radial-gradient(ellipse 80% 130% at 0% 50%,'+esc(wash(live||e,c1))+',transparent 68%)"></span>'+
-      (isHttp(e.escudo)?'<img class="champ-crest" src="'+esc(e.escudo)+'" alt="'+esc(X(e.nombre))+'" loading="lazy">':'<span class="champ-crest noimg">'+esc(abbr3(e.nombre))+'</span>')+
-      '<div class="champ-id">'+
-        '<b>'+esc(X(e.nombre))+'</b>'+
-        '<span class="pres"><i class="ph-bold ph-calendar"></i>'+esc(x.temporadaNombre)+'</span>'+
-      '</div>'+
-      '<div class="champ-trophy">'+
-        '<i class="ph-bold ph-trophy"></i>'+
-        '<span class="badge '+x.cls+'">'+x.comp+'</span>'+
-        (x.marcador?'<span class="mono" style="font-size:.6875rem;color:var(--ink-5)">'+esc(x.marcador)+'</span>':'')+
-      '</div>'+
-    '</div>';
-  }).join('')+'</div>';
+  /* Foto de fondo de la propia cabecera (difuminada, poco visible, apagándose
+     hacia la derecha con mask-image — ver #pres-head-photo en styles.css) en
+     vez de un retrato aparte compitiendo con "Volver" por espacio. Sin foto,
+     se oculta y la cabecera se queda como estaba. */
+  var elHeadFoto=$('pres-head-photo');
+  elHeadFoto.hidden=!presFoto;
+  elHeadFoto.style.backgroundImage=presFoto?'url("'+presFoto.replace(/"/g,'%22')+'")':'';
+  $('pres-body').innerHTML=
+    '<div class="honours-wrap"><div class="honours-label">'+T('pres.honores','Palmarés')+'</div>'+honoursStrip(titulos)+'</div>';
+  ajustarCentradoHonours();
   $('ov-presidentes').classList.add('open');
 }
 window.openPresidenteDetalle=openPresidenteDetalle;
@@ -4983,32 +5285,21 @@ function openTeamTitulos(equipoId){
     .map(function(nombre){ return {nombre:nombre, titulos:porPresidente[nombre]}; })
     .sort(function(a,b){ return b.titulos.length-a.titulos.length||a.nombre.localeCompare(b.nombre,'es'); });
 
-  var filas=titulos.map(function(x){
-    return '<div class="champ">'+
-      '<div class="champ-id">'+
-        '<b>'+esc(x.temporadaNombre)+'</b>'+
-        '<span class="pres"><i class="ph-bold ph-user-circle"></i>'+esc(x.presidente||'·')+'</span>'+
-      '</div>'+
-      '<div class="champ-trophy">'+
-        '<i class="ph-bold ph-trophy"></i>'+
-        '<span class="badge '+x.cls+'">'+x.comp+'</span>'+
-        (x.marcador?'<span class="mono" style="font-size:.6875rem;color:var(--ink-5)">'+esc(x.marcador)+'</span>':'')+
-      '</div>'+
-    '</div>';
-  }).join('');
-
   var grupos=presidentes.map(function(p){
     var etq=p.titulos.length===1?T('pres.titulo','título'):T('pres.titulos','títulos');
-    return '<div class="pres-card" style="cursor:default">'+
+    var foto=presidenteFotoDe(p.nombre);
+    return '<div class="pres-row-static">'+
+      (foto?'<img class="pres-avatar" src="'+esc(foto)+'" alt="" referrerpolicy="no-referrer">':'')+
       '<b>'+esc(p.nombre)+'</b>'+
       '<span>'+p.titulos.length+' '+etq+'</span>'+
     '</div>';
   }).join('');
 
   $('team-titulos-body').innerHTML=
-    '<div class="champs">'+filas+'</div>'+
+    '<div class="honours-wrap">'+honoursStrip(titulos)+'</div>'+
     '<div class="pres-group-title">'+T('team.titulos.presidentes','Presidentes con título en este club')+'</div>'+
     '<div class="pres-grid" style="padding-top:0">'+grupos+'</div>';
+  ajustarCentradoHonours();
   $('ov-team-titulos').classList.add('open');
 }
 window.openTeamTitulos=openTeamTitulos;
@@ -5522,6 +5813,15 @@ document.addEventListener('click', function(ev){
   var tt=t.closest('[data-team-titulos]');
   if(tt){ openTeamTitulos(tt.dataset.teamTitulos); return; }
 
+  /* También antes de data-team: un título va siempre al equipo TAL COMO ERA
+     esa temporada, no al equipo actual — mismo motivo que los dos de arriba. */
+  var th=t.closest('[data-team-hist]');
+  if(th){
+    var partesTh=String(th.dataset.teamHist).split(':');
+    openTeamHistorico(parseInt(partesTh[0],10),partesTh.slice(1).join(':'));
+    return;
+  }
+
   var more=t.closest('.sc-more');
   if(more){
     var box=$('scorers'), open=box.classList.toggle('open');
@@ -5598,7 +5898,20 @@ document.addEventListener('DOMContentLoaded', function(){
   document.addEventListener('keydown',function(e){
     if(e.key==='Enter'||e.key===' '){
       var c=e.target.closest&&e.target.closest('[data-champs]');
-      if(c){ e.preventDefault(); openChamps(parseInt(c.dataset.champs,10),c.dataset.champsLabel||''); }
+      if(c){ e.preventDefault(); openChamps(parseInt(c.dataset.champs,10),c.dataset.champsLabel||''); return; }
+      /* target, no closest: una fila .champ puede contener el botón del
+         presidente (otro elemento con su propio Enter/Space nativo) — si se
+         mirara con closest(), pulsar Enter en ESE botón activaría también la
+         fila entera por debajo.
+         Solo role="button" (los .champ, que son <div>): un <button> real
+         como .honour-tile ya convierte Enter/Space en su propio evento click
+         nativo, que el delegado de más arriba recoge — manejarlo aquí
+         también lo abriría dos veces. */
+      if(e.target.matches&&e.target.matches('[data-team-hist][role="button"]')){
+        e.preventDefault();
+        var partesKb=String(e.target.dataset.teamHist).split(':');
+        openTeamHistorico(parseInt(partesKb[0],10),partesKb.slice(1).join(':'));
+      }
     }
   });
 

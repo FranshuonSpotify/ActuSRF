@@ -216,6 +216,7 @@ function renderAll(){
   pasoRender(renderScorers,[curGol]);
   pasoRender(renderNews);
   pasoRender(renderStaffClubs);
+  pasoRender(renderAntiguedad);
   pasoRender(observeReveals);
   pasoRender(vigilarDesbordeMovil);
 }
@@ -278,7 +279,7 @@ function vigilarDesbordeMovil(){
 function renderMetrics(){
   var act=bd.equipos.filter(function(e){ return !e.archivado; });
   var players=act.reduce(function(a,e){ return a+(e.jugadores?e.jugadores.length:0); },0);
-  countTo($('m-temp'), parseInt(bd.config.temporada)||3);
+  countTo($('m-temp'), parseInt(bd.config.temporada)||4);
   countTo($('m-teams'), act.length);
   countTo($('m-players'), players);
   countTo($('m-jor'), parseInt(bd.config.jornada_actual)||0);
@@ -1161,7 +1162,7 @@ function renderAntiguedad(){
   /* La temporada en curso sale del JSON, no escrita a mano: decía
      "Temporada 2" cuando la config ya iba por la 3. */
   var t=$('hero-temp');
-  if(t) t.textContent=T('temporada','Temporada')+' '+(parseInt(bd.config.temporada)||3)+' · '+T('hero.enjuego','En juego');
+  if(t) t.textContent=T('temporada','Temporada')+' '+(parseInt(bd.config.temporada)||4)+' · '+T('hero.enjuego','En juego');
 }
 /* Se repinta al cambiar de idioma: el texto se compone de claves del
    diccionario y está marcado data-no-tr, así que nadie más lo tocaría. */
