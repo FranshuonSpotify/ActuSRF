@@ -1352,6 +1352,14 @@ function agruparPorCompeticion(titulos){
    o por el presidente, no hay desglose dentro del propio tile: con como
    mucho un puñado de títulos por competición en esta liga, no compensa la
    complejidad de un desplegable por ahora. */
+/* Nombre corto para el mosaico: "Copa Fútbol Frontier" no cabe en 128px sin
+   partirse a media palabra. El nombre completo (T('sec.copa',...)) se sigue
+   usando en todos los demás sitios (badges, títulos de sección). */
+var HONOUR_NOMBRE_CORTO={
+  'badge-superliga':T('honours.superliga','Superliga'),
+  'badge-ascenso':T('honours.ascenso','Ascenso'),
+  'badge-copa':T('honours.copa','Copa')
+};
 function honoursStrip(titulos){
   var grupos=agruparPorCompeticion(titulos);
   if(!grupos.length) return '';
@@ -1363,7 +1371,7 @@ function honoursStrip(titulos){
         : '<span class="honour-tile-noimg"><i class="ph-bold ph-trophy"></i></span>')+
       '<span class="honour-tile-fade"></span>'+
       '<span class="honour-tile-body">'+
-        '<span class="honour-tile-comp">'+g.comp+'</span>'+
+        '<span class="honour-tile-comp">'+esc(HONOUR_NOMBRE_CORTO[g.cls]||g.comp)+'</span>'+
         '<span class="honour-tile-count">'+g.instancias.length+'</span>'+
       '</span>'+
     '</button>';
