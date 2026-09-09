@@ -101,16 +101,22 @@
            referencian los partidos, el historial y team(): por eso basta con
            interceptar en SFX() y ningún punto de render necesita cambiar.
         ════════════════════════════════════════════ */
-        var _sfEqMapa = null, _sfEqMapaBd = null;
+        /* La caché se invalida por NÚMERO DE CLUBES, no por identidad del
+           objeto: app.js hace "bd = Object.assign(bd, d)", así que window.bd
+           es siempre el mismo objeto y solo cambia por dentro. Comparando
+           identidades, el mapa se quedaba con los cero equipos del marcador
+           de posición inicial y no se reconstruía nunca. Es el mismo criterio
+           que ya usa sfNameSet() más abajo. */
+        var _sfEqMapa = null, _sfEqMapaN = -1;
         function sfEquipoMapa() {
-            var bd = window.bd;
-            if (_sfEqMapa && _sfEqMapaBd === bd) return _sfEqMapa;
+            var eq = (window.bd && window.bd.equipos) || [];
+            if (_sfEqMapa && _sfEqMapaN === eq.length) return _sfEqMapa;
             var m = Object.create(null);
-            ((bd && bd.equipos) || []).forEach(function(e) {
+            eq.forEach(function(e) {
                 var n = String(e.nombre == null ? '' : e.nombre).trim();
                 if (n) m[n] = e;
             });
-            _sfEqMapa = m; _sfEqMapaBd = bd;
+            _sfEqMapa = m; _sfEqMapaN = eq.length;
             return m;
         }
 
@@ -160,6 +166,9 @@
                 if (typeof renderAntiguedad === 'function') renderAntiguedad();
                 if (typeof renderFaq === 'function') renderFaq();
                 if (typeof renderQuotes === 'function') renderQuotes();
+                /* Los clubes citados en el marcado estático (staff, leyendas,
+                   cronología) no se repintan solos: no salen del JSON. */
+                if (typeof renderStaffClubs === 'function' && window.bd) renderStaffClubs();
             } catch(e) { console.warn('SFX re-render:', e); }
         }
 
@@ -172,6 +181,9 @@
                solo en el móvil de quien navegara así. */
             try { return localStorage.getItem('sf_lang') || 'es'; } catch (e) { return 'es'; }
         }
+        /* app.js lo necesita para ordenar clubes con las reglas del idioma
+           activo, no siempre con las del español. */
+        window.sfGetLang = sfGetLang;
         /* ?lang=en tiene prioridad sobre lo guardado: es la URL que apuntan los
            hreflang y la que se comparte en redes. */
         function sfInitialLang() {
@@ -657,6 +669,7 @@
         'team.direccion':['Dirección','Management','Direção','Dirigenza','Direction','運営','구단 운영','Kierownictwo','Ръководство','Управа'],
         'team.entrenador':['Entrenador','Coach','Treinador','Allenatore','Entraîneur','監督','감독','Trener','Треньор','Тренер'],
         'team.presidente':['Presidente','President','Presidente','Presidente','Président','会長','회장','Prezes','Президент','Председник'],
+        'team.gerente':['Gerente','Manager','Gerente','Manager','Manager','マネージャー','매니저','Menedżer','Мениджър','Менаџер'],
         'team.formacion':['Formación','Formation','Formação','Modulo','Formation','フォーメーション','포메이션','Ustawienie','Схема','Формација'],
         'temporada':['Temporada','Season','Temporada','Stagione','Saison','シーズン','시즌','Sezon','Сезон','Сезона'],
         'match.crono':['Cronología','Timeline','Cronologia','Cronologia','Chronologie','タイムライン','타임라인','Przebieg meczu','Хронология','Хронологија'],

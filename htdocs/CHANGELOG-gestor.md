@@ -200,3 +200,69 @@ transliteración serbia desde el inglés, y texto que no es un club sin tocar).
 
 **Fuera de alcance, no hecho:** `ciudad`, `estadio`, `entrenador` y `gerente`
 siguen siendo únicos; solo se pidió el nombre del club.
+
+---
+
+## Clubes traducidos también fuera del JSON, y orden alfabético por idioma
+
+**Bug corregido de lo anterior (importante):** la caché del mapa de clubes de
+`sfEquipoIntl()` se invalidaba comparando la identidad de `window.bd`. Pero
+`app.js` hace `bd = Object.assign(bd, d)`: el objeto es siempre el mismo y solo
+cambia por dentro. El mapa se construía con los cero equipos del marcador de
+posición inicial y no se reconstruía nunca, así que el nombre inglés no salía
+en ningún sitio. Ahora se invalida por número de clubes, igual que ya hacía
+`sfNameSet()`.
+
+**Orden alfabético por idioma.** `cmpClub()` en `_fuente/app.js` compara por el
+nombre que se está viendo (`X()`) y con las reglas del idioma activo
+(`sfGetLang()`, exportado desde `i18n.js` para esto). Se usa en los dos únicos
+sitios donde el nombre del club decide el orden: el desempate final de
+`orderStandings()` y la rejilla de Equipos. La fórmula de clasificación no se
+toca — el desempate ya era "alfabético"; lo único que cambia es en qué idioma.
+
+**Clubes nombrados desde el marcado estático.** Staff, leyendas y la cronología
+citan clubes desde `shell.html`, no desde el JSON, así que no pasaban por `X()`
+y el traductor automático los traducía palabra por palabra: "Criaturas de la
+Noche" salía como "Creatures of the Night" cuando el club se llama "Children of
+the Night".
+
+Se reutiliza la convención que ya existía para el escudo del staff: cualquier
+elemento con `data-club="<nombre en español>"` recibe el nombre del idioma
+activo. `renderStaffClubs()` pasa de `.staff-club[data-club]` a `[data-club]`,
+escribe el último nodo de texto y sigue poniendo el escudo donde hay hueco.
+`i18n.js` lo llama al cambiar de idioma.
+
+Marcados: los cuatro clubes del equipo organizador, el club de la leyenda
+D4rkRepulser, el Alpino de la cita de Payo, las Criaturas de la Noche de la bio
+del fundador y de la nota de la cronología, y el Zanark Domain y el Épsilon de
+la Temporada 3 (estos dos ya iban en `<strong>`: solo se les añadió el
+atributo). Los que se llaman igual en los dos idiomas —Kirkwood, Ragnah,
+Inazuma Kids FC— se dejaron sin marcar: marcarlos no cambiaría nada.
+
+Las dos claves de `dict.js` que llevan el nombre dentro de la frase
+(`historia.note`, `leyendas.payo.text`) llevan la marca en los diez idiomas. Al
+ir por diccionario nunca pasan por el traductor automático, así que la marca
+sobrevive. `.pn` no tiene ningún estilo asociado, así que insertar el `<span>`
+en medio de un párrafo no cambia nada visualmente.
+
+**Dato:** Lulu dirige el **Ultra Zeus**, no el "Instituto Zeus" — ese club no
+existe en `datos_oficiales.json`, así que su ficha se quedaba sin escudo.
+
+**Comprobación:** `node _fuente/test-intl-marcado.js` — carga la página en
+español y en inglés con los datos reales y verifica los siete puntos (Lulu al
+Ultra Zeus, español intacto, clubes de moderadores, club de la leyenda, bio del
+fundador sin traducción literal, cronología y cita, y el vuelco del orden
+alfabético al cambiar de idioma).
+
+**Fuera de alcance:** los nombres de jugadores y de presidentes siguen
+ordenándose con las reglas del español; solo se pidió para los equipos.
+
+**Ficha de equipo — presidente y gerente.** En la sección "Dirección" del modal
+de club aparecía el presidente donde tocaba el gerente. Ahora Dirección lista
+los dos cargos del juego (entrenador y gerente, `e.gerente`) y el presidente
+sube a la cabecera, junto a la abreviatura, con el icono `ph-user-circle` y un
+`title` traducido (la clave `team.presidente` sigue en uso, no queda huérfana).
+Recordatorio del esquema: el presidente vive en el campo `ciudad` — rareza
+histórica que `presidenteDe()` ya encapsulaba. Se añadió `team.gerente` al
+diccionario de `i18n.js` en los diez idiomas, para que no cayera al traductor
+automático mientras sus vecinos van por diccionario.
