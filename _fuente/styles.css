@@ -1025,12 +1025,22 @@ table.tbl tbody tr:last-child td{ border-bottom:0; }
   filter:grayscale(.3) brightness(.6) saturate(1.1); transition:filter var(--t3) var(--ease), transform var(--t3) var(--ease);
 }
 .honour-tile:hover img, .honour-tile:focus-visible img{ filter:grayscale(0) brightness(.68) saturate(1.1); transform:scale(1.07); }
-.honour-tile-noimg{ position:absolute; inset:0; display:grid; place-items:center; background:linear-gradient(160deg,var(--surface-3),var(--surface)); }
-.honour-tile-noimg i{ font-size:2rem; color:var(--ink-4); }
+/* Sin foto de trofeo (el estado real hasta que se suban desde el gestor):
+   tarjeta plana con un tinte muy suave del color de la competición y el
+   icono pequeño en una esquina, como una marca — no un icono enorme
+   flotando solo en el centro simulando una foto que no existe. */
+.honour-tile-noimg{ position:absolute; inset:0; display:flex; align-items:flex-start; justify-content:flex-end; padding:.75rem; background:var(--surface-2); }
+.honour-tile-noimg i{ font-size:1.125rem; color:var(--ink-4); }
+.honour-tile[data-cls="badge-superliga"] .honour-tile-noimg{ background:linear-gradient(155deg,rgba(255,81,0,.16),var(--surface-2) 62%); }
+.honour-tile[data-cls="badge-ascenso"] .honour-tile-noimg{ background:linear-gradient(155deg,rgba(62,123,255,.16),var(--surface-2) 62%); }
+.honour-tile[data-cls="badge-copa"] .honour-tile-noimg{ background:linear-gradient(155deg,rgba(255,59,59,.16),var(--surface-2) 62%); }
 .honour-tile-fade{ position:absolute; inset:0; background:linear-gradient(180deg,transparent 38%,rgba(0,0,0,.82) 100%); pointer-events:none; }
-.honour-tile-body{ position:absolute; left:0; right:0; bottom:0; padding:.75rem .8125rem; text-align:left; }
-.honour-tile-comp{ font-family:var(--f-sans); font-size:.75rem; font-weight:600; letter-spacing:.02em; color:#fff; text-transform:uppercase; line-height:1.3; white-space:nowrap; }
-.honour-tile-count{ font-family:var(--f-sans); font-weight:800; font-size:2.25rem; letter-spacing:-.02em; line-height:1; color:#fff; margin-top:.2rem; }
+/* flex-column, no dos <span> inline sueltos: sin esto, el nombre de
+   competición y el número quedaban en la misma línea de texto a tamaños
+   completamente distintos, como si se hubiesen encimado por accidente. */
+.honour-tile-body{ position:absolute; left:0; right:0; bottom:0; padding:.875rem; display:flex; flex-direction:column; gap:.15rem; text-align:left; }
+.honour-tile-comp{ font-family:var(--f-sans); font-size:.6875rem; font-weight:600; letter-spacing:.04em; color:rgba(255,255,255,.75); text-transform:uppercase; line-height:1.3; }
+.honour-tile-count{ font-family:var(--f-sans); font-weight:800; font-size:2rem; letter-spacing:-.02em; line-height:1; color:#fff; }
 @media (max-width:520px){ .honour-tile{ flex-basis:112px; height:148px; } }
 .tl-card[data-champs]{ cursor:pointer; }
 .tl-open{
