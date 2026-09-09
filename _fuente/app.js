@@ -1416,11 +1416,16 @@ function agruparPorCompeticion(titulos){
 /* Nombre corto para el mosaico: "Copa Fútbol Frontier" no cabe en 128px sin
    partirse a media palabra. El nombre completo (T('sec.copa',...)) se sigue
    usando en todos los demás sitios (badges, títulos de sección). */
-var HONOUR_NOMBRE_CORTO={
-  'badge-superliga':T('honours.superliga','Superliga'),
-  'badge-ascenso':T('honours.ascenso','Ascenso'),
-  'badge-copa':T('honours.copa','Copa')
-};
+/* Función, no constante de nivel superior: como objeto se resolvía una sola vez
+   al cargar app.js, así que al cambiar de idioma sin recargar el mosaico se
+   quedaba congelado en el idioma con el que había arrancado la página. */
+function honourNombreCorto(cls){
+  return ({
+    'badge-superliga':T('honours.superliga','Superliga'),
+    'badge-ascenso':T('honours.ascenso','Ascenso'),
+    'badge-copa':T('honours.copa','Copa')
+  })[cls]||'';
+}
 function honoursStrip(titulos){
   var grupos=agruparPorCompeticion(titulos);
   if(!grupos.length) return '';
@@ -1436,7 +1441,7 @@ function honoursStrip(titulos){
         : '<span class="honour-tile-noimg"><i class="ph-bold ph-trophy"></i></span>')+
       '<span class="honour-tile-fade"></span>'+
       '<span class="honour-tile-body">'+
-        '<span class="honour-tile-comp">'+esc(HONOUR_NOMBRE_CORTO[g.cls]||g.comp)+'</span>'+
+        '<span class="honour-tile-comp">'+esc(honourNombreCorto(g.cls)||g.comp)+'</span>'+
         '<span class="honour-tile-count">'+g.instancias.length+'</span>'+
       '</span>'+
     '</button>';

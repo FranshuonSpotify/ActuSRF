@@ -72,7 +72,18 @@ jobs:
           SFTP_PASS: ${{ secrets.FTP_PASSWORD }}
           SFTP_HOST: ${{ secrets.FTP_SERVER }}
         run: |
-          sudo apt-get update -qq && sudo apt-get install -y -qq lftp
+          # El runner de GitHub trae dado de alta el repositorio APT de Google
+          # Chrome, que no hace falta para nada aquí y que a veces sirve un
+          # índice con el hash cambiado a media publicación ("Hash Sum
+          # mismatch"). Cuando pasa, `apt-get update` sale con error, el `&&`
+          # corta la línea y lftp no llega a instalarse: el despliegue muere
+          # con "lftp: command not found" aunque el índice de Ubuntu (el único
+          # que importa) se haya descargado bien. Se retira ese origen antes
+          # de actualizar, y el fallo de `update` deja de ser mortal: si el
+          # índice de lftp ya está en caché, la instalación sigue adelante.
+          sudo rm -f /etc/apt/sources.list.d/*google*.list /etc/apt/sources.list.d/*chrome*.list
+          sudo apt-get update -qq || true
+          sudo apt-get install -y -qq lftp
           # La sesión SFTP aterriza en la raíz de la cuenta, no en la carpeta
           # pública -- "htdocs" es el nombre real en este hosting (igual que
           # en el proyecto local). Si esto vuelve a fallar, "ls" imprime en
