@@ -43,6 +43,10 @@ function T(k,f){ return window.sfT ? sfT(k,f) : f; }
 function $(id){ return document.getElementById(id); }
 
 function abbr3(name,ab){
+  /* Fuera del español manda la versión inglesa del club: sigla propia si el
+     gestor la ha puesto y, si no, la que se deduzca del nombre inglés. */
+  var intl=window.sfEquipoIntl&&sfEquipoIntl(name);
+  if(intl){ name=intl.nombre; if(intl.abreviatura) ab=intl.abreviatura; }
   if(ab&&ab.trim()) return ab.trim().toUpperCase().slice(0,3);
   var c=String(name||'').replace(/[^\p{L}\s]/gu,'').trim();
   if(!c) return '???';
