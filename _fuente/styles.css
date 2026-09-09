@@ -932,45 +932,99 @@ table.tbl tbody tr:last-child td{ border-bottom:0; }
 }
 @keyframes langSpin{ to{ transform:rotate(360deg); } }
 
-/* ============================ OVERLAY DE CAMPEONES ============================ */
+/* ============================ SALÓN DE PRESIDENTES / PALMARÉS ============================
+   Lista editorial, no tarjetas de juego: sin cajas, sin insignias, sin
+   fondos degradados, casi sin color. Separadores finos entre filas, nombres
+   en serif (Fraunces, la misma voz editorial del resto del sitio) y cifras
+   en mono — el contenido manda, la decoración no. Una sola señal de
+   interacción: la fila se desplaza un poco a la derecha al enfocarla/pasar
+   el ratón, nada más. */
 .champ-panel{ width:min(94vw,760px); }
-.champs{ display:grid; gap:.625rem; padding:1rem; }
+.champs{ display:flex; flex-direction:column; padding:.25rem 1.5rem 1.5rem; }
 .champ{
-  display:flex; align-items:center; gap:1rem; padding:1rem 1.125rem;
-  border:1px solid var(--line); border-radius:var(--r); background:var(--surface);
-  position:relative; overflow:hidden; cursor:pointer;
-  transition:border-color var(--t2), transform var(--t2) var(--ease);
+  display:flex; align-items:center; gap:1.125rem; padding:1.375rem 0;
+  border-top:1px solid var(--line); background:none; cursor:pointer;
+  transition:padding-left var(--t2) var(--ease);
 }
-.champ:hover{ border-color:var(--line-2); transform:translateX(3px); }
-.champ-wash{ position:absolute; inset:0; opacity:.22; pointer-events:none; }
-.champ > *{ position:relative; z-index:1; }
-.champ-crest{ width:52px; height:52px; object-fit:contain; flex-shrink:0; filter:drop-shadow(0 6px 14px rgba(0,0,0,.6)); }
+.champ:first-child{ border-top:none; }
+.champ:hover, .champ:focus-visible{ padding-left:.5rem; }
+.champ-crest{ width:42px; height:42px; object-fit:contain; flex-shrink:0; }
 .champ-id{ min-width:0; }
-.champ-id b{ display:block; font-size:1.0625rem; font-weight:600; letter-spacing:-.025em; }
-.champ-id .pres{ display:flex; align-items:center; gap:.4rem; margin-top:.3rem; font-size:.8125rem; color:var(--ink-3); }
+.champ-id b{ display:block; font-family:var(--f-serif); font-size:1.375rem; font-weight:400; letter-spacing:-.01em; line-height:1.25; }
+.champ-id .pres{ display:flex; align-items:center; gap:.4rem; margin-top:.35rem; font-size:.8125rem; color:var(--ink-3); }
 .champ-id .pres i{ color:var(--ink-5); font-size:.875rem; }
-.champ-trophy{ margin-left:auto; display:flex; flex-direction:column; align-items:flex-end; gap:.35rem; flex-shrink:0; text-align:right; }
-.champ-trophy i{ font-size:1.25rem; color:var(--gold); }
-.champ-note{ padding:0 1rem 1.25rem; font-size:.75rem; color:var(--ink-3); line-height:1.6; }
-.pres-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:.625rem; padding:1rem; }
-.pres-card{ display:flex; flex-direction:column; gap:.35rem; padding:1rem 1.125rem; border:1px solid var(--line); border-radius:var(--r); background:var(--surface); font:inherit; text-align:left; cursor:pointer; transition:border-color var(--t2), transform var(--t2) var(--ease); }
-.pres-card:hover{ border-color:var(--line-2); transform:translateY(-2px); }
-.pres-card b{ font-size:1rem; font-weight:600; letter-spacing:-.02em; }
-.pres-card span{ font-size:.75rem; color:var(--ink-3); }
+.champ-trophy{ margin-left:auto; display:flex; align-items:center; gap:1rem; flex-shrink:0; }
+.champ-trophy-badge{ width:30px; height:30px; flex-shrink:0; display:grid; place-items:center; }
+.champ-trophy-badge i{ font-size:1.125rem; color:var(--ink-4); }
+.champ-trophy-foto{ width:30px; height:30px; object-fit:contain; }
+.champ-trophy-meta{ display:flex; flex-direction:column; align-items:flex-end; gap:.35rem; text-align:right; }
+.champ-trophy-meta .badge{ background:none; border:1px solid var(--line-2); font-family:var(--f-mono); font-weight:500; letter-spacing:.04em; }
+.champ-trophy-meta .badge.badge-superliga{ color:var(--accent-2); border-color:rgba(255,81,0,.35); }
+.champ-trophy-meta .badge.badge-ascenso{ color:#7BA3FF; border-color:rgba(62,123,255,.35); }
+.champ-trophy-meta .badge.badge-copa{ color:#FF7B7B; border-color:rgba(255,59,59,.35); }
+.champ-note{ padding:0 1.5rem 1.5rem; font-size:.75rem; color:var(--ink-3); line-height:1.6; }
+.pres-grid{ display:flex; flex-direction:column; padding:.25rem 1.5rem 1.5rem; }
+.pres-card{
+  display:flex; align-items:center; gap:1.125rem; padding:1.25rem 0;
+  border-top:1px solid var(--line); background:none; font:inherit; text-align:left; cursor:pointer;
+  transition:padding-left var(--t2) var(--ease);
+}
+.pres-card:first-child{ border-top:none; }
+.pres-card:hover, .pres-card:focus-visible{ padding-left:.5rem; }
+.pres-card b{ font-family:var(--f-serif); font-size:1.25rem; font-weight:400; letter-spacing:-.01em; flex:1; min-width:0; }
+.pres-card span{ font-family:var(--f-mono); font-size:.875rem; color:var(--ink-3); flex-shrink:0; }
+.pres-row-static{ display:flex; align-items:center; gap:1.125rem; padding:1.125rem 0; border-top:1px solid var(--line); }
+.pres-row-static:first-child{ border-top:none; }
+.pres-row-static b{ font-family:var(--f-serif); font-size:1.125rem; font-weight:400; flex:1; min-width:0; }
+.pres-row-static span{ font-family:var(--f-mono); font-size:.8125rem; color:var(--ink-3); flex-shrink:0; }
 .pres-back{ display:inline-flex; align-items:center; gap:.4rem; font:inherit; background:none; border:0; padding:0; cursor:pointer; font-family:var(--f-mono); font-size:.6875rem; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-3); }
 .pres-back[hidden]{ display:none; }
 .pres-back:hover{ color:var(--ink-1); }
-.pres-group-title{ padding:1rem 1.125rem .25rem; font-size:.8125rem; font-weight:600; color:var(--ink-2); }
+.pres-group-title{ padding:1.5rem 1.5rem .25rem; font-family:var(--f-mono); font-size:.75rem; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-3); }
 .champ-id button.pres{ background:none; border:0; padding:0; font:inherit; cursor:pointer; text-align:left; }
 .champ-id button.pres:hover, .champ-id button.pres:focus-visible{ color:var(--ink-1); }
-/* Fotos opcionales de presidente/trofeo (gestor: vista-palmares.js). Mismo
-   tamaño que el icono que sustituyen donde van en línea con texto; en
-   .pres-card (tarjeta suelta, sin icono al lado) van más grandes y arriba. */
-.pres-avatar{ width:20px; height:20px; border-radius:50%; object-fit:cover; flex-shrink:0; }
-.pres-card .pres-avatar{ width:40px; height:40px; }
-.pres-avatar-lg{ width:32px; height:32px; vertical-align:-9px; margin-right:.4rem; }
-.champ-trophy-foto{ width:28px; height:28px; object-fit:contain; filter:drop-shadow(0 4px 10px rgba(0,0,0,.5)); }
+/* Fotos opcionales de presidente/trofeo (gestor: vista-palmares.js). En
+   gris hasta que se pasa el ratón o se enfoca la fila — el color se gana
+   con la interacción, no se regala de entrada. */
+.pres-avatar{ width:22px; height:22px; border-radius:50%; object-fit:cover; flex-shrink:0; filter:grayscale(1); transition:filter var(--t2); }
+.pres-card .pres-avatar, .pres-row-static .pres-avatar{ width:52px; height:52px; }
+.pres-card:hover .pres-avatar, .pres-card:focus-visible .pres-avatar{ filter:none; }
+.pres-avatar-lg{ width:44px; height:44px; vertical-align:-14px; margin-right:.6rem; filter:none; }
+#pres-title, #champ-title, #ov-team-titulos .ov-head h3{ font-family:var(--f-serif); font-weight:400; font-size:1.375rem; }
 #ov-team-titulos{ z-index:900; }
+
+/* ============================ TIRA DE HONORES (estilo Football Manager) ============================
+   Vitrina de trofeos de UNA entidad (un presidente, un club): una tira con
+   scroll horizontal, un mosaico por competición con la foto del trofeo de
+   fondo y el número de veces ganada superpuesto. Sustituye a la lista
+   cronológica en el detalle de presidente y en el palmarés del club — el
+   detalle de temporada (varias competiciones/equipos distintos de una vez)
+   se queda con la lista editorial, porque ahí no hay nada que acumular. */
+.honours-label{
+  display:flex; align-items:center; gap:.5rem; margin:0 1.5rem .875rem;
+  font-family:var(--f-mono); font-size:.75rem; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--accent-2);
+}
+.honours-wrap{ padding-bottom:1.5rem; border-bottom:1px solid var(--line); margin:0 1.5rem 1.5rem; }
+.honours-strip{ display:flex; gap:.75rem; overflow-x:auto; padding:0 1.5rem; margin:0 -1.5rem; scroll-snap-type:x proximity; scrollbar-width:none; }
+.honours-strip::-webkit-scrollbar{ display:none; }
+.honour-tile{
+  position:relative; flex:0 0 128px; height:168px; border-radius:var(--r); overflow:hidden;
+  scroll-snap-align:start; cursor:pointer; background:var(--surface-2); border:0; padding:0;
+  transition:transform var(--t2) var(--ease);
+}
+.honour-tile:hover, .honour-tile:focus-visible{ transform:translateY(-4px); }
+.honour-tile img{
+  position:absolute; inset:0; width:100%; height:100%; object-fit:cover;
+  filter:grayscale(.3) brightness(.6) saturate(1.1); transition:filter var(--t3) var(--ease), transform var(--t3) var(--ease);
+}
+.honour-tile:hover img, .honour-tile:focus-visible img{ filter:grayscale(0) brightness(.68) saturate(1.1); transform:scale(1.07); }
+.honour-tile-noimg{ position:absolute; inset:0; display:grid; place-items:center; background:linear-gradient(160deg,var(--surface-3),var(--surface)); }
+.honour-tile-noimg i{ font-size:2rem; color:var(--ink-4); }
+.honour-tile-fade{ position:absolute; inset:0; background:linear-gradient(180deg,transparent 38%,rgba(0,0,0,.82) 100%); pointer-events:none; }
+.honour-tile-body{ position:absolute; left:0; right:0; bottom:0; padding:.75rem .8125rem; text-align:left; }
+.honour-tile-comp{ font-size:.6875rem; font-weight:600; letter-spacing:.02em; color:#fff; text-transform:uppercase; line-height:1.3; }
+.honour-tile-count{ font-family:var(--f-display); font-size:2.75rem; line-height:1; color:#fff; }
+@media (max-width:520px){ .honour-tile{ flex-basis:112px; height:148px; } }
 .tl-card[data-champs]{ cursor:pointer; }
 .tl-open{
   display:inline-flex; align-items:center; gap:.45rem; margin-top:1.25rem;
@@ -978,7 +1032,11 @@ table.tbl tbody tr:last-child td{ border-bottom:0; }
   color:var(--gold); transition:gap var(--t1);
 }
 .tl-card:hover .tl-open{ gap:.7rem; }
-@media (max-width:520px){ .champ{ flex-wrap:wrap; } .champ-trophy{ margin-left:0; width:100%; align-items:flex-start; text-align:left; flex-direction:row; } }
+@media (max-width:520px){
+  .champ{ flex-wrap:wrap; }
+  .champ-trophy{ margin-left:0; width:100%; }
+  .champ-trophy-meta{ align-items:flex-start; text-align:left; }
+}
 .ov-head{ display:flex; align-items:center; justify-content:space-between; padding:1rem 1.25rem; border-bottom:1px solid var(--line); }
 .ov-head h3{ font-size:.9375rem; font-weight:550; }
 

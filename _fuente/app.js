@@ -1290,11 +1290,8 @@ function openChamps(idx,label){
   var list=palmares(idx); if(!list) return;
   $('champ-title').textContent=T('champs.title','Palmarés')+' · '+label;
   $('champs').innerHTML=list.map(function(c){
-    var live=bd.equipos.find(function(x){ return x.nombre===c.e.nombre; });
-    var c1=(live&&live.color1)||c.e.color1||'#3A3A3A', c2=(live&&live.color2)||c.e.color2||'#141414';
     var pres=presidenteDe(c.e), presFoto=presidenteFotoDe(pres), trofeoFoto=trofeoFotoDe(c.cls);
-    return '<div class="champ" data-team-hist="'+esc(idx)+':'+esc(c.e.id)+'">'+
-      '<span class="champ-wash" style="background:radial-gradient(ellipse 80% 130% at 0% 50%,'+esc(wash(live||c.e,c1))+',transparent 68%)"></span>'+
+    return '<div class="champ" data-team-hist="'+esc(idx)+':'+esc(c.e.id)+'" tabindex="0" role="button">'+
       (isHttp(c.e.escudo)?'<img class="champ-crest" src="'+esc(c.e.escudo)+'" alt="'+esc(X(c.e.nombre))+'" loading="lazy">':'<span class="champ-crest noimg">'+esc(abbr3(c.e.nombre))+'</span>')+
       '<div class="champ-id">'+
         '<b>'+esc(X(c.e.nombre))+'</b>'+
@@ -1303,9 +1300,11 @@ function openChamps(idx,label){
           : '<span class="pres"><i class="ph-bold ph-user-circle"></i>·</span>')+
       '</div>'+
       '<div class="champ-trophy">'+
-        (trofeoFoto?'<img class="champ-trophy-foto" src="'+esc(trofeoFoto)+'" alt="" referrerpolicy="no-referrer">':'<i class="ph-bold ph-trophy"></i>')+
-        '<span class="badge '+c.cls+'">'+c.comp+'</span>'+
-        (c.marcador?'<span class="mono" style="font-size:.6875rem;color:var(--ink-5)">'+esc(c.marcador)+'</span>':'<span class="mono" style="font-size:.6875rem;color:var(--ink-5)">'+(c.e.pts||0)+' pts</span>')+
+        '<span class="champ-trophy-badge">'+(trofeoFoto?'<img class="champ-trophy-foto" src="'+esc(trofeoFoto)+'" alt="" referrerpolicy="no-referrer">':'<i class="ph-bold ph-trophy"></i>')+'</span>'+
+        '<span class="champ-trophy-meta">'+
+          '<span class="badge '+c.cls+'">'+c.comp+'</span>'+
+          (c.marcador?'<span class="mono" style="font-size:.6875rem;color:var(--ink-5)">'+esc(c.marcador)+'</span>':'<span class="mono" style="font-size:.6875rem;color:var(--ink-5)">'+(c.e.pts||0)+' pts</span>')+
+        '</span>'+
       '</div>'+
     '</div>';
   }).join('');
@@ -1331,29 +1330,55 @@ function openPresidentesHall(){
 }
 window.openPresidentesHall=openPresidentesHall;
 
+/* Agrupa una lista de títulos (mismo shape que titulosDePresidente/
+   titulosDeEquipo) por competición, para la tira de honores estilo Football
+   Manager: un mosaico por competición con el nº de veces ganada, no una fila
+   por título suelto. Orden fijo (Superliga, Ascenso, Copa), y dentro de cada
+   grupo el más reciente primero (la lista de entrada ya viene así). */
+function agruparPorCompeticion(titulos){
+  var map={};
+  titulos.forEach(function(x){
+    (map[x.cls]=map[x.cls]||{cls:x.cls, comp:x.comp, instancias:[]}).instancias.push(x);
+  });
+  return ['badge-superliga','badge-ascenso','badge-copa']
+    .map(function(k){ return map[k]; })
+    .filter(Boolean);
+}
+
+/* Tira de honores: un tile por competición, con la foto del trofeo de fondo
+   (o el icono si no hay foto) y el nº de veces ganada superpuesto. Un clic
+   abre el equipo TAL COMO ERA la vez más reciente que se ganó — para ver
+   una edición concreta más antigua, se entra por el club (openTeamTitulos)
+   o por el presidente, no hay desglose dentro del propio tile: con como
+   mucho un puñado de títulos por competición en esta liga, no compensa la
+   complejidad de un desplegable por ahora. */
+function honoursStrip(titulos){
+  var grupos=agruparPorCompeticion(titulos);
+  if(!grupos.length) return '';
+  return '<div class="honours-strip">'+grupos.map(function(g){
+    var ultima=g.instancias[0], foto=trofeoFotoDe(g.cls);
+    return '<button type="button" class="honour-tile" data-team-hist="'+esc(ultima.idx)+':'+esc(ultima.equipo.id)+'">'+
+      (foto
+        ? '<img src="'+esc(foto)+'" alt="" referrerpolicy="no-referrer">'
+        : '<span class="honour-tile-noimg"><i class="ph-bold ph-trophy"></i></span>')+
+      '<span class="honour-tile-fade"></span>'+
+      '<span class="honour-tile-body">'+
+        '<span class="honour-tile-comp">'+g.comp+'</span>'+
+        '<span class="honour-tile-count">'+g.instancias.length+'</span>'+
+      '</span>'+
+    '</button>';
+  }).join('')+'</div>';
+}
+
 function openPresidenteDetalle(nombre){
   var titulos=titulosDePresidente(nombre);
   if(!titulos.length) return;
   var presFoto=presidenteFotoDe(nombre);
   $('pres-title').innerHTML=(presFoto?'<img class="pres-avatar pres-avatar-lg" src="'+esc(presFoto)+'" alt="" referrerpolicy="no-referrer">':'')+esc(nombre);
   $('pres-back').hidden=false;
-  $('pres-body').innerHTML='<div class="champs">'+titulos.map(function(x){
-    var e=x.equipo, live=bd.equipos.find(function(z){ return z.id===e.id; });
-    var c1=(live&&live.color1)||e.color1||'#3A3A3A', trofeoFoto=trofeoFotoDe(x.cls);
-    return '<div class="champ" data-team-hist="'+esc(x.idx)+':'+esc(e.id)+'">'+
-      '<span class="champ-wash" style="background:radial-gradient(ellipse 80% 130% at 0% 50%,'+esc(wash(live||e,c1))+',transparent 68%)"></span>'+
-      (isHttp(e.escudo)?'<img class="champ-crest" src="'+esc(e.escudo)+'" alt="'+esc(X(e.nombre))+'" loading="lazy">':'<span class="champ-crest noimg">'+esc(abbr3(e.nombre))+'</span>')+
-      '<div class="champ-id">'+
-        '<b>'+esc(X(e.nombre))+'</b>'+
-        '<span class="pres"><i class="ph-bold ph-calendar"></i>'+esc(x.temporadaNombre)+'</span>'+
-      '</div>'+
-      '<div class="champ-trophy">'+
-        (trofeoFoto?'<img class="champ-trophy-foto" src="'+esc(trofeoFoto)+'" alt="" referrerpolicy="no-referrer">':'<i class="ph-bold ph-trophy"></i>')+
-        '<span class="badge '+x.cls+'">'+x.comp+'</span>'+
-        (x.marcador?'<span class="mono" style="font-size:.6875rem;color:var(--ink-5)">'+esc(x.marcador)+'</span>':'')+
-      '</div>'+
-    '</div>';
-  }).join('')+'</div>';
+  $('pres-body').innerHTML=
+    '<div class="honours-label">'+T('pres.honores','Palmarés')+'</div>'+
+    honoursStrip(titulos);
   $('ov-presidentes').classList.add('open');
 }
 window.openPresidenteDetalle=openPresidenteDetalle;
@@ -1370,31 +1395,18 @@ function openTeamTitulos(equipoId){
     .map(function(nombre){ return {nombre:nombre, titulos:porPresidente[nombre]}; })
     .sort(function(a,b){ return b.titulos.length-a.titulos.length||a.nombre.localeCompare(b.nombre,'es'); });
 
-  var filas=titulos.map(function(x){
-    var trofeoFoto=trofeoFotoDe(x.cls);
-    return '<div class="champ" data-team-hist="'+esc(x.idx)+':'+esc(equipoId)+'">'+
-      '<div class="champ-id">'+
-        '<b>'+esc(x.temporadaNombre)+'</b>'+
-        '<span class="pres"><i class="ph-bold ph-user-circle"></i>'+esc(x.presidente||'·')+'</span>'+
-      '</div>'+
-      '<div class="champ-trophy">'+
-        (trofeoFoto?'<img class="champ-trophy-foto" src="'+esc(trofeoFoto)+'" alt="" referrerpolicy="no-referrer">':'<i class="ph-bold ph-trophy"></i>')+
-        '<span class="badge '+x.cls+'">'+x.comp+'</span>'+
-        (x.marcador?'<span class="mono" style="font-size:.6875rem;color:var(--ink-5)">'+esc(x.marcador)+'</span>':'')+
-      '</div>'+
-    '</div>';
-  }).join('');
-
   var grupos=presidentes.map(function(p){
     var etq=p.titulos.length===1?T('pres.titulo','título'):T('pres.titulos','títulos');
-    return '<div class="pres-card" style="cursor:default">'+
+    var foto=presidenteFotoDe(p.nombre);
+    return '<div class="pres-row-static">'+
+      (foto?'<img class="pres-avatar" src="'+esc(foto)+'" alt="" referrerpolicy="no-referrer">':'')+
       '<b>'+esc(p.nombre)+'</b>'+
       '<span>'+p.titulos.length+' '+etq+'</span>'+
     '</div>';
   }).join('');
 
   $('team-titulos-body').innerHTML=
-    '<div class="champs">'+filas+'</div>'+
+    '<div class="honours-wrap" style="padding-top:.5rem">'+honoursStrip(titulos)+'</div>'+
     '<div class="pres-group-title">'+T('team.titulos.presidentes','Presidentes con título en este club')+'</div>'+
     '<div class="pres-grid" style="padding-top:0">'+grupos+'</div>';
   $('ov-team-titulos').classList.add('open');
@@ -1995,7 +2007,20 @@ document.addEventListener('DOMContentLoaded', function(){
   document.addEventListener('keydown',function(e){
     if(e.key==='Enter'||e.key===' '){
       var c=e.target.closest&&e.target.closest('[data-champs]');
-      if(c){ e.preventDefault(); openChamps(parseInt(c.dataset.champs,10),c.dataset.champsLabel||''); }
+      if(c){ e.preventDefault(); openChamps(parseInt(c.dataset.champs,10),c.dataset.champsLabel||''); return; }
+      /* target, no closest: una fila .champ puede contener el botón del
+         presidente (otro elemento con su propio Enter/Space nativo) — si se
+         mirara con closest(), pulsar Enter en ESE botón activaría también la
+         fila entera por debajo.
+         Solo role="button" (los .champ, que son <div>): un <button> real
+         como .honour-tile ya convierte Enter/Space en su propio evento click
+         nativo, que el delegado de más arriba recoge — manejarlo aquí
+         también lo abriría dos veces. */
+      if(e.target.matches&&e.target.matches('[data-team-hist][role="button"]')){
+        e.preventDefault();
+        var partesKb=String(e.target.dataset.teamHist).split(':');
+        openTeamHistorico(parseInt(partesKb[0],10),partesKb.slice(1).join(':'));
+      }
     }
   });
 
