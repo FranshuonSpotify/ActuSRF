@@ -22,10 +22,14 @@ const datos = JSON.parse(fs.readFileSync(path.join(d, '..', 'datos_oficiales.jso
 
 /* Dos casos que hay que distinguir: uno traducido del todo (nombre + sigla) y
    otro traducido a medias, para ver que la sigla cae a la española. */
-const A = datos.equipos[0], B = datos.equipos[1];
+const A = datos.equipos[0], B = datos.equipos[1], C = datos.equipos[2];
 A.nombre_en = 'Test United FC';   A.abreviatura_en = 'TUF';
 B.nombre_en = 'Test Rovers';      B.abreviatura_en = '';
 if (!B.abreviatura) B.abreviatura = 'TRV';
+/* Hoy los 43 clubes tienen nombre_en, así que el club sin traducir hay que
+   fabricarlo: la caída al español tiene que seguir funcionando para cuando
+   se dé de alta uno nuevo. */
+C.nombre_en = '';                 C.abreviatura_en = '';
 
 const virtualConsole = new VirtualConsole();
 virtualConsole.on('jsdomError', function(){});
@@ -82,8 +86,7 @@ const ok = (m) => { n++; console.log('  ok  ' + m); };
   assert.strictEqual(w.abbr3(B.nombre, B.abreviatura), B.abreviatura.toUpperCase().slice(0,3), 'sin abreviatura_en cae a la española');
   ok('sin abreviatura_en cae a la sigla española');
 
-  const sinTraducir = datos.equipos.find(function(e){ return !e.nombre_en; });
-  assert.ok(sinTraducir, 'hacen falta clubes sin traducir para probar la caída');
+  const sinTraducir = C;
   assert.strictEqual(w.SFX(sinTraducir.nombre), sinTraducir.nombre, 'un club sin nombre_en se queda con su nombre español en inglés');
   ok('un club sin traducir conserva su nombre español');
 

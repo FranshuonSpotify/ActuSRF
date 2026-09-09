@@ -42,6 +42,15 @@ function X(s){ return window.SFX ? SFX(s) : s; }
 function T(k,f){ return window.sfT ? sfT(k,f) : f; }
 function $(id){ return document.getElementById(id); }
 
+/* Orden alfabético de clubes: por el nombre que se está viendo, no siempre
+   por el español, y con las reglas del idioma activo (en inglés "Épsilon" se
+   compara como "Epsilon", que es como se llama ahí). */
+function cmpClub(a,b){
+  var l = window.sfGetLang ? sfGetLang() : 'es';
+  return String(X(a)).localeCompare(String(X(b)), l);
+}
+window.cmpClub=cmpClub;
+
 function abbr3(name,ab){
   /* Fuera del español manda la versión inglesa del club: sigla propia si el
      gestor la ha puesto y, si no, la que se deduzca del nombre inglés. */
@@ -319,7 +328,7 @@ function orderStandings(list){
     if((b.e||0)!==(a.e||0)) return (b.e||0)-(a.e||0);
     if((a.p||0)!==(b.p||0)) return (a.p||0)-(b.p||0);
     if((a.pj||0)!==(b.pj||0)) return (a.pj||0)-(b.pj||0);
-    return a.nombre.localeCompare(b.nombre,'es');
+    return cmpClub(a.nombre,b.nombre);
   });
 }
 function prevOrder(div,list){
@@ -693,7 +702,7 @@ var curTeamDiv='SUPERLIGA';
 function renderTeams(div){
   curTeamDiv=div;
   var list=bd.equipos.filter(function(e){ return e.division===div&&!e.archivado; })
-    .sort(function(a,b){ return (b.pts||0)-(a.pts||0)||a.nombre.localeCompare(b.nombre,'es'); });
+    .sort(function(a,b){ return (b.pts||0)-(a.pts||0)||cmpClub(a.nombre,b.nombre); });
   $('teams').innerHTML=list.map(function(e){
     var dg=(e.gf||0)-(e.gc||0);
     return '<article class="card spotlight team" data-team="'+esc(e.id)+'">'+
@@ -875,6 +884,10 @@ function renderFichaEquipo(e,opts){
         '<div><h1 class="tm-name">'+esc(X(e.nombre))+'</h1>'+
           '<div class="tm-sub">'+(e.division==='SUPERLIGA'?'<span class="badge badge-superliga">'+esc(T('comp.superliga','Superliga Frontier'))+'</span>':'<span class="badge badge-ascenso">'+esc(T('comp.ascenso','Ascenso Frontier'))+'</span>')+
           '<span>'+esc(abbr3(e.nombre,e.abreviatura))+'</span>'+
+          /* El presidente es quien dirige el club de verdad, así que va aquí
+             arriba junto a la abreviatura. Abajo, en Dirección, van los dos
+             cargos del juego: entrenador y gerente. */
+          (presidenteDe(e)?'<span class="pn" title="'+esc(T('team.presidente','Presidente'))+'"><i class="ph-bold ph-user-circle"></i> '+esc(presidenteDe(e))+'</span>':'')+
           (opts.temporadaNombre?'<span style="color:var(--gold)"><i class="ph-bold ph-clock-counter-clockwise"></i> '+esc(opts.temporadaNombre)+'</span>':'')+
           '<span class="frm" style="margin-left:.5rem">'+form.map(function(r){ return '<i class="f-'+r+'"></i>'; }).join('')+'</span></div>'+
         '</div>'+
@@ -908,7 +921,7 @@ function renderFichaEquipo(e,opts){
         }).join('')+'</div>'+
         '<div class="sec-label" style="margin-top:2.5rem">'+T('team.direccion','Dirección')+'</div>'+
         '<div class="staff-line"><span>'+T('team.entrenador','Entrenador')+'</span><b style="font-weight:500">'+esc(e.entrenador||'·')+'</b></div>'+
-        '<div class="staff-line"><span>'+T('team.presidente','Presidente')+'</span><b style="font-weight:500">'+esc(e.ciudad||'·')+'</b></div>'+
+        '<div class="staff-line"><span>'+T('team.gerente','Gerente')+'</span><b style="font-weight:500">'+esc(e.gerente||'·')+'</b></div>'+
         (e.formacion?'<div class="staff-line"><span>'+T('team.formacion','Formación')+'</span><b style="font-weight:500" class="mono">'+esc(e.formacion)+'</b></div>':'')+
         (function(){
           var t=titulosDeEquipo(e.id);
@@ -1177,14 +1190,25 @@ function openNews(i){
 }
 
 /* ==========================================================================
-   STAFF — escudo real del club de cada organizador
-   El icono genérico de escudo no decía nada: cada persona dirige un club
-   concreto y ese escudo ya existe en el JSON. Se inyecta al cargar los datos.
+   CLUBES CITADOS EN EL MARCADO ESTÁTICO
+   Staff, leyendas y la cronología nombran clubes desde shell.html, no desde
+   el JSON, así que no pasan por X() al renderizar y se quedaban en español
+   —o peor, el traductor automático los traducía palabra por palabra
+   ("Criaturas de la Noche" -> "Creatures of the Night", cuando el club se
+   llama "Children of the Night")—. Se marcan con data-club="<nombre en
+   español>" y aquí se les escribe el nombre del idioma activo.
+   De paso, donde hay hueco de escudo se pone el del club: el icono genérico
+   no decía nada y ese escudo ya existe en el JSON.
    ========================================================================== */
 function renderStaffClubs(){
-  document.querySelectorAll('.staff-club[data-club]').forEach(function(el){
+  document.querySelectorAll('[data-club]').forEach(function(el){
     var nombre=el.dataset.club;
     var e=bd.equipos.find(function(x){ return x.nombre===nombre; });
+    /* El nombre visible es el ÚLTIMO nodo de texto: delante puede ir el
+       <span> del escudo, que no se debe pisar. */
+    for(var n=el.lastChild; n; n=n.previousSibling){
+      if(n.nodeType===3 && n.nodeValue.trim()){ n.nodeValue=X(e?e.nombre:nombre); break; }
+    }
     var ic=el.querySelector('.staff-crest');
     if(!ic) return;
     ic.innerHTML = e&&isHttp(e.escudo)
