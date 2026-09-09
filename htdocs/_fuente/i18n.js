@@ -691,6 +691,46 @@
         'staff.fundador':['Fundador','Founder','Fundador','Fondatore','Fondateur','創設者','창립자','Założyciel','Основател','Оснивач'],
         'staff.admin':['Administrador','Administrator','Administrador','Amministratore','Administrateur','管理者','관리자','Administrator','Администратор','Администратор'],
         'staff.mod':['Moderador','Moderator','Moderador','Moderatore','Modérateur','モデレーター','모더레이터','Moderator','Модератор','Модератор'],
+        /* El marcado del staff usa una clave por persona (staff.franshu.rol,
+           staff.payo.rol…), no la genérica: sin estas entradas el cargo caía
+           en la traducción automática y "Moderador" volvía como "Moderate". */
+        'staff.franshu.rol':['Fundador','Founder','Fundador','Fondatore','Fondateur','創設者','창립자','Założyciel','Основател','Оснивач'],
+        'staff.david.rol':['Administrador','Administrator','Administrador','Amministratore','Administrateur','管理者','관리자','Administrator','Администратор','Администратор'],
+        'staff.payo.rol':['Moderador','Moderator','Moderador','Moderatore','Modérateur','モデレーター','모더레이터','Moderator','Модератор','Модератор'],
+        'staff.totti.rol':['Moderador','Moderator','Moderador','Moderatore','Modérateur','モデレーター','모더레이터','Moderator','Модератор','Модератор'],
+        'staff.gabrii.rol':['Moderador','Moderator','Moderador','Moderatore','Modérateur','モデレーター','모더레이터','Moderator','Модератор','Модератор'],
+        'staff.lulu.rol':['Moderador','Moderator','Moderador','Moderatore','Modérateur','モデレーター','모더레이터','Moderator','Модератор','Модератор'],
+        'staff.jade.rol':['Moderador','Moderator','Moderador','Moderatore','Modérateur','モデレーター','모더레이터','Moderator','Модератор','Модератор'],
+
+        /* ══ PALMARÉS Y SALÓN DE PRESIDENTES ══
+           Todo este bloque nacía en español y ahí se quedaba. Dos motivos
+           distintos, los dos reales:
+           · #pres-title lleva data-no-tr (lo escribe app.js con textContent y
+             a veces contiene un nombre propio), así que el recorrido
+             automático NUNCA lo mira: sin clave de diccionario no había forma
+             de traducirlo.
+           · "título"/"títulos"/"Palmarés" son palabras sueltas de jerga
+             deportiva: la API las devolvía tal cual o mal (mismo problema ya
+             documentado arriba con "Plantilla · Titulares").
+           champs.title ya existía; el resto se cura aquí con la misma
+           terminología para que las cuatro vistas (temporada, salón, ficha de
+           presidente y palmarés de club) hablen igual. */
+        'pres.hall.title':['Salón de presidentes','Hall of presidents','Salão de presidentes','Sala dei presidenti','Panthéon des présidents','会長の殿堂','회장 전당','Galeria prezesów','Зала на президентите','Дворана председника'],
+        'hist.presidentes.btn':['Salón de presidentes','Hall of presidents','Salão de presidentes','Sala dei presidenti','Panthéon des présidents','会長の殿堂','회장 전당','Galeria prezesów','Зала на президентите','Дворана председника'],
+        'pres.back':['Volver','Back','Voltar','Indietro','Retour','戻る','뒤로','Wróć','Назад','Назад'],
+        'pres.titulo':['título','title','título','titolo','titre','タイトル','타이틀','tytuł','титла','трофеј'],
+        'pres.titulos':['títulos','titles','títulos','titoli','titres','タイトル','타이틀','tytuły','титли','трофеја'],
+        'pres.honores':['Palmarés','Honours','Palmarés','Albo d’oro','Palmarès','タイトル','우승 기록','Trofea','Отличия','Трофеји'],
+        'pres.vacio':['Todavía no hay presidentes con títulos registrados.','No presidents with titles recorded yet.','Ainda não há presidentes com títulos registados.','Non ci sono ancora presidenti con titoli registrati.','Aucun président titré n’est encore enregistré.','タイトルを持つ会長はまだ登録されていません。','아직 우승 기록이 있는 회장이 없습니다.','Nie ma jeszcze prezesów z zapisanymi trofeami.','Все още няма президенти с регистрирани отличия.','Још нема председника са забележеним трофејима.'],
+        'pres.note':['Solo aparecen presidentes con al menos un título. Toca un nombre para ver su palmarés completo, o un título para abrir el club con el que se ganó.','Only presidents with at least one title are listed. Tap a name to see their full honours, or a title to open the club it was won with.','Só aparecem presidentes com pelo menos um título. Toca num nome para ver o palmarés completo, ou num título para abrir o clube com que foi ganho.','Compaiono solo i presidenti con almeno un titolo. Tocca un nome per vedere il suo albo d’oro completo, o un titolo per aprire il club con cui è stato vinto.','Seuls les présidents avec au moins un titre apparaissent. Touche un nom pour voir son palmarès complet, ou un titre pour ouvrir le club avec lequel il a été gagné.','タイトルを獲得した会長のみを掲載しています。名前をタップすると全タイトル、タイトルをタップすると獲得時のクラブが開きます。','우승 기록이 하나 이상 있는 회장만 표시됩니다. 이름을 누르면 전체 우승 기록이, 타이틀을 누르면 우승한 구단이 열립니다.','Wyświetlani są tylko prezesi z co najmniej jednym trofeum. Dotknij nazwiska, aby zobaczyć pełne trofea, lub trofeum, aby otworzyć klub, z którym je zdobyto.','Показват се само президенти с поне едно отличие. Докосни име, за да видиш всички отличия, или отличие, за да отвориш клуба, с който е спечелено.','Приказују се само председници са бар једним трофејом. Додирни име за све трофеје или трофеј да отвориш клуб са којим је освојен.'],
+        'team.titulos.title':['Palmarés del club','Club honours','Palmarés do clube','Albo d’oro del club','Palmarès du club','クラブのタイトル','구단 우승 기록','Trofea klubu','Отличия на клуба','Трофеји клуба'],
+        'team.titulos.ver':['Ver palmarés del club','View club honours','Ver palmarés do clube','Vedi l’albo d’oro del club','Voir le palmarès du club','クラブのタイトルを見る','구단 우승 기록 보기','Zobacz trofea klubu','Виж отличията на клуба','Погледај трофеје клуба'],
+        'team.titulos.presidentes':['Presidentes con título en este club','Presidents with a title at this club','Presidentes com título neste clube','Presidenti con un titolo in questo club','Présidents titrés dans ce club','このクラブでタイトルを獲得した会長','이 구단에서 우승한 회장','Prezesi z trofeum w tym klubie','Президенти с отличие в този клуб','Председници са трофејом у овом клубу'],
+        /* Nombre CORTO para el mosaico de honores (128px): el completo
+           (comp.superliga / comp.ascenso / sec.copa) no cabe sin partirse. */
+        'honours.superliga':['Superliga','Superleague','Superliga','Superlega','Superligue','スーパーリーグ','슈퍼리그','Superliga','Суперлига','Суперлига'],
+        'honours.ascenso':['Ascenso','Championship','Acesso','Cadetta','Championnat','チャンピオンシップ','챔피언십','Awans','Чемпиъншип','Чемпионат'],
+        'honours.copa':['Copa','Cup','Taça','Coppa','Coupe','カップ','컵','Puchar','Купа','Куп'],
 
         /* ══ ABREVIATURAS DE POSICIÓN ══
            No son traducción automática: es la sigla estándar que usa cada

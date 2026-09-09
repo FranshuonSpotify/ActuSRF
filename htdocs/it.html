@@ -149,7 +149,12 @@
   --r-sm:8px; --r:12px; --r-lg:16px; --r-xl:24px; --r-full:999px;
 
   --pad-x:clamp(1.25rem,5vw,5rem);
-  --sec:clamp(5rem,11vw,10rem);
+  /* Aire vertical entre secciones. Estaba en 11vw/10rem: como cada sección
+     lo aplica arriba Y abajo, en escritorio ancho quedaban ~320px de negro
+     entre bloque y bloque y la portada se leía como una sucesión de huecos.
+     Con 6vw/6rem el respiro sigue siendo evidente (~112–192px de separación
+     real) y la página pierde cerca de un tercio de su altura total. */
+  --sec:clamp(3.5rem,6vw,6rem);
 
   --ease:cubic-bezier(.16,1,.3,1);
   --ease-io:cubic-bezier(.4,0,.2,1);
@@ -647,7 +652,7 @@ html:not(.anim) .q-bar i{ width:var(--w,0%); transition:none; }
 
 /* scroll-margin: los anclas deben quedar por debajo de la nav (60px) + la
    barra de pestañas (~53px), si no el título de sección queda tapado */
-.block{ padding-block:clamp(3.5rem,7vw,6rem); border-bottom:1px solid var(--line); scroll-margin-top:118px; }
+.block{ padding-block:clamp(2.75rem,4.5vw,4.5rem); border-bottom:1px solid var(--line); scroll-margin-top:118px; }
 .sec{ scroll-margin-top:76px; }
 .block-head{ display:flex; align-items:flex-end; justify-content:space-between; gap:2rem; flex-wrap:wrap; margin-bottom:2rem; }
 
@@ -1684,7 +1689,7 @@ body.locked{ overflow:hidden; }
           }
         ]
       },
-      "dateModified": "2026-09-09T14:11:00.336Z"
+      "dateModified": "2026-09-09T19:39:58.448Z"
     },
     {
       "@type": "FAQPage",
@@ -2183,7 +2188,7 @@ body.locked{ overflow:hidden; }
       <h2 class="h1 nowrap" data-i18n="historia.title" data-i18n-done="">Quattro stagioni a costruire una lega</h2>
       <p class="lede" data-i18n="historia.lede" data-i18n-done="">Ogni stagione ha aggiunto un pezzo che alla precedente mancava: prima il formato, poi le competizioni, ora la continuità. Questa è l’evoluzione reale, senza fronzoli.</p>
       <button type="button" class="btn btn-secondary" id="btn-presidentes" style="margin-top:1.25rem">
-        <i class="ph-bold ph-medal"></i> <span data-i18n="hist.presidentes.btn">Salón de presidentes</span>
+        <i class="ph-bold ph-medal"></i> <span data-i18n="hist.presidentes.btn" data-i18n-done="">Sala dei presidenti</span>
       </button>
     </div>
 
@@ -2456,7 +2461,7 @@ body.locked{ overflow:hidden; }
       <article class="staff-card staff-lead rv rol-fundador">
         <div class="staff-photo"><img src="assets/franshu.webp" alt="Franshu" loading="lazy" decoding="async"><span class="staff-vignette" aria-hidden="true"></span></div>
         <div class="staff-info">
-          <span class="staff-role staff-role-lead" data-i18n="staff.franshu.rol">Fundador</span>
+          <span class="staff-role staff-role-lead" data-i18n="staff.franshu.rol" data-i18n-done="">Fondatore</span>
           <h3>Franshu</h3>
           <p class="staff-bio" data-i18n="staff.franshu.bio">Creó la liga en enero de 2026 y la ha sostenido tres temporadas. Ha jugado las tres como manager (Kirkwood, Ragnah y Criaturas de la Noche) antes de dedicarse por completo a organizarla.</p>
         </div>
@@ -2474,7 +2479,7 @@ body.locked{ overflow:hidden; }
       <article class="staff-card rv rv-d1 rol-admin">
         <div class="staff-photo"><img src="assets/davidgonzzalezc.webp" alt="david.gonzzalezc" loading="lazy" decoding="async"><span class="staff-vignette" aria-hidden="true"></span></div>
         <div class="staff-info">
-          <span class="staff-role" data-i18n="staff.david.rol">Administrador</span>
+          <span class="staff-role" data-i18n="staff.david.rol" data-i18n-done="">Amministratore</span>
           <h3>david.gonzzalezc</h3>
         </div>
       </article>
@@ -2482,7 +2487,7 @@ body.locked{ overflow:hidden; }
       <article class="staff-card rv rv-d1 rol-mod">
         <div class="staff-photo"><img src="assets/payo-aguao.webp" alt="Payo Aguao" loading="lazy" decoding="async"><span class="staff-vignette" aria-hidden="true"></span></div>
         <div class="staff-info">
-          <span class="staff-role" data-i18n="staff.payo.rol">Moderador</span>
+          <span class="staff-role" data-i18n="staff.payo.rol" data-i18n-done="">Moderatore</span>
           <h3>Payo Aguao</h3>
         </div>
       </article>
@@ -2490,7 +2495,7 @@ body.locked{ overflow:hidden; }
       <article class="staff-card rv rv-d2 rol-mod">
         <div class="staff-photo"><img src="assets/totti_alcresise.webp" alt="Totti Alcresise" loading="lazy" decoding="async"><span class="staff-vignette" aria-hidden="true"></span></div>
         <div class="staff-info">
-          <span class="staff-role" data-i18n="staff.totti.rol">Moderador</span>
+          <span class="staff-role" data-i18n="staff.totti.rol" data-i18n-done="">Moderatore</span>
           <h3>Totti Alcresise</h3>
           <span class="staff-club" data-club="Inazuma Kids FC"><span class="staff-crest"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2Ff%2Ff6%2FInazuma_KFC_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251118130810" alt="Inazuma Kids FC" loading="lazy"></span>Inazuma Kids FC</span>
         </div>
@@ -2499,7 +2504,7 @@ body.locked{ overflow:hidden; }
       <article class="staff-card rv rv-d2 rol-mod">
         <div class="staff-photo"><img src="assets/gabrii.webp" alt="Gabrii" loading="lazy" decoding="async"><span class="staff-vignette" aria-hidden="true"></span></div>
         <div class="staff-info">
-          <span class="staff-role" data-i18n="staff.gabrii.rol">Moderador</span>
+          <span class="staff-role" data-i18n="staff.gabrii.rol" data-i18n-done="">Moderatore</span>
           <h3>Gabrii</h3>
         </div>
       </article>
@@ -2507,7 +2512,7 @@ body.locked{ overflow:hidden; }
       <article class="staff-card rv rv-d3 rol-mod">
         <div class="staff-photo"><img src="assets/lulu.webp" alt="Lulu" loading="lazy" decoding="async"><span class="staff-vignette" aria-hidden="true"></span></div>
         <div class="staff-info">
-          <span class="staff-role" data-i18n="staff.lulu.rol">Moderador</span>
+          <span class="staff-role" data-i18n="staff.lulu.rol" data-i18n-done="">Moderatore</span>
           <h3>Lulu</h3>
           <span class="staff-club" data-club="Instituto Zeus"><span class="staff-crest"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2F2%2F20%2FUra_Zeus_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20260612141031" alt="Instituto Zeus" loading="lazy"></span>Instituto Zeus</span>
         </div>
@@ -2516,7 +2521,7 @@ body.locked{ overflow:hidden; }
       <article class="staff-card rv rv-d3 rol-mod">
         <div class="staff-photo"><img src="assets/jade.webp" alt="Jade Beor" loading="lazy" decoding="async"><span class="staff-vignette" aria-hidden="true"></span></div>
         <div class="staff-info">
-          <span class="staff-role" data-i18n="staff.jade.rol">Moderador</span>
+          <span class="staff-role" data-i18n="staff.jade.rol" data-i18n-done="">Moderatore</span>
           <h3>Jade Beor</h3>
           <span class="staff-club" data-club="Oscuridad Ancestral"><span class="staff-crest"><img src="https://images.weserv.nl/?url=https%3A%2F%2Fstatic.wikia.nocookie.net%2Finazuma-eleven%2Fimages%2F5%2F50%2FAncient_Dark_emblem_%2528VR%2529.png%2Frevision%2Flatest%3Fcb%3D20251119113334" alt="Oscuridad Ancestral" loading="lazy"></span>Oscuridad Ancestral</span>
         </div>
@@ -2615,19 +2620,19 @@ body.locked{ overflow:hidden; }
     <div class="ov-head" id="pres-head">
       <div class="pres-head-photo" id="pres-head-photo" hidden=""></div>
       <div style="display:flex;align-items:center;gap:1rem;min-width:0">
-        <button type="button" class="pres-back" id="pres-back" hidden=""><i class="ph-bold ph-arrow-left"></i> <span data-i18n="pres.back">Volver</span></button>
+        <button type="button" class="pres-back" id="pres-back" hidden=""><i class="ph-bold ph-arrow-left"></i> <span data-i18n="pres.back" data-i18n-done="">Indietro</span></button>
         <h3 id="pres-title" data-no-tr="">Salón de presidentes</h3>
       </div>
       <button class="btn btn-icon" id="pres-close" aria-label="Cerrar"><i class="ph ph-x"></i></button>
     </div>
     <div id="pres-body"></div>
-    <p class="champ-note" data-i18n="pres.note">Solo aparecen presidentes con al menos un título. Toca un nombre para ver su palmarés completo, o un título para abrir el club con el que se ganó.</p>
+    <p class="champ-note" data-i18n="pres.note" data-i18n-done="">Compaiono solo i presidenti con almeno un titolo. Tocca un nome per vedere il suo albo d’oro completo, o un titolo per aprire il club con cui è stato vinto.</p>
   </div>
 </div>
 
 <div class="ov" id="ov-team-titulos">
   <div class="ov-panel champ-panel">
-    <div class="ov-head"><h3 data-i18n="team.titulos.title">Palmarés del club</h3><button class="btn btn-icon" id="team-titulos-close" aria-label="Cerrar"><i class="ph ph-x"></i></button></div>
+    <div class="ov-head"><h3 data-i18n="team.titulos.title" data-i18n-done="">Albo d’oro del club</h3><button class="btn btn-icon" id="team-titulos-close" aria-label="Cerrar"><i class="ph ph-x"></i></button></div>
     <div id="team-titulos-body"></div>
   </div>
 </div>
@@ -3647,6 +3652,46 @@ window.SF_FAQ_DICT = {
         'staff.fundador':['Fundador','Founder','Fundador','Fondatore','Fondateur','創設者','창립자','Założyciel','Основател','Оснивач'],
         'staff.admin':['Administrador','Administrator','Administrador','Amministratore','Administrateur','管理者','관리자','Administrator','Администратор','Администратор'],
         'staff.mod':['Moderador','Moderator','Moderador','Moderatore','Modérateur','モデレーター','모더레이터','Moderator','Модератор','Модератор'],
+        /* El marcado del staff usa una clave por persona (staff.franshu.rol,
+           staff.payo.rol…), no la genérica: sin estas entradas el cargo caía
+           en la traducción automática y "Moderador" volvía como "Moderate". */
+        'staff.franshu.rol':['Fundador','Founder','Fundador','Fondatore','Fondateur','創設者','창립자','Założyciel','Основател','Оснивач'],
+        'staff.david.rol':['Administrador','Administrator','Administrador','Amministratore','Administrateur','管理者','관리자','Administrator','Администратор','Администратор'],
+        'staff.payo.rol':['Moderador','Moderator','Moderador','Moderatore','Modérateur','モデレーター','모더레이터','Moderator','Модератор','Модератор'],
+        'staff.totti.rol':['Moderador','Moderator','Moderador','Moderatore','Modérateur','モデレーター','모더레이터','Moderator','Модератор','Модератор'],
+        'staff.gabrii.rol':['Moderador','Moderator','Moderador','Moderatore','Modérateur','モデレーター','모더레이터','Moderator','Модератор','Модератор'],
+        'staff.lulu.rol':['Moderador','Moderator','Moderador','Moderatore','Modérateur','モデレーター','모더레이터','Moderator','Модератор','Модератор'],
+        'staff.jade.rol':['Moderador','Moderator','Moderador','Moderatore','Modérateur','モデレーター','모더레이터','Moderator','Модератор','Модератор'],
+
+        /* ══ PALMARÉS Y SALÓN DE PRESIDENTES ══
+           Todo este bloque nacía en español y ahí se quedaba. Dos motivos
+           distintos, los dos reales:
+           · #pres-title lleva data-no-tr (lo escribe app.js con textContent y
+             a veces contiene un nombre propio), así que el recorrido
+             automático NUNCA lo mira: sin clave de diccionario no había forma
+             de traducirlo.
+           · "título"/"títulos"/"Palmarés" son palabras sueltas de jerga
+             deportiva: la API las devolvía tal cual o mal (mismo problema ya
+             documentado arriba con "Plantilla · Titulares").
+           champs.title ya existía; el resto se cura aquí con la misma
+           terminología para que las cuatro vistas (temporada, salón, ficha de
+           presidente y palmarés de club) hablen igual. */
+        'pres.hall.title':['Salón de presidentes','Hall of presidents','Salão de presidentes','Sala dei presidenti','Panthéon des présidents','会長の殿堂','회장 전당','Galeria prezesów','Зала на президентите','Дворана председника'],
+        'hist.presidentes.btn':['Salón de presidentes','Hall of presidents','Salão de presidentes','Sala dei presidenti','Panthéon des présidents','会長の殿堂','회장 전당','Galeria prezesów','Зала на президентите','Дворана председника'],
+        'pres.back':['Volver','Back','Voltar','Indietro','Retour','戻る','뒤로','Wróć','Назад','Назад'],
+        'pres.titulo':['título','title','título','titolo','titre','タイトル','타이틀','tytuł','титла','трофеј'],
+        'pres.titulos':['títulos','titles','títulos','titoli','titres','タイトル','타이틀','tytuły','титли','трофеја'],
+        'pres.honores':['Palmarés','Honours','Palmarés','Albo d’oro','Palmarès','タイトル','우승 기록','Trofea','Отличия','Трофеји'],
+        'pres.vacio':['Todavía no hay presidentes con títulos registrados.','No presidents with titles recorded yet.','Ainda não há presidentes com títulos registados.','Non ci sono ancora presidenti con titoli registrati.','Aucun président titré n’est encore enregistré.','タイトルを持つ会長はまだ登録されていません。','아직 우승 기록이 있는 회장이 없습니다.','Nie ma jeszcze prezesów z zapisanymi trofeami.','Все още няма президенти с регистрирани отличия.','Још нема председника са забележеним трофејима.'],
+        'pres.note':['Solo aparecen presidentes con al menos un título. Toca un nombre para ver su palmarés completo, o un título para abrir el club con el que se ganó.','Only presidents with at least one title are listed. Tap a name to see their full honours, or a title to open the club it was won with.','Só aparecem presidentes com pelo menos um título. Toca num nome para ver o palmarés completo, ou num título para abrir o clube com que foi ganho.','Compaiono solo i presidenti con almeno un titolo. Tocca un nome per vedere il suo albo d’oro completo, o un titolo per aprire il club con cui è stato vinto.','Seuls les présidents avec au moins un titre apparaissent. Touche un nom pour voir son palmarès complet, ou un titre pour ouvrir le club avec lequel il a été gagné.','タイトルを獲得した会長のみを掲載しています。名前をタップすると全タイトル、タイトルをタップすると獲得時のクラブが開きます。','우승 기록이 하나 이상 있는 회장만 표시됩니다. 이름을 누르면 전체 우승 기록이, 타이틀을 누르면 우승한 구단이 열립니다.','Wyświetlani są tylko prezesi z co najmniej jednym trofeum. Dotknij nazwiska, aby zobaczyć pełne trofea, lub trofeum, aby otworzyć klub, z którym je zdobyto.','Показват се само президенти с поне едно отличие. Докосни име, за да видиш всички отличия, или отличие, за да отвориш клуба, с който е спечелено.','Приказују се само председници са бар једним трофејом. Додирни име за све трофеје или трофеј да отвориш клуб са којим је освојен.'],
+        'team.titulos.title':['Palmarés del club','Club honours','Palmarés do clube','Albo d’oro del club','Palmarès du club','クラブのタイトル','구단 우승 기록','Trofea klubu','Отличия на клуба','Трофеји клуба'],
+        'team.titulos.ver':['Ver palmarés del club','View club honours','Ver palmarés do clube','Vedi l’albo d’oro del club','Voir le palmarès du club','クラブのタイトルを見る','구단 우승 기록 보기','Zobacz trofea klubu','Виж отличията на клуба','Погледај трофеје клуба'],
+        'team.titulos.presidentes':['Presidentes con título en este club','Presidents with a title at this club','Presidentes com título neste clube','Presidenti con un titolo in questo club','Présidents titrés dans ce club','このクラブでタイトルを獲得した会長','이 구단에서 우승한 회장','Prezesi z trofeum w tym klubie','Президенти с отличие в този клуб','Председници са трофејом у овом клубу'],
+        /* Nombre CORTO para el mosaico de honores (128px): el completo
+           (comp.superliga / comp.ascenso / sec.copa) no cabe sin partirse. */
+        'honours.superliga':['Superliga','Superleague','Superliga','Superlega','Superligue','スーパーリーグ','슈퍼리그','Superliga','Суперлига','Суперлига'],
+        'honours.ascenso':['Ascenso','Championship','Acesso','Cadetta','Championnat','チャンピオンシップ','챔피언십','Awans','Чемпиъншип','Чемпионат'],
+        'honours.copa':['Copa','Cup','Taça','Coppa','Coupe','カップ','컵','Puchar','Купа','Куп'],
 
         /* ══ ABREVIATURAS DE POSICIÓN ══
            No son traducción automática: es la sigla estándar que usa cada
@@ -5327,11 +5372,16 @@ function agruparPorCompeticion(titulos){
 /* Nombre corto para el mosaico: "Copa Fútbol Frontier" no cabe en 128px sin
    partirse a media palabra. El nombre completo (T('sec.copa',...)) se sigue
    usando en todos los demás sitios (badges, títulos de sección). */
-var HONOUR_NOMBRE_CORTO={
-  'badge-superliga':T('honours.superliga','Superliga'),
-  'badge-ascenso':T('honours.ascenso','Ascenso'),
-  'badge-copa':T('honours.copa','Copa')
-};
+/* Función, no constante de nivel superior: como objeto se resolvía una sola vez
+   al cargar app.js, así que al cambiar de idioma sin recargar el mosaico se
+   quedaba congelado en el idioma con el que había arrancado la página. */
+function honourNombreCorto(cls){
+  return ({
+    'badge-superliga':T('honours.superliga','Superliga'),
+    'badge-ascenso':T('honours.ascenso','Ascenso'),
+    'badge-copa':T('honours.copa','Copa')
+  })[cls]||'';
+}
 function honoursStrip(titulos){
   var grupos=agruparPorCompeticion(titulos);
   if(!grupos.length) return '';
@@ -5347,7 +5397,7 @@ function honoursStrip(titulos){
         : '<span class="honour-tile-noimg"><i class="ph-bold ph-trophy"></i></span>')+
       '<span class="honour-tile-fade"></span>'+
       '<span class="honour-tile-body">'+
-        '<span class="honour-tile-comp">'+esc(HONOUR_NOMBRE_CORTO[g.cls]||g.comp)+'</span>'+
+        '<span class="honour-tile-comp">'+esc(honourNombreCorto(g.cls)||g.comp)+'</span>'+
         '<span class="honour-tile-count">'+g.instancias.length+'</span>'+
       '</span>'+
     '</button>';
