@@ -993,6 +993,10 @@ table.tbl tbody tr:last-child td{ border-bottom:0; }
 .pres-card .pres-avatar, .pres-row-static .pres-avatar{ width:52px; height:52px; }
 .pres-card:hover .pres-avatar, .pres-card:focus-visible .pres-avatar{ filter:none; }
 #pres-title, #champ-title, #ov-team-titulos .ov-head h3{ font-family:var(--f-sans); font-weight:700; font-size:1.125rem; letter-spacing:-.01em; }
+/* Un nombre de presidente largo (nicks reales, no controlados) se salía del
+   panel entero y tapaba el botón de cerrar en pantallas estrechas — sin
+   min-width:0 un hijo flex no se encoge nunca por debajo de su contenido. */
+#pres-title{ min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 #ov-team-titulos{ z-index:900; }
 
 /* ============================ TIRA DE HONORES (estilo Football Manager) ============================
