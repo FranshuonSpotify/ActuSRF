@@ -1,0 +1,48 @@
+{
+    "permissions": {
+        "allow": [
+            "Bash(/c/xampp/php/php.exe -v)",
+            "Bash(/c/xampp/php/php.exe -l:*)",
+            "Bash(/c/xampp/php/php.exe -r:*)",
+            "Bash(/c/xampp/php/php.exe dashboard/tests/:*)",
+            "Bash(/c/xampp/php/php.exe:*)",
+            "Bash(for f in dashboard/*.php dashboard/tests/*.php; do /c/xampp/php/php.exe -l \"$f\" || exit 1; done)",
+            "Bash(for t in dashboard/tests/test_*.php; do /c/xampp/php/php.exe \"$t\" || exit 1; done)",
+            "Bash(test:*)",
+            "Bash(cat:*)",
+            "Bash(ls:*)",
+            "Bash(grep:*)",
+            "Bash(mkdir:*)",
+            "Bash(cp:*)",
+            "Bash(find:*)",
+            "Bash(rsync:*)",
+            "Bash(touch:*)",
+            "Bash(command -v:*)",
+            "Bash(git status:*)",
+            "Bash(git diff:*)",
+            "Bash(git log:*)",
+            "Bash(git add:*)",
+            "Bash(git commit:*)",
+            "Bash(git tag:*)",
+            "Bash(git ls-files:*)",
+            "Bash(git check-ignore:*)",
+            "Bash(git rev-parse:*)",
+            "Bash(git config:*)",
+            "Bash(git init:*)",
+            "Bash(for f in dashboard/i18n.php dashboard/chrome.php dashboard/index.php dashboard/logout.php; do /c/xampp/php/php.exe -l \"$f\" || exit 1; done)",
+            "Bash(for f in dashboard/chrome.php dashboard/index.php dashboard/plantilla.php; do /c/xampp/php/php.exe -l \"$f\" || exit 1; done)",
+            "Bash(for f in dashboard/pegado.php dashboard/clausulas.php dashboard/mercado.php; do /c/xampp/php/php.exe -l \"$f\" || exit 1; done)"
+        ],
+        "deny": [
+            "Read(./config/secrets.php)",
+            "Read(./dashboard/data/usuarios.json)",
+            "Edit(./datos_oficiales.json)",
+            "Write(./datos_oficiales.json)",
+            "Edit(./_fuente/app.js)",
+            "Edit(./_fuente/styles.css)",
+            "Bash(git push:*)",
+            "Bash(git reset --hard:*)",
+            "Bash(rm -rf:*)"
+        ]
+    }
+}

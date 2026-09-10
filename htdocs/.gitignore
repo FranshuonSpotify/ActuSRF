@@ -11,3 +11,9 @@ Thumbs.db
 /_fuente/.last-datos-hash
 /_fuente/cron.log
 /_fuente/.permitir-rebuild-node
+/dashboard/data/equipos.json
+/dashboard/data/usuarios.json
+/dashboard/data/tiers.json
+/dashboard/data/temporadas.json
+/dashboard/data/temporada-*.json
+/dashboard/data/registro.json
