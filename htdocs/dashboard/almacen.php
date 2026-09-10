@@ -301,6 +301,14 @@ function plEquipoEnTemporada(string $temporadaId, string $equipoId): ?array
     ];
 }
 
+// Identificador de un jugador nuevo. Aleatorio y no correlativo a propósito:
+// con dos copresidentes añadiendo a la vez, un contador "último + 1" daría el
+// mismo id a los dos, y el rev solo protege el fichero, no la unicidad del id.
+function plNuevoIdJugador(): string
+{
+    return 'j_' . bin2hex(random_bytes(6));
+}
+
 function plBuscarEquipo(string $equipoId): ?array
 {
     foreach (plCargarEquipos()['equipos'] as $e) {

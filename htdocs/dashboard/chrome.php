@@ -107,6 +107,23 @@ function plCabecera(string $titulo, string $activo = '', ?string $fase = null): 
 function plPie(): void
 {
     ?></main>
+<script>
+// Confirmación para los botones marcados con data-confirmar (borrar un
+// jugador). Se usa el confirm() nativo y no un modal propio porque la acción
+// es barata de deshacer en ROSTER —se vuelve a añadir— y un <dialog> por fila
+// sería marcado de sobra. Las confirmaciones con consecuencias de verdad (nueva
+// temporada, clausulación) sí van en <dialog>. Sin JavaScript, el botón envía
+// igual: es una confirmación, no una puerta.
+(function () {
+  'use strict';
+  document.addEventListener('click', function (e) {
+    var boton = e.target.closest ? e.target.closest('[data-confirmar]') : null;
+    if (boton && !window.confirm(boton.getAttribute('data-confirmar'))) {
+      e.preventDefault();
+    }
+  });
+})();
+</script>
 </body>
 </html>
 <?php

@@ -220,7 +220,7 @@
                 "dashboard/plantilla.php",
                 "dashboard/tests/test_plantilla.php"
             ],
-            "status": "pending"
+            "status": "done"
         },
         {
             "id": "E2-T3",

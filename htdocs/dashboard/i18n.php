@@ -81,6 +81,23 @@ $GLOBALS['PL_I18N'] = [
         'dash.vacio_accion'         => 'Inscribir jugadores',
         'dash.vacio_cerrado'        => 'Tu equipo no inscribió jugadores en esta temporada.',
 
+        // -- mi plantilla
+        'plantilla.titulo'           => 'Mi plantilla',
+        'plantilla.contador'         => '{n} / {max} jugadores',
+        'plantilla.masa_salarial'    => 'Salarios {total} / {cap}',
+        'plantilla.anadir'           => 'Añadir jugador',
+        'plantilla.campo_nombre'     => 'Nombre',
+        'plantilla.campo_posicion'   => 'Posición',
+        'plantilla.campo_tier'       => 'Tier',
+        'plantilla.salario_auto'     => 'El salario lo fija el tier elegido: no se escribe a mano.',
+        'plantilla.guardar'          => 'Guardar',
+        'plantilla.borrar'           => 'Borrar',
+        'plantilla.confirmar_borrar' => '¿Borrar a {jugador} de tu plantilla?',
+        'plantilla.guardado'         => 'Plantilla guardada.',
+        'plantilla.completa'         => 'Tu plantilla está completa: {max} de {max} jugadores.',
+        'plantilla.pegar'            => '¿Tienes la lista en una hoja de cálculo? Pégala entera',
+        'plantilla.acciones'         => 'Acciones',
+
         // -- cabeceras de tabla y estados de jugador, compartidos
         'tabla.jugador'             => 'Jugador',
         'tabla.pos'                 => 'Pos.',
@@ -99,6 +116,9 @@ $GLOBALS['PL_I18N'] = [
         'error.jugador_no_encontrado' => 'Ese jugador ya no está en tu plantilla. Recarga la página.',
         'error.max_jugadores'        => 'No puedes añadir este jugador: el máximo es de {maximo} y ya tienes {actual}.',
         'error.cap_superado'         => 'No puedes añadir este jugador. El Salary Cap es de {cap}M. Tu plantilla quedaría en {total}M. Solo tienes {disponible}M disponibles.',
+        // Misma cifra que error.cap_superado, frase distinta: al cambiar de tier
+        // no se "añade" a nadie, y el mensaje tiene que decir lo que pasa.
+        'error.cap_superado_cambio'  => 'No puedes cambiar a este tier. El Salary Cap es de {cap}M. Tu plantilla quedaría en {total}M. Solo tienes {disponible}M disponibles.',
         'error.clausulas_excedidas'  => 'No puedes superar los {presupuesto}M de presupuesto de cláusulas. Te pasas por {exceso}M.',
         'error.clausula_invalida'    => 'La cláusula de {jugador} tiene que ser un número entero de millones, sin decimales ni signo.',
         'error.rev_desfasado'        => 'Tu copresidente ha guardado mientras editabas. Recarga la página y repite el cambio.',
