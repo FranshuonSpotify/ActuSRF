@@ -46,7 +46,7 @@
                 "dashboard/lib.php",
                 "dashboard/tests/test_lib.php"
             ],
-            "status": "pending"
+            "status": "done"
         },
         {
             "id": "E1-T2",
@@ -74,7 +74,7 @@
                 "dashboard/dominio.php",
                 "dashboard/tests/test_dominio.php"
             ],
-            "status": "pending"
+            "status": "done"
         },
         {
             "id": "E1-T3",
@@ -103,7 +103,7 @@
                 "dashboard/almacen.php",
                 "dashboard/tests/test_almacen.php"
             ],
-            "status": "pending"
+            "status": "done"
         },
         {
             "id": "E1-T4",
