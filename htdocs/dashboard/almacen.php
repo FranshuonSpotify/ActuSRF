@@ -137,13 +137,15 @@ function plCrearTemporada(string $id, string $nombre): array
         return ['ok' => false, 'error' => 'error.escritura'];
     }
 
-    // Solo se convierte en la activa si el fichero se escribió de verdad.
-    $temporadas = plCargarTemporadas();
-    $temporadas['temporadas'][] = [
-        'id' => $id, 'nombre' => $nombre, 'fase' => 'ROSTER', 'creada' => plAhora(),
-    ];
-    $temporadas['activa'] = $id;
-    if (!plGuardarTemporadas($temporadas)) {
+    // Solo se convierte en la activa si el fichero se escribió de verdad. La
+    // lista se actualiza bajo el lock, leyendo dentro: ver plActualizarJson().
+    $ok = plActualizarJson(plRutaDatos('temporadas.json'), ['activa' => null, 'temporadas' => []],
+        static function (array $t) use ($id, $nombre): array {
+            $t['temporadas'][] = ['id' => $id, 'nombre' => $nombre, 'fase' => 'ROSTER', 'creada' => plAhora()];
+            $t['activa'] = $id;
+            return $t;
+        });
+    if (!$ok) {
         return ['ok' => false, 'error' => 'error.escritura'];
     }
 
@@ -164,14 +166,23 @@ function plCambiarFase(string $temporadaId, string $fase): array
     if (!in_array($fase, PL_FASES, true)) {
         return ['ok' => false, 'error' => 'error.fase_invalida'];
     }
-    $t = plCargarTemporadas();
-    foreach ($t['temporadas'] as $i => $temporada) {
-        if (($temporada['id'] ?? null) === $temporadaId) {
-            $t['temporadas'][$i]['fase'] = $fase;
-            return ['ok' => plGuardarTemporadas($t), 'error' => null];
-        }
+    $encontrada = false;
+    $ok = plActualizarJson(plRutaDatos('temporadas.json'), ['activa' => null, 'temporadas' => []],
+        static function (array $t) use ($temporadaId, $fase, &$encontrada): ?array {
+            foreach ($t['temporadas'] as $i => $temporada) {
+                if (($temporada['id'] ?? null) === $temporadaId) {
+                    $t['temporadas'][$i]['fase'] = $fase;
+                    $encontrada = true;
+                    return $t;
+                }
+            }
+            return null;   // no existe: no se escribe nada
+        });
+
+    if (!$encontrada) {
+        return ['ok' => false, 'error' => 'error.temporada_no_encontrada'];
     }
-    return ['ok' => false, 'error' => 'error.temporada_no_encontrada'];
+    return ['ok' => $ok, 'error' => $ok ? null : 'error.escritura'];
 }
 
 // ------------------------------------------------- concurrencia optimista
@@ -186,51 +197,31 @@ function plCambiarFase(string $temporadaId, string $fase): array
 // este mecanismo existe para cerrar.
 function plGuardarEquipoTemporada(string $temporadaId, string $equipoId, array $datos, int $revEsperado): array
 {
-    $ruta = plRutaDatos("temporada-$temporadaId.json");
+    $resultado = ['ok' => false, 'error' => 'error.escritura'];
 
-    $lock = fopen($ruta . '.lock', 'c');
-    if ($lock === false) {
-        return ['ok' => false, 'error' => 'error.lock'];
-    }
-    flock($lock, LOCK_EX);
+    $escrito = plActualizarJson(plRutaDatos("temporada-$temporadaId.json"), [],
+        static function (array $data) use ($equipoId, $datos, $revEsperado, &$resultado): ?array {
+            $revDisco = (int) ($data['equipos'][$equipoId]['rev'] ?? -1);
 
-    $data = plCargarJson($ruta, []);
-    $revDisco = (int) ($data['equipos'][$equipoId]['rev'] ?? -1);
+            if ($revDisco === -1) {
+                $resultado = ['ok' => false, 'error' => 'error.equipo_no_en_temporada'];
+                return null;
+            }
+            if ($revDisco !== $revEsperado) {
+                // Se rechaza sin escribir NADA: el presidente recarga y repite.
+                $resultado = ['ok' => false, 'error' => 'error.rev_desfasado', 'rev' => $revDisco];
+                return null;
+            }
 
-    if ($revDisco === -1) {
-        flock($lock, LOCK_UN);
-        fclose($lock);
-        return ['ok' => false, 'error' => 'error.equipo_no_en_temporada'];
-    }
-    if ($revDisco !== $revEsperado) {
-        flock($lock, LOCK_UN);
-        fclose($lock);
-        // Se rechaza sin escribir NADA: el presidente recarga y repite.
-        return ['ok' => false, 'error' => 'error.rev_desfasado', 'rev' => $revDisco];
-    }
+            $datos['rev'] = $revDisco + 1;
+            $data['equipos'][$equipoId] = $datos;
+            $resultado = ['ok' => true, 'error' => null, 'rev' => $datos['rev']];
+            return $data;
+        });
 
-    $datos['rev'] = $revDisco + 1;
-    $data['equipos'][$equipoId] = $datos;
-
-    // Misma escritura atómica que plGuardarJsonAtomico(), pero en línea para
-    // no soltar y volver a tomar el lock entre la comprobación y el rename.
-    $ok  = false;
-    $tmp = tempnam(dirname($ruta), 'pl_');
-    if ($tmp !== false) {
-        $json = json_encode($data, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
-        $ok = $json !== false
-            && file_put_contents($tmp, $json) !== false
-            && chmod($tmp, 0644)
-            && rename($tmp, $ruta);
-        if (!$ok && file_exists($tmp)) {
-            unlink($tmp);
-        }
-    }
-
-    flock($lock, LOCK_UN);
-    fclose($lock);
-
-    return ['ok' => $ok, 'error' => $ok ? null : 'error.escritura', 'rev' => $datos['rev']];
+    // Si el lock o la escritura fallaron, el cierre pudo haber dado ya el
+    // guardado por bueno: lo que manda es si llegó a disco.
+    return $escrito ? $resultado : ['ok' => false, 'error' => 'error.escritura'];
 }
 
 // ------------------------------------------------------------- registro
@@ -241,16 +232,20 @@ function plGuardarEquipoTemporada(string $temporadaId, string $equipoId, array $
 // puede reescribir el registro de quién lo marcó.
 function plRegistrarEvento(string $tipo, string $actor, string $actorNombre, array $detalle): bool
 {
-    $ruta = plRutaDatos('registro.json');
-    $registro = plCargarJson($ruta, ['eventos' => []]);
-    $registro['eventos'][] = [
-        'ts'          => plAhora(),
-        'actor'       => $actor,
-        'actorNombre' => $actorNombre,
-        'tipo'        => $tipo,
-        'detalle'     => $detalle,
-    ];
-    return plGuardarJsonAtomico($ruta, $registro);
+    // Leer y añadir bajo el MISMO lock. Con la lectura fuera, dos
+    // clausulaciones simultáneas de equipos distintos leerían el mismo
+    // registro, y la segunda en escribir borraría el evento de la primera.
+    return plActualizarJson(plRutaDatos('registro.json'), ['eventos' => []],
+        static function (array $registro) use ($tipo, $actor, $actorNombre, $detalle): array {
+            $registro['eventos'][] = [
+                'ts'          => plAhora(),
+                'actor'       => $actor,
+                'actorNombre' => $actorNombre,
+                'tipo'        => $tipo,
+                'detalle'     => $detalle,
+            ];
+            return $registro;
+        });
 }
 
 // -------------------------------------------------------------- usuarios

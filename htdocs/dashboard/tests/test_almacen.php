@@ -148,6 +148,78 @@ plVerificar('un usuario que ya no existe tampoco',
 $_SESSION = [];
 plVerificar('sin sesión, null', plUsuarioActual() === null);
 
+// -- concurrencia REAL: varios procesos escribiendo el registro a la vez -----
+// No se simula: se lanzan cuatro procesos PHP de verdad, cada uno añadiendo 40
+// eventos al mismo registro.json, todos a la vez. Con la lectura fuera del lock
+// se pierden eventos; con plActualizarJson() tienen que quedar los 160.
+$hijo = sys_get_temp_dir() . '/pl_hijo_' . uniqid() . '.php';
+file_put_contents($hijo, '<?php
+$GLOBALS["PL_DIR_DATOS"] = $argv[1];
+require ' . var_export((string) realpath(__DIR__ . '/../almacen.php'), true) . ';
+for ($i = 0; $i < (int) $argv[3]; $i++) {
+    plRegistrarEvento("PRUEBA", $argv[2], $argv[2], ["i" => $i]);
+}
+');
+$dirConc  = plArnesDirDatos('pl_conc_');
+$procesos = [];
+for ($p = 0; $p < 4; $p++) {
+    $tuberias   = [];
+    $procesos[] = proc_open([PHP_BINARY, $hijo, $dirConc, "p$p", '40'], [], $tuberias);
+}
+foreach ($procesos as $proc) {
+    proc_close($proc);   // espera a que termine
+}
+$enDisco = plCargarJson($dirConc . '/registro.json', ['eventos' => []])['eventos'];
+plVerificar('4 procesos × 40 eventos simultáneos: quedan los 160, ninguno perdido', count($enDisco) === 160);
+$porActor = array_count_values(array_column($enDisco, 'actor'));
+plVerificar('y cada proceso conserva sus 40', $porActor === ['p0' => 40, 'p1' => 40, 'p2' => 40, 'p3' => 40]
+    || (count($porActor) === 4 && min($porActor) === 40 && max($porActor) === 40));
+plVerificar('sin temporales pl_* abandonados por la carrera', count(glob($dirConc . '/pl_*') ?: []) === 0);
+unlink($hijo);
+plArnesLimpiar($dirConc);
+
+// -- concurrencia con LECTORES: pantallas leyendo mientras otros guardan -----
+// Los GET leen sin pasar por plActualizarJson. En Windows, un lector con el
+// fichero abierto hace fallar el rename() del escritor si no hay lock
+// compartido; en Linux no, pero el test tiene que pasar en los dos.
+$escritor = sys_get_temp_dir() . '/pl_escritor_' . uniqid() . '.php';
+$lector   = sys_get_temp_dir() . '/pl_lector_' . uniqid() . '.php';
+$almacen  = var_export((string) realpath(__DIR__ . '/../almacen.php'), true);
+file_put_contents($escritor, '<?php
+$GLOBALS["PL_DIR_DATOS"] = $argv[1];
+require ' . $almacen . ';
+$fallos = 0;
+for ($i = 0; $i < 40; $i++) {
+    if (!plRegistrarEvento("PRUEBA", $argv[2], $argv[2], ["i" => $i])) { $fallos++; }
+}
+file_put_contents($argv[1] . "/fallos-" . $argv[2] . ".txt", (string) $fallos);
+');
+file_put_contents($lector, '<?php
+$GLOBALS["PL_DIR_DATOS"] = $argv[1];
+require ' . $almacen . ';
+for ($i = 0; $i < 3000; $i++) { plCargarJson(plRutaDatos("registro.json"), ["eventos" => []]); }
+');
+$dirLect  = plArnesDirDatos('pl_lect_');
+$procesos = [];
+// Los lectores arrancan primero para que ya estén leyendo cuando escriben los otros.
+foreach ([[$lector], [$lector], [$escritor, 'w1'], [$escritor, 'w2']] as $args) {
+    $tuberias   = [];
+    $procesos[] = proc_open(array_merge([PHP_BINARY, $args[0], $dirLect], array_slice($args, 1)),
+        [1 => ['file', $dirLect . '/salida.txt', 'a'], 2 => ['file', $dirLect . '/salida.txt', 'a']], $tuberias);
+}
+foreach ($procesos as $proc) {
+    proc_close($proc);
+}
+$enDisco = plCargarJson($dirLect . '/registro.json', ['eventos' => []])['eventos'];
+$fallidos = (int) @file_get_contents($dirLect . '/fallos-w1.txt') + (int) @file_get_contents($dirLect . '/fallos-w2.txt');
+$salida   = (string) @file_get_contents($dirLect . '/salida.txt');
+plVerificar('2 escritores × 40 con 2 lectores martilleando: los 80 eventos en disco', count($enDisco) === 80);
+plVerificar('ningún guardado devolvió fallo', $fallidos === 0);
+plVerificar('y ni un solo aviso de rename denegado', !str_contains($salida, 'rename'));
+unlink($escritor);
+unlink($lector);
+plArnesLimpiar($dirLect);
+
 // -- limpieza ----------------------------------------------------------
 plVerificar('no quedan ficheros temporales pl_* en el directorio de datos',
     count(glob($GLOBALS['PL_DIR_DATOS'] . '/pl_*') ?: []) === 0);

@@ -22,6 +22,14 @@ plVerificar(
     'y NO crea el fichero al leerlo',
     !file_exists($ruta)
 );
+plVerificar(
+    'ni su .lock: leer no escribe nada en disco',
+    !file_exists($ruta . '.lock')
+);
+plVerificar(
+    'plLeerJson, la lectura sin lock, devuelve lo mismo',
+    plLeerJson($ruta, ['x' => 1]) === ['x' => 1] && !file_exists($ruta . '.lock')
+);
 
 // -- plGuardarJsonAtomico ----------------------------------------------
 plVerificar(
@@ -52,6 +60,28 @@ plVerificar(
     'un JSON corrupto devuelve el valor por defecto en lugar de fallar',
     plCargarJson($ruta, ['seguro' => true]) === ['seguro' => true]
 );
+
+// -- plActualizarJson --------------------------------------------------
+$rutaAct = $dir . '/actualizar.json';
+plVerificar('con el fichero ausente, el cambio recibe el valor por defecto',
+    plActualizarJson($rutaAct, ['n' => 0], static function (array $d): array {
+        $d['n']++;
+        return $d;
+    }) === true && plCargarJson($rutaAct, []) === ['n' => 1]);
+plVerificar('y la siguiente actualización parte de lo que hay en disco',
+    plActualizarJson($rutaAct, ['n' => 0], static function (array $d): array {
+        $d['n'] += 10;
+        return $d;
+    }) === true && plCargarJson($rutaAct, []) === ['n' => 11]);
+
+$antes = (string) file_get_contents($rutaAct);
+plVerificar('si el cambio devuelve null, no se escribe nada',
+    plActualizarJson($rutaAct, [], static fn(array $d) => null) === true
+    && (string) file_get_contents($rutaAct) === $antes);
+plVerificar('null sobre un fichero ausente tampoco lo crea',
+    plActualizarJson($dir . '/nunca.json', [], static fn(array $d) => null) === true
+    && !file_exists($dir . '/nunca.json'));
+plVerificar('actualizar no deja temporales pl_* sueltos', count(glob($dir . '/pl_*') ?: []) === 0);
 
 // -- plEsc -------------------------------------------------------------
 plVerificar(

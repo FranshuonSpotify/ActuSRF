@@ -16,9 +16,40 @@ if (version_compare(PHP_VERSION, '8.1.0', '<')) {
 }
 
 // Devuelve el contenido del JSON, o $porDefecto si el fichero no existe o
-// está corrupto. Nunca lanza y nunca crea el fichero: la semilla se
-// materializa en disco la primera vez que algo la guarda, no al leerla.
+// está corrupto. Nunca lanza y nunca crea nada: ni el fichero ni su .lock. La
+// semilla se materializa en disco la primera vez que algo la guarda.
+//
+// Lee bajo un lock COMPARTIDO sobre "$ruta.lock". En Linux no haría falta,
+// porque rename() sobre un fichero abierto funciona; en Windows, no: si un
+// lector tiene el JSON abierto justo cuando un escritor hace el rename, el
+// rename falla con "Acceso denegado" y el guardado se pierde. Con el lock
+// compartido, los lectores esperan a que termine el escritor y el escritor a
+// que salgan los lectores, así que nunca coinciden. Se comprobó con procesos
+// reales en la máquina de desarrollo antes de escribir esto.
 function plCargarJson(string $ruta, array $porDefecto): array
+{
+    // Si no existe no se toma lock: tomarlo crearía el .lock, y leer no debe
+    // escribir nada. Si el fichero aparece justo después, el resultado es el
+    // mismo que haber leído un instante antes.
+    if (!file_exists($ruta)) {
+        return $porDefecto;
+    }
+    $lock = fopen($ruta . '.lock', 'c');
+    if ($lock === false) {
+        return plLeerJson($ruta, $porDefecto);
+    }
+    flock($lock, LOCK_SH);
+    $data = plLeerJson($ruta, $porDefecto);
+    flock($lock, LOCK_UN);
+    fclose($lock);
+    return $data;
+}
+
+// La lectura sin lock. Se usa DENTRO de plActualizarJson(), que ya tiene el
+// lock exclusivo —pedir además el compartido desde el mismo proceso lo dejaría
+// esperándose a sí mismo—, y para ficheros ajenos al subproyecto como
+// datos_oficiales.json, junto a los que no se debe crear ningún .lock.
+function plLeerJson(string $ruta, array $porDefecto): array
 {
     if (!file_exists($ruta)) {
         return $porDefecto;
@@ -43,19 +74,69 @@ function plCargarJson(string $ruta, array $porDefecto): array
 // existe funciona, y JSON_UNESCAPED_UNICODE deja los acentos legibles.
 function plGuardarJsonAtomico(string $ruta, array $data): bool
 {
+    $lock = plTomarLock($ruta);
+    if ($lock === null) {
+        return false;
+    }
+    $ok = plEscribirJsonSinLock($ruta, $data);
+    plSoltarLock($lock);
+    return $ok;
+}
+
+// Lee, modifica y escribe un JSON como UNA sola operación bajo el lock.
+//
+// Existe porque "cargar, cambiar, plGuardarJsonAtomico()" tiene una ventana:
+// la lectura ocurre FUERA del lock. Si dos peticiones leen a la vez, las dos
+// escriben, y la segunda borra el cambio de la primera sin que nadie se
+// entere. En el registro de clausulaciones eso significa perder un evento, que
+// es justo lo que ese registro existe para no perder.
+//
+// $cambio recibe los datos actuales y devuelve los nuevos, o null para no
+// escribir nada (por ejemplo, porque una comprobación hecha dentro del lock ha
+// fallado). Devuelve false solo si no se pudo tomar el lock o escribir.
+function plActualizarJson(string $ruta, array $porDefecto, callable $cambio): bool
+{
+    $lock = plTomarLock($ruta);
+    if ($lock === null) {
+        return false;
+    }
+    // plLeerJson y no plCargarJson: aquí ya se tiene el lock exclusivo, y el
+    // compartido que toma plCargarJson se quedaría esperando a este mismo.
+    $nuevo = $cambio(plLeerJson($ruta, $porDefecto));
+    $ok    = $nuevo === null ? true : plEscribirJsonSinLock($ruta, $nuevo);
+    plSoltarLock($lock);
+    return $ok;
+}
+
+// Lock exclusivo sobre "$ruta.lock", no sobre el JSON: el JSON se sustituye
+// entero con rename(), y un lock sobre un fichero que se reemplaza dejaría de
+// proteger al siguiente en llegar.
+function plTomarLock(string $ruta)
+{
     $directorio = dirname($ruta);
     if (!is_dir($directorio) && !mkdir($directorio, 0755, true) && !is_dir($directorio)) {
-        return false;
+        return null;
     }
-
     $lock = fopen($ruta . '.lock', 'c');
     if ($lock === false) {
-        return false;
+        return null;
     }
     flock($lock, LOCK_EX);
+    return $lock;
+}
 
-    $ok = false;
-    $tmp = tempnam($directorio, 'pl_');
+function plSoltarLock($lock): void
+{
+    flock($lock, LOCK_UN);
+    fclose($lock);
+}
+
+// Solo la mitad de la escritura: temporal + rename. Se llama siempre con el
+// lock ya tomado, desde plGuardarJsonAtomico() o plActualizarJson().
+function plEscribirJsonSinLock(string $ruta, array $data): bool
+{
+    $ok  = false;
+    $tmp = tempnam(dirname($ruta), 'pl_');
     if ($tmp !== false) {
         $json = json_encode($data, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
         $ok = $json !== false
@@ -67,9 +148,6 @@ function plGuardarJsonAtomico(string $ruta, array $data): bool
             unlink($tmp);
         }
     }
-
-    flock($lock, LOCK_UN);
-    fclose($lock);
     return $ok;
 }
 
