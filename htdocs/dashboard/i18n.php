@@ -132,6 +132,26 @@ $GLOBALS['PL_I18N'] = [
         'clausulas.sin_jugadores'     => 'No tienes jugadores inscritos, así que no hay cláusulas que repartir.',
         'clausulas.campo_de'          => 'Cláusula de {jugador}',
 
+        // -- mercado
+        'mercado.titulo'              => 'Mercado',
+        'mercado.nota'                => 'El mercado es informativo: la app no ejecuta traspasos ni mueve dinero. Aquí solo se registra lo que ya ha ocurrido fuera.',
+        'mercado.filtro_todos'        => 'Todos',
+        'mercado.buscar'              => 'Buscar jugador',
+        'mercado.filtrar'             => 'Filtrar',
+        'mercado.estado_clausulado'   => 'Clausulado',
+        'mercado.marcar'              => 'Marcar como clausulado por mi equipo',
+        'mercado.confirmar_titulo'    => 'Confirmar clausulación',
+        'mercado.confirmar_texto'     => '¿Confirmas que {miEquipo} ha clausulado a {jugador} ({suEquipo})?',
+        'mercado.confirmar_nota'      => 'Esto solo registra el resultado; el pago se gestiona fuera de la app.',
+        'mercado.cancelar'            => 'Cancelar',
+        'mercado.confirmar'           => 'Confirmar clausulación',
+        'mercado.registrado'          => '{jugador} queda registrado como clausulado por {equipo}.',
+        'mercado.error_fase'          => 'El mercado está cerrado: ahora no se pueden registrar clausulaciones.',
+        'mercado.error_no_permitido'  => 'No puedes registrar esta clausulación. Solo se pueden marcar jugadores disponibles de otros equipos, y siempre a nombre de tu propio equipo.',
+        'mercado.error_no_encontrado' => 'Ese jugador ya no está en el mercado. Recarga la página.',
+        'mercado.error_rev'           => 'Otro equipo ha registrado un cambio en esa plantilla mientras mirabas. Recarga el mercado y vuelve a intentarlo.',
+        'mercado.vacio'               => 'No hay jugadores que coincidan con el filtro.',
+
         // -- cabeceras de tabla y estados de jugador, compartidos
         'tabla.jugador'             => 'Jugador',
         'tabla.pos'                 => 'Pos.',

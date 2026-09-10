@@ -303,7 +303,7 @@
                 "dashboard/mercado.php",
                 "dashboard/tests/test_mercado.php"
             ],
-            "status": "pending"
+            "status": "done"
         },
         {
             "id": "E3-T1",
