@@ -135,7 +135,7 @@
                 "config/secrets.example.php",
                 "dashboard/tests/test_temporada.php"
             ],
-            "status": "pending"
+            "status": "done"
         },
         {
             "id": "E1-T5",
@@ -166,7 +166,7 @@
                 "dashboard/logout.php",
                 "dashboard/tests/test_login.php"
             ],
-            "status": "pending"
+            "status": "done"
         },
         {
             "id": "E2-T1",
