@@ -413,6 +413,158 @@ function plIncorporarEquiposATemporadaActiva(array $equipoIds): bool
         });
 }
 
+// ----------------------------------------------------------- presidentes
+
+// La especificación no fija un mínimo. Ocho caracteres es la base habitual, y
+// aquí la pone el admin a mano, así que no hay excusa para una más corta.
+const PL_CLAVE_MINIMA = 8;
+
+// Mensaje en español (panel de admin) si algo no vale, o null si todo vale.
+function plValidarDatosPresidente(string $nombre, string $email, ?string $equipoId): ?string
+{
+    if ($nombre === '') {
+        return 'Escribe el nombre del presidente.';
+    }
+    if (filter_var($email, FILTER_VALIDATE_EMAIL) === false) {
+        return 'Ese email no es válido.';
+    }
+    if ($equipoId !== null && plBuscarEquipo($equipoId) === null) {
+        return 'Ese equipo no existe.';
+    }
+    return null;
+}
+
+// Alta de un presidente. La contraseña llega en claro y se hashea AQUÍ: es el
+// único punto por el que pasa cualquier alta, así que ninguna pantalla, de hoy
+// o futura, puede guardar una contraseña en claro aunque se le olvide hashearla.
+//
+// El email se guarda en minúsculas y su unicidad se comprueba DENTRO del lock,
+// en la misma operación que el alta: si se mirase antes, dos altas simultáneas
+// con el mismo correo pasarían las dos la comprobación.
+function plCrearPresidente(string $nombre, string $email, string $clave, ?string $equipoId, bool $activo): array
+{
+    $nombre = trim($nombre);
+    $email  = mb_strtolower(trim($email), 'UTF-8');
+
+    $error = plValidarDatosPresidente($nombre, $email, $equipoId);
+    if ($error === null && mb_strlen($clave, 'UTF-8') < PL_CLAVE_MINIMA) {
+        $error = 'La contraseña tiene que tener al menos ' . PL_CLAVE_MINIMA . ' caracteres.';
+    }
+    if ($error !== null) {
+        return ['ok' => false, 'id' => null, 'mensaje' => $error];
+    }
+
+    $id        = 'u_' . bin2hex(random_bytes(4));
+    $hash      = password_hash($clave, PASSWORD_DEFAULT);
+    $duplicado = false;
+    $ok = plActualizarJson(plRutaDatos('usuarios.json'), ['usuarios' => []],
+        static function (array $d) use ($id, $nombre, $email, $hash, $equipoId, $activo, &$duplicado): ?array {
+            foreach ($d['usuarios'] as $u) {
+                if (mb_strtolower((string) ($u['email'] ?? ''), 'UTF-8') === $email) {
+                    $duplicado = true;
+                    return null;
+                }
+            }
+            $d['usuarios'][] = ['id' => $id, 'nombre' => $nombre, 'email' => $email, 'hash' => $hash,
+                                'equipoId' => $equipoId, 'activo' => $activo];
+            return $d;
+        });
+
+    if ($duplicado) {
+        return ['ok' => false, 'id' => null, 'mensaje' => 'Ya hay un presidente con ese email.'];
+    }
+    return ['ok' => $ok, 'id' => $id, 'mensaje' => $ok ? '' : 'No se pudo guardar el presidente.'];
+}
+
+// Edición. $claveNueva vacía significa "no cambiarla" y conserva el hash: el
+// error clásico aquí es rehashear la cadena vacía del campo sin rellenar y
+// dejar al presidente sin poder entrar, con el síntoma apareciendo días después.
+// Reasignar el equipo es solo cambiar equipoId: no se guarda histórico.
+function plEditarPresidente(string $id, string $nombre, string $email, string $claveNueva, ?string $equipoId): array
+{
+    $nombre = trim($nombre);
+    $email  = mb_strtolower(trim($email), 'UTF-8');
+
+    $error = plValidarDatosPresidente($nombre, $email, $equipoId);
+    if ($error === null && $claveNueva !== '' && mb_strlen($claveNueva, 'UTF-8') < PL_CLAVE_MINIMA) {
+        $error = 'La contraseña nueva tiene que tener al menos ' . PL_CLAVE_MINIMA . ' caracteres.';
+    }
+    if ($error !== null) {
+        return ['ok' => false, 'mensaje' => $error];
+    }
+
+    $hashNuevo  = $claveNueva === '' ? null : password_hash($claveNueva, PASSWORD_DEFAULT);
+    $encontrado = false;
+    $duplicado  = false;
+    $ok = plActualizarJson(plRutaDatos('usuarios.json'), ['usuarios' => []],
+        static function (array $d) use ($id, $nombre, $email, $hashNuevo, $equipoId, &$encontrado, &$duplicado): ?array {
+            $indice = null;
+            foreach ($d['usuarios'] as $i => $u) {
+                if ((string) ($u['id'] ?? '') === $id) {
+                    $indice = $i;
+                } elseif (mb_strtolower((string) ($u['email'] ?? ''), 'UTF-8') === $email) {
+                    $duplicado = true;   // ese email ya es de OTRO presidente
+                }
+            }
+            if ($indice === null || $duplicado) {
+                $encontrado = $indice !== null;
+                return null;
+            }
+            $encontrado = true;
+            $d['usuarios'][$indice]['nombre']   = $nombre;
+            $d['usuarios'][$indice]['email']    = $email;
+            $d['usuarios'][$indice]['equipoId'] = $equipoId;
+            if ($hashNuevo !== null) {
+                $d['usuarios'][$indice]['hash'] = $hashNuevo;
+            }
+            return $d;
+        });
+
+    if (!$encontrado) {
+        return ['ok' => false, 'mensaje' => 'Ese presidente ya no existe.'];
+    }
+    if ($duplicado) {
+        return ['ok' => false, 'mensaje' => 'Ya hay otro presidente con ese email.'];
+    }
+    return ['ok' => $ok, 'mensaje' => $ok ? '' : 'No se pudo guardar el presidente.'];
+}
+
+// Desactivar corta el acceso en la siguiente petición: plUsuarioActual()
+// relee usuarios.json cada vez, así que no hay que esperar a que caduque nada.
+function plCambiarActivoPresidente(string $id, bool $activo): array
+{
+    $encontrado = false;
+    $ok = plActualizarJson(plRutaDatos('usuarios.json'), ['usuarios' => []],
+        static function (array $d) use ($id, $activo, &$encontrado): ?array {
+            foreach ($d['usuarios'] as $i => $u) {
+                if ((string) ($u['id'] ?? '') === $id) {
+                    $d['usuarios'][$i]['activo'] = $activo;
+                    $encontrado = true;
+                    return $d;
+                }
+            }
+            return null;
+        });
+    if (!$encontrado) {
+        return ['ok' => false, 'mensaje' => 'Ese presidente ya no existe.'];
+    }
+    return ['ok' => $ok, 'mensaje' => $ok ? '' : 'No se pudo guardar el presidente.'];
+}
+
+// Cuántos presidentes ACTIVOS lleva cada equipo. Sirve para señalar a los
+// copresidentes, que son justo los equipos donde el rev va a entrar en juego.
+function plPresidentesPorEquipo(): array
+{
+    $cuenta = [];
+    foreach (plCargarUsuarios()['usuarios'] as $u) {
+        $eq = $u['equipoId'] ?? null;
+        if ($eq !== null && !empty($u['activo'])) {
+            $cuenta[(string) $eq] = ($cuenta[(string) $eq] ?? 0) + 1;
+        }
+    }
+    return $cuenta;
+}
+
 // -------------------------------------------------------------- usuarios
 
 function plBuscarUsuarioPorEmail(string $email): ?array

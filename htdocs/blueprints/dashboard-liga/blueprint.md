@@ -795,8 +795,8 @@ del servidor: en IONOS no se ejecuta ningún comando de este blueprint (§12).
 | 08 | Pegado masivo | 07 | `pegado.php`, `tests/test_pegado.php` | `test_pegado.php` sale 0 |
 | 09 | Cláusulas | 07 | `clausulas.php`, `tests/test_clausulas.php` | `test_clausulas.php` sale 0 |
 | 10 | Mercado y registro | 09 | `mercado.php`, `tests/test_mercado.php` | `test_mercado.php` sale 0 |
-| 11 | Admin · equipos e importador | 04 | `admin_equipos.php`, `tests/test_equipos.php` | `test_equipos.php` sale 0 |
-| 12 | Admin · presidentes | 04 | `admin_presidentes.php`, `tests/test_presidentes.php` | `test_presidentes.php` sale 0 |
+| 11 | Admin · equipos e importador | 04 | `admin_equipos.php`, `almacen.php`, `chrome.php`, `admin.php`, `tests/test_equipos.php` | `test_equipos.php` sale 0 |
+| 12 | Admin · presidentes | 04 | `admin_presidentes.php`, `almacen.php`, `tests/test_presidentes.php` | `test_presidentes.php` sale 0 |
 | 13 | Admin · tiers | 04 | `admin_tiers.php`, `tests/test_tiers.php` | `test_tiers.php` sale 0 |
 | 14 | Admin · plantillas y correcciones | 10, 11 | `admin_plantillas.php`, `tests/test_admin_plantillas.php` | `test_admin_plantillas.php` sale 0 |
 | 15 | Motor de i18n con los diez idiomas | 10 | `i18n.php`, `tests/test_i18n.php` | `test_i18n.php` sale 0 |
@@ -1440,8 +1440,10 @@ Cambiar de presidente entre temporadas es reasignar `equipoId`. No se guarda his
 /c/xampp/php/php.exe dashboard/tests/test_presidentes.php
 # expect: Todas las comprobaciones pasan.   (exit 0)
 
-# La contraseña se hashea; no hay ninguna comparación en claro.
-grep -q "password_hash" dashboard/admin_presidentes.php
+# La contraseña se hashea en el almacén —el único punto por el que pasa toda
+# alta o edición—, no en la pantalla: así ninguna pantalla, de hoy o futura,
+# puede guardar una contraseña en claro aunque se le olvide hashearla.
+grep -q "password_hash" dashboard/almacen.php
 # expect: exit 0
 ```
 

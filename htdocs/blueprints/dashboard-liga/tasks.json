@@ -329,6 +329,9 @@
             "checkpoint": "step-11-admin-equipos",
             "files": [
                 "dashboard/admin_equipos.php",
+                "dashboard/almacen.php",
+                "dashboard/chrome.php",
+                "dashboard/admin.php",
                 "dashboard/tests/test_equipos.php"
             ],
             "status": "done"
@@ -351,14 +354,15 @@
             "verify": [
                 "/c/xampp/php/php.exe -l dashboard/admin_presidentes.php",
                 "/c/xampp/php/php.exe dashboard/tests/test_presidentes.php",
-                "grep -q \"password_hash\" dashboard/admin_presidentes.php"
+                "grep -q \"password_hash\" dashboard/almacen.php"
             ],
             "checkpoint": "step-12-admin-presidentes",
             "files": [
                 "dashboard/admin_presidentes.php",
+                "dashboard/almacen.php",
                 "dashboard/tests/test_presidentes.php"
             ],
-            "status": "pending"
+            "status": "done"
         },
         {
             "id": "E3-T3",

@@ -107,8 +107,9 @@ duplica nada. Arrastra `nombre`, `nombre_en`, `abreviatura`, `abreviatura_en`, `
 el `nombre_en` es lo que permite que el mercado en inglés muestre «Mount Olympus» y no
 «Monte Olimpo», y lo consume la tarea E3-T7.
 
-`datos_oficiales.json` tiene hoy 43 equipos, 20 de ellos sin archivar. El importador debe traer
-esos 20 y ninguno más.
+El importador trae **todos los equipos no archivados** de `datos_oficiales.json` y ninguno más. El
+test los cuenta al ejecutarse en vez de fijar un número: la liga cambia (el 10-09-2026 eran 20;
+al día siguiente, 16), y una cifra escrita aquí caducaría en cuanto alguien archive un equipo.
 
 **Acceptance**
 
@@ -121,6 +122,9 @@ esos 20 y ninguno más.
 **Files**
 
 - `dashboard/admin_equipos.php`
+- `dashboard/almacen.php`
+- `dashboard/chrome.php`
+- `dashboard/admin.php`
 - `dashboard/tests/test_equipos.php`
 
 **Verify**
@@ -141,7 +145,8 @@ git tag step-11-admin-equipos
 
 ### E3-T2 — Admin de presidentes
 
-`password_hash($clave, PASSWORD_DEFAULT)` al crear y al cambiar contraseña. **Editar los datos sin
+`password_hash($clave, PASSWORD_DEFAULT)` al crear y al cambiar contraseña, **dentro de `almacen.php`** y
+no en la pantalla: es el único punto por el que pasa toda alta o edición. **Editar los datos sin
 escribir contraseña nueva conserva el hash anterior** — el error clásico aquí es rehashear una
 cadena vacía y dejar al presidente sin poder entrar.
 
@@ -161,6 +166,7 @@ entrar en juego.
 **Files**
 
 - `dashboard/admin_presidentes.php`
+- `dashboard/almacen.php`
 - `dashboard/tests/test_presidentes.php`
 
 **Verify**
@@ -168,7 +174,7 @@ entrar en juego.
 ```bash
 /c/xampp/php/php.exe -l dashboard/admin_presidentes.php
 /c/xampp/php/php.exe dashboard/tests/test_presidentes.php
-grep -q "password_hash" dashboard/admin_presidentes.php
+grep -q "password_hash" dashboard/almacen.php
 ```
 
 **Checkpoint**
@@ -447,7 +453,7 @@ trece criterios de aceptación de §20.1 se han recorrido a mano en el navegador
   luego no sabe representar.
 - **Hacer que el aviso de duplicados bloquee.** Son homónimos posibles, no un error.
 - **Que el importador escriba en `datos_oficiales.json`.** Es el fichero de producción de la web
-  pública, con 43 equipos y sus plantillas reales.
+  pública, con todos los equipos de la liga y sus plantillas reales.
 - **Inventar tokens de color en `dashboard.css`.** La paleta está cerrada.
 - **Dar por hecho el 403 de `data/` sin comprobarlo por URL.** Depende de que `AllowOverride` esté
   activo en el hosting, y es lo único de este checklist cuyo fallo publica contraseñas.
