@@ -283,6 +283,24 @@ function plUsuarioActual(): ?array
     return null;
 }
 
+// La entrada de un equipo dentro del fichero de una temporada —su rev y sus
+// jugadores—, junto con los ajustes congelados de esa temporada, que es lo que
+// necesita cualquier pantalla para pintar o validar. null si el equipo no
+// entró en la temporada (estaba archivado cuando se creó, o es nuevo).
+function plEquipoEnTemporada(string $temporadaId, string $equipoId): ?array
+{
+    $datos = plCargarTemporada($temporadaId);
+    if (!isset($datos['equipos'][$equipoId])) {
+        return null;
+    }
+    $entrada = $datos['equipos'][$equipoId];
+    return [
+        'rev'       => (int) ($entrada['rev'] ?? 0),
+        'jugadores' => $entrada['jugadores'] ?? [],
+        'ajustes'   => $datos['ajustes'] ?? [],
+    ];
+}
+
 function plBuscarEquipo(string $equipoId): ?array
 {
     foreach (plCargarEquipos()['equipos'] as $e) {

@@ -20,8 +20,8 @@ paths:
 
 - `plEsc($v)` = `htmlspecialchars((string) $v, ENT_QUOTES, 'UTF-8')`, y se usa en
   **todo** valor interpolado en HTML. Sin excepciones.
-- Todo POST valida `plCsrfValido()` antes de hacer nada; si falla, `http_response_code(403)`
-  y se corta. El token es `bin2hex(random_bytes(32))` en `$_SESSION`, comparado con
+- Todo POST valida `plCsrfValido()` antes de hacer nada; si falla, `plCortar(403, …)`.
+  Un POST con éxito termina en `plRedirigir(…)`. Nunca `header()`+`exit` a pelo. El token es `bin2hex(random_bytes(32))` en `$_SESSION`, comparado con
   `hash_equals()`.
 - Tras un login correcto: `session_regenerate_id(true)`.
 - Contraseñas de presidente: `password_hash($clave, PASSWORD_DEFAULT)` y

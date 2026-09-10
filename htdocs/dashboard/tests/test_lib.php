@@ -119,5 +119,57 @@ plVerificar(
     strtotime(plAhora()) !== false
 );
 
+// -- plM ---------------------------------------------------------------
+plVerificar('plM escribe las cifras en millones', plM(75) === '75M' && plM(0) === '0M');
+
+// -- costura de salida: plRedirigir / plCortar --------------------------
+// Todos los tests de pantalla dependen de esto. Si la costura dejara de
+// lanzar bajo el arnés, esos tests morirían en el primer exit sin decir por qué.
+$GLOBALS['PL_ARNES'] = true;
+
+$marca = '';
+try {
+    plRedirigir('plantilla.php');
+} catch (RuntimeException $e) {
+    $marca = $e->getMessage();
+}
+plVerificar('bajo el arnés, plRedirigir lanza en vez de hacer exit', $marca === 'PL_REDIRIGIR:plantilla.php');
+
+$marca = '';
+try {
+    plCortar(403, 'CSRF: invalido');
+} catch (RuntimeException $e) {
+    $marca = $e->getMessage();
+}
+plVerificar('bajo el arnés, plCortar lanza con código y mensaje', $marca === 'PL_CORTAR:403:CSRF: invalido');
+
+unset($GLOBALS['PL_ARNES']);
+
+// plArnesPeticion traduce esas marcas a un resultado. Se prueba contra una
+// pantalla mínima escrita para la ocasión, independiente de las reales.
+$pantalla = sys_get_temp_dir() . '/pl_pantalla_' . uniqid() . '.php';
+file_put_contents($pantalla, '<?php
+require_once ' . var_export(realpath(__DIR__ . '/../lib.php'), true) . ';
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    if (($_POST["accion"] ?? "") === "cortar") { plCortar(403, "no: dos puntos"); }
+    plRedirigir("destino.php");
+}
+echo "<p>hola</p>";');
+
+$r = plArnesPeticion($pantalla);
+plVerificar('un GET devuelve el HTML', $r['tipo'] === 'html' && $r['html'] === '<p>hola</p>');
+
+$r = plArnesPeticion($pantalla, [], [], ['accion' => 'ir']);
+plVerificar('un POST que redirige devuelve tipo redirigir y la URL',
+    $r['tipo'] === 'redirigir' && $r['url'] === 'destino.php');
+
+$r = plArnesPeticion($pantalla, [], [], ['accion' => 'cortar']);
+plVerificar('un POST cortado devuelve el código', $r['tipo'] === 'cortar' && $r['codigo'] === 403);
+plVerificar('y el mensaje entero, aunque lleve dos puntos', $r['mensaje'] === 'no: dos puntos');
+plVerificar('y no deja buffers de salida abiertos', ob_get_level() <= 1);
+
+unlink($pantalla);
+unset($GLOBALS['PL_ARNES']);
+
 plArnesLimpiar($dir);
 plSalirConResultado();

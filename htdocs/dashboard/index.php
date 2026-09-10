@@ -20,8 +20,7 @@ $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!plCsrfValido()) {
-        http_response_code(403);
-        exit(plT('error.csrf'));
+        plCortar(403, plT('error.csrf'));
     }
 
     $email = (string) ($_POST['email'] ?? '');
@@ -39,8 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // viejo y la protección contra fijación no serviría de nada.
         session_regenerate_id(true);
         $_SESSION['pl_usuario_id'] = $usuario['id'];
-        header('Location: index.php');
-        exit;
+        plRedirigir('index.php');
     }
 
     $error = plT('login.error');

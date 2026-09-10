@@ -129,3 +129,39 @@ function plAhora(): string
 {
     return date('c');
 }
+
+// ---------------------------------------------------- salidas de pantalla
+
+// Toda pantalla termina un POST con una de estas dos, nunca con header()+exit
+// a pelo. En producción hacen exactamente eso; bajo el arnés de tests
+// ($GLOBALS['PL_ARNES']) lanzan una excepción con una marca reconocible.
+//
+// El motivo: un exit dentro de un include mata el proceso entero del test, así
+// que sin esta costura el camino del POST —rechazo por fase, salario
+// manipulado, rev desfasado, CSRF— sería justo la parte de cada pantalla que
+// se quedaría sin probar. Es RuntimeException y no una clase propia porque el
+// subproyecto no usa clases; la marca del mensaje basta para distinguirla.
+function plRedirigir(string $url): never
+{
+    if (!empty($GLOBALS['PL_ARNES'])) {
+        throw new RuntimeException('PL_REDIRIGIR:' . $url);
+    }
+    header('Location: ' . $url);
+    exit;
+}
+
+function plCortar(int $codigo, string $mensaje): never
+{
+    if (!empty($GLOBALS['PL_ARNES'])) {
+        throw new RuntimeException('PL_CORTAR:' . $codigo . ':' . $mensaje);
+    }
+    http_response_code($codigo);
+    exit($mensaje);
+}
+
+// Cifra en millones para enseñar: 75 -> "75M". Centralizado para que todas
+// las pantallas escriban las cantidades igual y en una sola forma.
+function plM(int $millones): string
+{
+    return $millones . 'M';
+}

@@ -89,9 +89,14 @@ JSON de temporada) → `dashboard/dominio.php` (valida cap, 20, cláusulas) →
    ensucia el log del servidor.
 4. **Firmas con tipo nullable explícito**: `?string $x = null`, nunca
    `string $x = null`. PHP 8.4 deprecó la forma implícita.
-5. **Toda pantalla arranca con** `if (session_status() === PHP_SESSION_NONE) { session_start(); }`.
-   Es idempotente y es lo que permite renderizarla desde CLI con el arnés.
-6. **Todo POST valida CSRF** con `plCsrfValido()` y responde 403 si falla.
+5. **Toda pantalla arranca con**
+   `if (session_status() === PHP_SESSION_NONE && !headers_sent()) { session_start(); }`.
+   El `!headers_sent()` es lo que permite renderizarla desde CLI con el arnés,
+   que ya ha impreso cuando la incluye.
+6. **Todo POST valida CSRF** con `plCsrfValido()` y, si falla, llama a
+   `plCortar(403, …)`. Un POST con éxito termina en `plRedirigir(…)`.
+   **Nunca `header()`+`exit` a pelo en una pantalla**: bajo el arnés esas dos
+   funciones lanzan una excepción capturable, y un `exit` mataría el test.
 7. **Toda regla se revalida en servidor.** El contador en vivo de cláusulas es
    comodidad; la verdad la decide `dominio.php`.
 8. **Comentarios en español, explicando el porqué**, no el qué.

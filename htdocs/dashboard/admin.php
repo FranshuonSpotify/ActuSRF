@@ -29,8 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Primero CSRF, antes de mirar nada más. El Basic Auth autentica, pero no
     // protege contra que otra página envíe este formulario en tu nombre.
     if (!plCsrfValido()) {
-        http_response_code(403);
-        exit('Token CSRF invalido.');
+        plCortar(403, 'Token CSRF invalido.');
     }
 
     $temporada = plTemporadaActiva();
@@ -77,8 +76,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // POST/Redirect/GET: recargar no debe reenviar el formulario.
     $_SESSION['pl_admin_flash'] = ['mensaje' => $mensaje, 'error' => $error];
-    header('Location: admin.php');
-    exit;
+    plRedirigir('admin.php');
 }
 
 // Mensaje heredado del redirect anterior, si lo hay.

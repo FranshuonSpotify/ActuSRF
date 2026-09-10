@@ -29,13 +29,54 @@ function plArnesPreparar(array $sesion = [], array $get = [], array $post = [], 
 
 // Incluye una pantalla y devuelve el HTML que imprime.
 // Solo sirve para caminos que NO terminan en exit(): un redirect corta el
-// proceso entero. Los caminos de redirección se comprueban sobre la función
-// de guardia (plUsuarioActual, plFaseActiva), no sobre la pantalla.
+// proceso entero. Para los que sí terminan así, plArnesPeticion() de abajo.
 function plArnesRender(string $rutaPantalla): string
 {
     ob_start();
     include $rutaPantalla;
     return (string) ob_get_clean();
+}
+
+// Ejecuta una petición completa contra una pantalla —GET o POST— y dice cómo
+// terminó. Activa $GLOBALS['PL_ARNES'], con lo que plRedirigir() y plCortar()
+// de lib.php lanzan una excepción marcada en vez de hacer exit, y aquí se
+// captura. Así se prueba el camino del POST de cada pantalla, que es donde
+// viven el rechazo por fase, el rev desfasado y el CSRF.
+//
+// Devuelve una de:
+//   ['tipo' => 'html',      'html' => '...']
+//   ['tipo' => 'redirigir', 'url'  => 'plantilla.php']
+//   ['tipo' => 'cortar',    'codigo' => 403, 'mensaje' => '...']
+function plArnesPeticion(string $rutaPantalla, array $sesion = [], array $get = [], array $post = []): array
+{
+    plArnesPreparar($sesion, $get, $post, $post === [] ? 'GET' : 'POST');
+    $GLOBALS['PL_ARNES'] = true;
+
+    $nivel = ob_get_level();
+    ob_start();
+    try {
+        include $rutaPantalla;
+        $resultado = ['tipo' => 'html', 'html' => (string) ob_get_clean()];
+    } catch (RuntimeException $e) {
+        // Se descarta lo que la pantalla llegara a imprimir antes de salir.
+        while (ob_get_level() > $nivel) {
+            ob_end_clean();
+        }
+        $m = $e->getMessage();
+        if (str_starts_with($m, 'PL_REDIRIGIR:')) {
+            $resultado = ['tipo' => 'redirigir', 'url' => substr($m, strlen('PL_REDIRIGIR:'))];
+        } elseif (str_starts_with($m, 'PL_CORTAR:')) {
+            [, $codigo, $mensaje] = explode(':', $m, 3) + [null, '0', ''];
+            $resultado = ['tipo' => 'cortar', 'codigo' => (int) $codigo, 'mensaje' => $mensaje];
+        } else {
+            throw $e;
+        }
+    }
+
+    // La sesión que dejó la pantalla (flash, token CSRF, usuario) se conserva
+    // en el valor devuelto para que el test pueda encadenar peticiones.
+    $resultado['sesion'] = $_SESSION;
+    return $resultado;
 }
 
 // Directorio de datos aislado por test: nada toca dashboard/data/ real.

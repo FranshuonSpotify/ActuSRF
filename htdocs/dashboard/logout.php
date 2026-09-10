@@ -3,13 +3,15 @@
 // Cierra la sesión del presidente y devuelve al login.
 
 // !headers_sent() ademas del estado: no se puede abrir una sesion despues
-// de enviar cabeceras, y el arnes de tests renderiza la pantalla cuando ya
-// ha impreso. En una peticion real esta pantalla es el punto de entrada y
-// nada ha salido todavia, asi que la sesion se abre igual.
+// de enviar cabeceras. Aqui no hay arnes que imprima antes, pero se mantiene
+// la misma guarda en todas las pantallas para que no haya dos convenciones.
 if (session_status() === PHP_SESSION_NONE && !headers_sent()) {
     session_start();
 }
+require_once __DIR__ . '/lib.php';   // plRedirigir()
+
 $_SESSION = [];
-session_destroy();
-header('Location: index.php');
-exit;
+if (session_status() === PHP_SESSION_ACTIVE) {
+    session_destroy();
+}
+plRedirigir('index.php');

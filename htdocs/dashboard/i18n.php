@@ -23,7 +23,11 @@ const PL_BANDERAS = [
     'ja' => 'jp', 'ko' => 'kr', 'pl' => 'pl', 'bg' => 'bg', 'sr' => 'rs',
 ];
 
-$PL_I18N = [
+// Se asigna a $GLOBALS y no a una variable suelta: si este fichero se carga
+// por primera vez desde dentro de una función —el arnés de tests incluye las
+// pantallas desde plArnesPeticion()—, una variable de nivel de fichero sería
+// local a esa función y plT() no la encontraría.
+$GLOBALS['PL_I18N'] = [
     'es' => [
         // -- login
         'login.titulo'        => 'Dashboard de plantillas',

@@ -23,7 +23,9 @@ plVerificar('y lo hace ANTES de arrancar la sesión',
 plVerificar('usa las claves propias de dashboard, no las de otra herramienta',
     str_contains($fuente, "'admin_dashboard_user'") && str_contains($fuente, "'admin_dashboard_pass_hash'"));
 plVerificar('todo POST valida CSRF', str_contains($fuente, 'plCsrfValido()'));
-plVerificar('y responde 403 si falla', str_contains($fuente, 'http_response_code(403)'));
+plVerificar('y corta con 403 si falla', str_contains($fuente, 'plCortar(403'));
+plVerificar('sin header()+exit a pelo: todo sale por plRedirigir/plCortar',
+    !preg_match('/header\s*\(\s*[\'"]Location/', $fuente) && !str_contains($fuente, 'http_response_code('));
 
 // -- secrets.example.php ------------------------------------------------
 $ejemplo = (string) file_get_contents(__DIR__ . '/../../config/secrets.example.php');

@@ -16,16 +16,18 @@ imprima HTML: pantallas de presidente y vistas del panel de admin.
    pantalla es y por qué existe. Luego:
 
    ```php
-   if (session_status() === PHP_SESSION_NONE) { session_start(); }
+   if (session_status() === PHP_SESSION_NONE && !headers_sent()) { session_start(); }
    require_once __DIR__ . '/almacen.php';   // arrastra lib.php y dominio.php
    require_once __DIR__ . '/i18n.php';
+   require_once __DIR__ . '/chrome.php';
+   plEstablecerIdioma(plResolverIdioma());
    ```
 
 2. **Guardia de acceso.** Pantalla de presidente:
 
    ```php
    $usuario = plUsuarioActual();
-   if ($usuario === null) { header('Location: index.php'); exit; }
+   if ($usuario === null) { plRedirigir('index.php'); }
    ```
 
    Vista de admin, en su lugar:
@@ -44,10 +46,16 @@ imprima HTML: pantallas de presidente y vistas del panel de admin.
 
    ```php
    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-       if (!plCsrfValido()) { http_response_code(403); exit('CSRF invalido'); }
+       if (!plCsrfValido()) { plCortar(403, plT('error.csrf')); }
        // revalidar SIEMPRE fase + reglas de dominio.php aquí, no en el cliente
+       // ... y con éxito: plRedirigir('pantalla.php');
    }
    ```
+
+   **Nunca `header()`+`exit` a pelo.** `plRedirigir()` y `plCortar()` hacen
+   eso mismo en producción, pero bajo el arnés lanzan una excepción marcada
+   que `plArnesPeticion()` captura. Con un `exit` directo, el camino del POST
+   —justo donde viven el rechazo por fase y el `rev`— se queda sin test.
 
    El formulario lleva `<input type="hidden" name="csrf" value="<?= plEsc(plTokenCsrf()) ?>">`
    y, si guarda plantilla o cláusulas, también
@@ -64,9 +72,11 @@ imprima HTML: pantallas de presidente y vistas del panel de admin.
 
 7. **Test.** Crea `dashboard/tests/test_<pantalla>.php` con el patrón del
    resto: `require_once __DIR__ . '/arnes.php';`, `plVerificar(...)` por cada
-   comprobación y `plSalirConResultado();` al final. Comprueba al menos: el
-   render con sesión válida contiene lo que debe, un POST sin CSRF no escribe
-   nada, y la pantalla respeta el bloqueo de fase.
+   comprobación y `plSalirConResultado();` al final. Usa
+   `plArnesPeticion($pantalla, $sesion, $get, $post)`, que devuelve
+   `['tipo' => 'html'|'redirigir'|'cortar', …]`. Comprueba al menos: el render
+   con sesión válida contiene lo que debe, un POST sin CSRF devuelve
+   `cortar`/403 y no escribe nada, y un POST fuera de fase se rechaza.
 
 ## Verificar
 
@@ -77,9 +87,11 @@ for t in dashboard/tests/test_*.php; do /c/xampp/php/php.exe "$t" || exit 1; don
 
 ## No hagas
 
-- No renderices el camino de redirección desde el arnés: un `exit` dentro de
-  un `include` mata el proceso del test. Comprueba la **función de guardia**
-  (`plUsuarioActual()` devuelve `null`), no la pantalla.
+- No escribas `header()`+`exit` en una pantalla: usa `plRedirigir()` y
+  `plCortar()`. Un `exit` dentro de un `include` mata el proceso del test.
+- Las vistas de admin no se renderizan en test: su primera línea es el Basic
+  Auth, que lee `config/secrets.php`. Su lógica va en funciones de
+  `almacen.php`, y esas sí se prueban.
 - No escribas JSON sin pasar por `almacen.php`.
 - No valides solo en el cliente.
 - No inventes una clave de i18n sin darla de alta en los diez idiomas.
