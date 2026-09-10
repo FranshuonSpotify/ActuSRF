@@ -117,6 +117,21 @@ $GLOBALS['PL_I18N'] = [
         'pegado.error_cap'      => 'El lote dejaría tus salarios en {total}M y el Salary Cap es de {cap}M. Solo tienes {disponible}M disponibles.',
         'pegado.guardado'       => '{n} jugadores inscritos.',
 
+        // -- cláusulas
+        'clausulas.titulo'            => 'Cláusulas',
+        'clausulas.presupuesto'       => 'Presupuesto total',
+        'clausulas.asignado'          => 'Asignado',
+        'clausulas.disponible'        => 'Disponible',
+        'clausulas.completo'          => '✓ Presupuesto completo',
+        'clausulas.incompleto'        => 'Incompleto: faltan {cifra} por repartir',
+        'clausulas.excedido'          => 'Te pasas de {cifra}: así no se puede guardar',
+        'clausulas.guardar'           => 'Guardar cláusulas',
+        'clausulas.guardado_completo' => 'Cláusulas guardadas. Presupuesto completo.',
+        'clausulas.guardado_borrador' => 'Cláusulas guardadas como borrador: quedan {cifra} por repartir.',
+        'clausulas.nota_borrador'     => 'Puedes guardar aunque no llegues al total: se guarda como borrador. Tu equipo cuenta como completo solo con el presupuesto exacto.',
+        'clausulas.sin_jugadores'     => 'No tienes jugadores inscritos, así que no hay cláusulas que repartir.',
+        'clausulas.campo_de'          => 'Cláusula de {jugador}',
+
         // -- cabeceras de tabla y estados de jugador, compartidos
         'tabla.jugador'             => 'Jugador',
         'tabla.pos'                 => 'Pos.',

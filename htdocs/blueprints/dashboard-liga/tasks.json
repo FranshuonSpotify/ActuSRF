@@ -275,7 +275,7 @@
                 "dashboard/clausulas.php",
                 "dashboard/tests/test_clausulas.php"
             ],
-            "status": "pending"
+            "status": "done"
         },
         {
             "id": "E2-T5",
