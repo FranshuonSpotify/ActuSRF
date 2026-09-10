@@ -247,7 +247,7 @@
                 "dashboard/pegado.php",
                 "dashboard/tests/test_pegado.php"
             ],
-            "status": "pending"
+            "status": "done"
         },
         {
             "id": "E2-T4",

@@ -202,6 +202,111 @@ function plEstadoPresupuesto(int $total, int $presupuesto): string
     return $total === $presupuesto ? 'COMPLETO' : 'EXCEDIDO';
 }
 
+// ------------------------------------------------------------------ pegado
+
+// Separadores de una línea del pegado masivo. El punto y coma es el formato
+// de la especificación; el tabulador es lo que llega al copiar tres columnas
+// de una hoja de cálculo, que es de donde saldrá la lista casi siempre. Sin
+// aceptarlo, el caso más habitual fallaría en todas las líneas a la vez.
+const PL_SEPARADORES_PEGADO = "/[;\t]/";
+
+// Analiza un lote pegado de "Nombre;POS;TIER", una línea por jugador. No
+// guarda nada: devuelve lo que pasaría, línea a línea, para la
+// previsualización, y si el lote entero es aceptable.
+//
+// El lote es ATÓMICO por diseño: entra completo o no entra. Importar la mitad
+// y dejar al presidente adivinando qué líneas faltan sería peor que rechazarlo.
+//
+// Los números de línea cuentan también las líneas en blanco, para que casen
+// con lo que el presidente ve en el cuadro de texto y pueda encontrar la mala.
+function plParsearPegado(string $texto, array $jugadoresActuales, array $ajustes): array
+{
+    $tiers  = $ajustes['tiers'] ?? [];
+    $maximo = (int) ($ajustes['maxJugadores'] ?? 20);
+    $cap    = (int) ($ajustes['salaryCap'] ?? 250);
+
+    $lineas         = [];
+    $validas        = 0;
+    $errores        = 0;
+    $salariosNuevos = 0;
+
+    foreach (preg_split('/\r\n|\r|\n/', $texto) as $i => $cruda) {
+        $cruda = trim($cruda);
+        if ($cruda === '') {
+            continue;   // una línea en blanco no es un error, solo espacio
+        }
+
+        $campos = array_map('trim', preg_split(PL_SEPARADORES_PEGADO, $cruda));
+        $linea  = ['n' => $i + 1, 'texto' => $cruda, 'nombre' => '', 'posicion' => '',
+                   'tier' => '', 'salario' => 0, 'error' => null];
+
+        if (count($campos) !== 3) {
+            $linea['error'] = 'pegado.error_campos';
+        } else {
+            // Mayúsculas en posición y tier: "def" y "s++" son lo mismo que
+            // DEF y S++, y rechazarlos por la caja sería pedantería.
+            [$nombre, $posicion, $tier] = [$campos[0], strtoupper($campos[1]), strtoupper($campos[2])];
+            $salario = plSalarioDeTier($tier, $tiers);
+            $linea['nombre']   = $nombre;
+            $linea['posicion'] = $posicion;
+            $linea['tier']     = $tier;
+
+            if ($nombre === '') {
+                $linea['error'] = 'error.nombre_vacio';
+            } elseif (!in_array($posicion, PL_POSICIONES, true)) {
+                $linea['error'] = 'error.posicion_invalida';
+            } elseif ($salario === null) {
+                $linea['error'] = 'error.tier_invalido';
+            } else {
+                $linea['salario'] = $salario;
+            }
+        }
+
+        if ($linea['error'] === null) {
+            $validas++;
+            $salariosNuevos += $linea['salario'];
+        } else {
+            $errores++;
+        }
+        $lineas[] = $linea;
+    }
+
+    $actuales       = count($jugadoresActuales);
+    $salariosAntes  = plTotalSalarios($jugadoresActuales);
+    $totalJugadores = $actuales + $validas;
+    $totalSalarios  = $salariosAntes + $salariosNuevos;
+
+    // Los límites del equipo solo se evalúan cuando todas las líneas son
+    // buenas: con líneas malas el lote ya no entra, y sumar a medias daría
+    // unas cifras que no corresponden a nada que se vaya a guardar.
+    $errorLote = null;
+    $datosLote = [];
+    if ($lineas === []) {
+        $errorLote = 'pegado.error_vacio';
+    } elseif ($errores === 0) {
+        if ($totalJugadores > $maximo) {
+            $errorLote = 'pegado.error_max';
+            $datosLote = ['total' => $totalJugadores, 'maximo' => $maximo, 'libres' => max(0, $maximo - $actuales)];
+        } elseif ($totalSalarios > $cap) {
+            $errorLote = 'pegado.error_cap';
+            $datosLote = ['total' => $totalSalarios, 'cap' => $cap, 'disponible' => max(0, $cap - $salariosAntes)];
+        }
+    }
+
+    return [
+        'ok'             => $errores === 0 && $errorLote === null && $validas > 0,
+        'lineas'         => $lineas,
+        'validas'        => $validas,
+        'errores'        => $errores,
+        'totalJugadores' => $totalJugadores,
+        'totalSalarios'  => $totalSalarios,
+        'maximo'         => $maximo,
+        'cap'            => $cap,
+        'errorLote'      => $errorLote,
+        'datosLote'      => $datosLote,
+    ];
+}
+
 // --------------------------------------------------------------- informes
 
 // Qué equipos no han terminado, para enseñárselo al admin ANTES de que cierre

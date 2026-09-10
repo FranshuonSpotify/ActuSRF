@@ -98,6 +98,25 @@ $GLOBALS['PL_I18N'] = [
         'plantilla.pegar'            => '¿Tienes la lista en una hoja de cálculo? Pégala entera',
         'plantilla.acciones'         => 'Acciones',
 
+        // -- pegado masivo
+        'pegado.titulo'         => 'Pegar plantilla',
+        'pegado.volver'         => 'Volver a Mi plantilla',
+        'pegado.explicacion'    => 'Una línea por jugador, con el formato Nombre;POS;TIER. También vale pegar directamente tres columnas copiadas de una hoja de cálculo.',
+        'pegado.ejemplo'        => 'Endou Mamoru;POR;S++',
+        'pegado.campo'          => 'Lista de jugadores',
+        'pegado.previsualizar'  => 'Previsualizar',
+        'pegado.confirmar'      => 'Inscribir {n} jugadores',
+        'pegado.col_linea'      => 'Línea',
+        'pegado.col_resultado'  => 'Resultado',
+        'pegado.linea_ok'       => 'Correcta',
+        'pegado.resumen'        => '{n} jugadores nuevos · la plantilla quedaría en {total} / {max} · salarios {salarios} / {cap}',
+        'pegado.errores_lineas' => 'Hay {n} líneas con errores. Corrígelas y vuelve a previsualizar: el lote entra entero o no entra.',
+        'pegado.error_campos'   => 'Hacen falta tres campos separados por punto y coma: Nombre;POS;TIER.',
+        'pegado.error_vacio'    => 'No hay ninguna línea con un jugador.',
+        'pegado.error_max'      => 'El lote dejaría tu plantilla en {total} jugadores y el máximo es {maximo}. Solo te quedan {libres} plazas.',
+        'pegado.error_cap'      => 'El lote dejaría tus salarios en {total}M y el Salary Cap es de {cap}M. Solo tienes {disponible}M disponibles.',
+        'pegado.guardado'       => '{n} jugadores inscritos.',
+
         // -- cabeceras de tabla y estados de jugador, compartidos
         'tabla.jugador'             => 'Jugador',
         'tabla.pos'                 => 'Pos.',
