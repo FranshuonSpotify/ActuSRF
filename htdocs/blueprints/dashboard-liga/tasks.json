@@ -387,9 +387,10 @@
             "checkpoint": "step-13-admin-tiers",
             "files": [
                 "dashboard/admin_tiers.php",
+                "dashboard/almacen.php",
                 "dashboard/tests/test_tiers.php"
             ],
-            "status": "pending"
+            "status": "done"
         },
         {
             "id": "E3-T4",

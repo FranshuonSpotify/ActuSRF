@@ -42,27 +42,79 @@ function plGuardarUsuarios(array $data): bool
     return plGuardarJsonAtomico(plRutaDatos('usuarios.json'), $data);
 }
 
-// La única semilla con contenido: sin ella la primera temporada nacería sin
-// tabla de salarios. Son los diez tiers oficiales; C+, C- y D no existen.
+// Los diez tiers oficiales con su salario de partida, en el orden del
+// desplegable. Es la única semilla con contenido —sin ella la primera
+// temporada nacería sin tabla de salarios— y también la lista cerrada de
+// códigos válidos: C+, C- y D no existen, y nadie puede añadirlos.
+const PL_TIERS_SEMILLA = [
+    ['codigo' => 'S++', 'salario' => 75],
+    ['codigo' => 'S+',  'salario' => 60],
+    ['codigo' => 'S',   'salario' => 40],
+    ['codigo' => 'A+',  'salario' => 25],
+    ['codigo' => 'A',   'salario' => 18],
+    ['codigo' => 'A-',  'salario' => 14],
+    ['codigo' => 'B+',  'salario' => 8],
+    ['codigo' => 'B',   'salario' => 6],
+    ['codigo' => 'B-',  'salario' => 5],
+    ['codigo' => 'C',   'salario' => 2],
+];
+
 function plCargarTiers(): array
 {
-    return plCargarJson(plRutaDatos('tiers.json'), ['tiers' => [
-        ['codigo' => 'S++', 'salario' => 75],
-        ['codigo' => 'S+',  'salario' => 60],
-        ['codigo' => 'S',   'salario' => 40],
-        ['codigo' => 'A+',  'salario' => 25],
-        ['codigo' => 'A',   'salario' => 18],
-        ['codigo' => 'A-',  'salario' => 14],
-        ['codigo' => 'B+',  'salario' => 8],
-        ['codigo' => 'B',   'salario' => 6],
-        ['codigo' => 'B-',  'salario' => 5],
-        ['codigo' => 'C',   'salario' => 2],
-    ]]);
+    return plCargarJson(plRutaDatos('tiers.json'), ['tiers' => PL_TIERS_SEMILLA]);
 }
 
 function plGuardarTiers(array $data): bool
 {
     return plGuardarJsonAtomico(plRutaDatos('tiers.json'), $data);
+}
+
+// Guarda los SALARIOS de los diez tiers; los códigos no se tocan nunca.
+//
+// Un código que no sea uno de los diez se ignora. Un salario negativo,
+// decimal, vacío o no numérico hace que se rechace el envío ENTERO, antes de
+// escribir nada: guardar la mitad dejaría la tabla en un estado que el admin
+// no ha pedido y que quizá ni vea.
+//
+// No toca ningún fichero de temporada, y eso es lo que hace segura esta
+// pantalla: cada temporada lleva sus salarios congelados en ajustes.tiers, así
+// que subir S++ de 75M a 90M no puede reventar el cap de nadie ya inscrito.
+function plGuardarSalariosTiers(array $salarios): array
+{
+    $codigosValidos = array_column(PL_TIERS_SEMILLA, 'codigo');
+    $limpios = [];
+    foreach ($salarios as $codigo => $valor) {
+        $codigo = (string) $codigo;
+        if (!in_array($codigo, $codigosValidos, true)) {
+            continue;
+        }
+        // ctype_digit sobre el texto rechaza a la vez el signo, los decimales
+        // y la cadena vacía. Un -5 que llegue como entero se convierte antes a
+        // texto para que no se cuele por el lado del tipo.
+        $texto = is_int($valor) ? (string) $valor : trim((string) $valor);
+        if (!ctype_digit($texto)) {
+            return ['ok' => false, 'mensaje' => 'El salario de ' . $codigo
+                . ' tiene que ser un número entero de millones, sin decimales ni signo. No se ha guardado nada.'];
+        }
+        $limpios[$codigo] = (int) $texto;
+    }
+
+    if ($limpios === []) {
+        return ['ok' => true, 'mensaje' => ''];
+    }
+
+    $ok = plActualizarJson(plRutaDatos('tiers.json'), ['tiers' => PL_TIERS_SEMILLA],
+        static function (array $d) use ($limpios): array {
+            // Se actualiza en su sitio para conservar el orden del desplegable.
+            foreach ($d['tiers'] as $i => $t) {
+                $c = (string) ($t['codigo'] ?? '');
+                if (isset($limpios[$c])) {
+                    $d['tiers'][$i]['salario'] = $limpios[$c];
+                }
+            }
+            return $d;
+        });
+    return ['ok' => $ok, 'mensaje' => $ok ? '' : 'No se pudieron guardar los salarios.'];
 }
 
 function plCargarTemporadas(): array
