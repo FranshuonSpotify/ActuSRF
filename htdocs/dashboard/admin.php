@@ -144,6 +144,11 @@ $siguiente = $transiciones[$fase] ?? null;
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <title>Admin · Dashboard de plantillas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- Mismas familias que _fuente/shell.html: el dashboard usa la tipografia de
+     la marca, no la del sistema. -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Teko:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
 <link rel="stylesheet" href="../_fuente/styles.css">
 <link rel="stylesheet" href="css/dashboard.css">
 </head>
