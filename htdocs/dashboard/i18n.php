@@ -62,6 +62,35 @@ $GLOBALS['PL_I18N'] = [
         'aviso.clausulas_cerradas'  => 'La fase de cláusulas ya ha finalizado. Puedes consultarlas, pero no cambiarlas.',
         'aviso.mercado_abierto'     => 'MERCADO ABIERTO',
         'aviso.mercado_cerrado'     => 'MERCADO CERRADO',
+        'aviso.equipo_fuera'        => 'Tu equipo no forma parte de la temporada en curso. Habla con el admin de la liga.',
+
+        // -- dashboard del presidente
+        'dash.presidente'           => 'Presidente: {nombre}',
+        'dash.temporada'            => 'Temporada {nombre}',
+        'dash.tarjeta_plantilla'    => 'PLANTILLA',
+        'dash.tarjeta_cap'          => 'SALARY CAP',
+        'dash.tarjeta_clausulas'    => 'CLÁUSULAS',
+        'dash.tarjeta_mercado'      => 'MERCADO',
+        'dash.disponibles'          => '{cifra} disponibles',
+        'dash.presupuesto_completo' => 'Presupuesto completo',
+        'dash.presupuesto_incompleto' => 'Incompleto',
+        'dash.mercado_abierto'      => 'ABIERTO',
+        'dash.mercado_cerrado'      => 'CERRADO',
+        'dash.mi_plantilla'         => 'MI PLANTILLA',
+        'dash.vacio_roster'         => 'Todavía no has inscrito a ningún jugador. La inscripción está abierta.',
+        'dash.vacio_accion'         => 'Inscribir jugadores',
+        'dash.vacio_cerrado'        => 'Tu equipo no inscribió jugadores en esta temporada.',
+
+        // -- cabeceras de tabla y estados de jugador, compartidos
+        'tabla.jugador'             => 'Jugador',
+        'tabla.pos'                 => 'Pos.',
+        'tabla.tier'                => 'Tier',
+        'tabla.salario'             => 'Salario',
+        'tabla.clausula'            => 'Cláusula',
+        'tabla.estado'              => 'Estado',
+        'tabla.equipo'              => 'Equipo',
+        'estado.disponible'         => 'Disponible',
+        'estado.clausulado_por'     => 'Clausulado por {equipo}',
 
         // -- errores que devuelve dominio.php, con sus marcadores
         'error.nombre_vacio'         => 'Escribe el nombre del jugador.',

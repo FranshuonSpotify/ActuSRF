@@ -10,10 +10,17 @@
 // barrido de sintaxis del paso 01 lo recorre.
 
 // Fija sesión y superglobales como si la petición viniera de Apache.
+//
+// La sesión se ABRE aquí, antes de inyectar los datos, y se deja abierta.
+// Si no, en el primer render de un test —cuando aún no se ha impreso nada y
+// por tanto headers_sent() es falso— la guarda de la pantalla dejaría pasar un
+// session_start() real, que en CLI abre una sesión vacía y PISA el $_SESSION
+// que el test acababa de poner: el usuario desaparece y se pinta el login.
+// Con la sesión ya activa, la pantalla la ve y no la vuelve a abrir.
 function plArnesPreparar(array $sesion = [], array $get = [], array $post = [], string $metodo = 'GET'): void
 {
-    if (session_status() === PHP_SESSION_ACTIVE) {
-        session_write_close();
+    if (session_status() === PHP_SESSION_NONE && !headers_sent()) {
+        session_start();
     }
     $_SESSION = $sesion;
     $_GET = $get;

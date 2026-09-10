@@ -20,6 +20,35 @@ const PL_NAV = [
     'mercado'   => ['href' => 'mercado.php',   'clave' => 'nav.mercado'],
 ];
 
+// Nombre de un equipo para enseñarlo en el idioma activo. En inglés usa
+// nombre_en si existe —el importador lo trae de datos_oficiales.json, así el
+// mercado dice «Mount Olympus» y no «Monte Olimpo»—; si no existe (un equipo
+// creado a mano aquí), cae al nombre en español en vez de dejar la celda vacía.
+function plNombreEquipo(?array $equipo, string $porDefecto = ''): string
+{
+    if ($equipo === null) {
+        return $porDefecto;
+    }
+    $idioma = $GLOBALS['PL_IDIOMA_ACTUAL'] ?? 'es';
+    if ($idioma === 'en' && trim((string) ($equipo['nombre_en'] ?? '')) !== '') {
+        return (string) $equipo['nombre_en'];
+    }
+    return (string) ($equipo['nombre'] ?? $porDefecto);
+}
+
+// Texto del estado de un jugador. Siempre texto, nunca solo un color: «Clausulado
+// por Beta» tiene que leerse igual en blanco y negro o con daltonismo.
+function plEstadoJugadorTexto(array $jugador): string
+{
+    if (($jugador['estado'] ?? 'DISPONIBLE') === 'CLAUSULADO') {
+        $comprador = plBuscarEquipo((string) ($jugador['clausuladoPor'] ?? ''));
+        return plT('estado.clausulado_por', [
+            'equipo' => plNombreEquipo($comprador, (string) ($jugador['clausuladoPor'] ?? '?')),
+        ]);
+    }
+    return plT('estado.disponible');
+}
+
 // Clase CSS del badge de una fase. El color nunca es la única señal: el badge
 // lleva siempre su texto al lado.
 function plClaseFase(string $fase): string

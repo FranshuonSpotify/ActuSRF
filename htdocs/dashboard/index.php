@@ -78,28 +78,137 @@ if ($usuario === null):
 
 else:
 
-// -------- autenticado ---------------------------------------------------
-// El dashboard completo llega en el paso 06. Aquí, de momento, la confirmación
-// mínima de que la sesión funciona y de qué equipo gestiona el presidente.
+// -------- autenticado: dashboard del presidente -------------------------
+// Todas las cifras se CALCULAN al pintar; ninguna se lee de un campo guardado.
+// Un total de salarios almacenado es un total que tarde o temprano se
+// desincroniza de la lista de jugadores que dice resumir.
 
 $temporada = plTemporadaActiva();
 $fase      = plFaseActiva();
-$equipo    = ($usuario['equipoId'] ?? null) !== null ? plBuscarEquipo((string) $usuario['equipoId']) : null;
+$equipoId  = (string) ($usuario['equipoId'] ?? '');
+$equipo    = $equipoId !== '' ? plBuscarEquipo($equipoId) : null;
+$enTemp    = ($temporada !== null && $equipoId !== '') ? plEquipoEnTemporada($temporada['id'], $equipoId) : null;
+
+$jugadores   = $enTemp['jugadores'] ?? [];
+$ajustes     = $enTemp['ajustes'] ?? [];
+$maximo      = (int) ($ajustes['maxJugadores'] ?? 20);
+$cap         = (int) ($ajustes['salaryCap'] ?? 250);
+$presupuesto = (int) ($ajustes['presupuestoClausulas'] ?? 650);
+$salarios    = plTotalSalarios($jugadores);
+$clausulas   = plTotalClausulas($jugadores);
+$estadoPres  = plEstadoPresupuesto($clausulas, $presupuesto);
+
+// El estado del mercado se DERIVA de la fase, no de un campo aparte: dos
+// fuentes para el mismo hecho es una fuente de más.
+$mercadoAbierto = $fase === 'MERCADO';
 
 plCabecera(plT('nav.dashboard'), 'dashboard', $fase);
 ?>
-<h1><?= plEsc($equipo['nombre'] ?? plT('nav.dashboard')) ?></h1>
-
-<?php if ($temporada === null): ?>
-  <p class="ayuda"><?= plEsc(plT('aviso.sin_temporada')) ?></p>
-<?php endif; ?>
+<header class="dash-cabecera">
+  <h1><?= plEsc(plNombreEquipo($equipo, plT('nav.dashboard'))) ?></h1>
+  <p class="ayuda">
+    <?= plEsc(plT('dash.presidente', ['nombre' => $usuario['nombre'] ?? ''])) ?>
+    <?php if ($temporada !== null): ?>
+      · <?= plEsc(plT('dash.temporada', ['nombre' => $temporada['nombre'] ?? $temporada['id']])) ?>
+    <?php endif; ?>
+  </p>
+</header>
 
 <?php if ($equipo === null): ?>
+
   <p class="mal"><?= plEsc(plT('aviso.sin_equipo')) ?></p>
+
+<?php elseif ($temporada === null): ?>
+
+  <p class="ayuda"><?= plEsc(plT('aviso.sin_temporada')) ?></p>
+
+<?php elseif ($enTemp === null): ?>
+
+  <p class="mal"><?= plEsc(plT('aviso.equipo_fuera')) ?></p>
+
 <?php else: ?>
-  <p class="ayuda">
-    <?= plEsc(plT('login.campo_email')) ?>: <?= plEsc($usuario['email'] ?? '') ?>
-  </p>
+
+  <?php
+    // Las cuatro tarjetas de la especificación, en su orden. Se describen como
+    // datos y se pintan con un solo bucle para no repetir el marcado cuatro veces.
+    $tarjetas = [
+        [
+            'titulo' => plT('dash.tarjeta_plantilla'),
+            'cifra'  => count($jugadores) . ' / ' . $maximo,
+            'nota'   => '',
+        ],
+        [
+            'titulo' => plT('dash.tarjeta_cap'),
+            'cifra'  => plM($salarios) . ' / ' . plM($cap),
+            'nota'   => plT('dash.disponibles', ['cifra' => plM(max(0, $cap - $salarios))]),
+        ],
+        [
+            'titulo' => plT('dash.tarjeta_clausulas'),
+            'cifra'  => plM($clausulas) . ' / ' . plM($presupuesto),
+            'nota'   => $estadoPres === 'COMPLETO'
+                ? plT('dash.presupuesto_completo')
+                : plT('dash.disponibles', ['cifra' => plM(max(0, $presupuesto - $clausulas))]),
+        ],
+        [
+            'titulo' => plT('dash.tarjeta_mercado'),
+            'cifra'  => $mercadoAbierto ? plT('dash.mercado_abierto') : plT('dash.mercado_cerrado'),
+            'nota'   => '',
+            'estado' => $mercadoAbierto ? 'abierto' : 'cerrado',
+        ],
+    ];
+  ?>
+  <section class="dash-tarjetas" aria-label="<?= plEsc(plT('nav.dashboard')) ?>">
+    <?php foreach ($tarjetas as $t): ?>
+      <div class="card dash-tarjeta"<?= isset($t['estado']) ? ' data-estado="' . plEsc($t['estado']) . '"' : '' ?>>
+        <div class="dash-tarjeta-titulo"><?= plEsc($t['titulo']) ?></div>
+        <div class="cifra"><?= plEsc($t['cifra']) ?></div>
+        <?php if ($t['nota'] !== ''): ?>
+          <div class="ayuda"><?= plEsc($t['nota']) ?></div>
+        <?php endif; ?>
+      </div>
+    <?php endforeach; ?>
+  </section>
+
+  <section class="dash-seccion">
+    <h2><?= plEsc(plT('dash.mi_plantilla')) ?></h2>
+
+    <?php if ($jugadores === []): ?>
+      <?php if (plPuedeEditarPlantilla($fase)): ?>
+        <p class="ayuda"><?= plEsc(plT('dash.vacio_roster')) ?></p>
+        <a class="btn btn-accent" href="plantilla.php"><?= plEsc(plT('dash.vacio_accion')) ?></a>
+      <?php else: ?>
+        <p class="ayuda"><?= plEsc(plT('dash.vacio_cerrado')) ?></p>
+      <?php endif; ?>
+    <?php else: ?>
+      <div class="tabla-scroll">
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th scope="col"><?= plEsc(plT('tabla.jugador')) ?></th>
+              <th scope="col"><?= plEsc(plT('tabla.pos')) ?></th>
+              <th scope="col"><?= plEsc(plT('tabla.tier')) ?></th>
+              <th scope="col"><?= plEsc(plT('tabla.salario')) ?></th>
+              <th scope="col"><?= plEsc(plT('tabla.clausula')) ?></th>
+              <th scope="col"><?= plEsc(plT('tabla.estado')) ?></th>
+            </tr>
+          </thead>
+          <tbody>
+            <?php foreach ($jugadores as $j): $pos = (string) ($j['posicion'] ?? ''); ?>
+              <tr<?= ($j['estado'] ?? '') === 'CLAUSULADO' ? ' class="clausulado"' : '' ?>>
+                <td><?= plEsc($j['nombre'] ?? '') ?></td>
+                <td><span class="chip chip-<?= plEsc(strtolower($pos)) ?>"><?= plEsc($pos) ?></span></td>
+                <td class="cifra"><?= plEsc($j['tier'] ?? '') ?></td>
+                <td class="cifra"><?= plEsc(plM((int) ($j['salario'] ?? 0))) ?></td>
+                <td class="cifra"><?= plEsc(plM((int) ($j['clausula'] ?? 0))) ?></td>
+                <td><?= plEsc(plEstadoJugadorTexto($j)) ?></td>
+              </tr>
+            <?php endforeach; ?>
+          </tbody>
+        </table>
+      </div>
+    <?php endif; ?>
+  </section>
+
 <?php endif; ?>
 
 <?php
