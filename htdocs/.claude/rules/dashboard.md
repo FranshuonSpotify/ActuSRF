@@ -40,7 +40,10 @@ paths:
 - Tipos nullable explícitos en las firmas: `?string $x = null`, nunca
   `string $x = null` (deprecado en 8.4).
 - Toda pantalla arranca con
-  `if (session_status() === PHP_SESSION_NONE) { session_start(); }`.
+  `if (session_status() === PHP_SESSION_NONE && !headers_sent()) { session_start(); }`.
+  El `!headers_sent()` no es decorativo: no se puede abrir una sesion despues de
+  enviar cabeceras, y el arnes de tests renderiza la pantalla cuando ya ha impreso.
+  En una peticion real la pantalla es el punto de entrada y la sesion se abre igual.
 
 ## Datos
 

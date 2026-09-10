@@ -13,7 +13,11 @@ require_once __DIR__ . '/../config/admin_auth.php';
 requerirAdminBasicAuthConClaves('admin_dashboard_user', 'admin_dashboard_pass_hash', 'Dashboard Admin');
 
 // La sesión es aparte del Basic Auth: hace falta para el token CSRF.
-if (session_status() === PHP_SESSION_NONE) {
+// !headers_sent() ademas del estado: no se puede abrir una sesion despues
+// de enviar cabeceras, y el arnes de tests renderiza la pantalla cuando ya
+// ha impreso. En una peticion real esta pantalla es el punto de entrada y
+// nada ha salido todavia, asi que la sesion se abre igual.
+if (session_status() === PHP_SESSION_NONE && !headers_sent()) {
     session_start();
 }
 require_once __DIR__ . '/almacen.php';
