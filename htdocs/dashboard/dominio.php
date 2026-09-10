@@ -202,6 +202,44 @@ function plEstadoPresupuesto(int $total, int $presupuesto): string
     return $total === $presupuesto ? 'COMPLETO' : 'EXCEDIDO';
 }
 
+// --------------------------------------------------------------- informes
+
+// Qué equipos no han terminado, para enseñárselo al admin ANTES de que cierre
+// una fase. Avisa, no bloquea: el admin manda, pero decide con la lista
+// delante en vez de a ciegas.
+//
+// Vive aquí y no dentro de la pantalla para que se pueda probar: si estuviera
+// embebido en el HTML de admin.php, la parte con más consecuencias del paso
+// se quedaría sin ninguna comprobación automática.
+//
+// Devuelve ['roster' => [equipoId => [n, max]], 'clausulas' => [equipoId => [suma, presupuesto]]].
+function plEquiposIncompletos(array $datosTemporada): array
+{
+    $ajustes     = $datosTemporada['ajustes'] ?? [];
+    $maximo      = (int) ($ajustes['maxJugadores'] ?? 20);
+    $presupuesto = (int) ($ajustes['presupuestoClausulas'] ?? 650);
+
+    $roster    = [];
+    $clausulas = [];
+
+    foreach ($datosTemporada['equipos'] ?? [] as $equipoId => $entrada) {
+        $jugadores = $entrada['jugadores'] ?? [];
+
+        if (count($jugadores) < $maximo) {
+            $roster[(string) $equipoId] = ['n' => count($jugadores), 'max' => $maximo];
+        }
+
+        // Un equipo sin jugadores tampoco tiene las cláusulas repartidas: se
+        // reporta igual, porque 0 de 650 no es "completo".
+        $suma = plTotalClausulas($jugadores);
+        if ($suma !== $presupuesto) {
+            $clausulas[(string) $equipoId] = ['suma' => $suma, 'presupuesto' => $presupuesto];
+        }
+    }
+
+    return ['roster' => $roster, 'clausulas' => $clausulas];
+}
+
 // ------------------------------------------------------------ autorización
 
 // Qué pantalla es editable en cada fase. El admin se salta el ORDEN de las

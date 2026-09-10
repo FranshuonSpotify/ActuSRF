@@ -150,6 +150,15 @@ function plCrearTemporada(string $id, string $nombre): array
     return ['ok' => true, 'error' => null];
 }
 
+// Atajo para lo que preguntan todas las pantallas. Sin temporada activa
+// devuelve CERRADA, que es el estado más restrictivo: es preferible que una
+// pantalla se sirva en solo lectura de más a que se abra por accidente.
+function plFaseActiva(): string
+{
+    $t = plTemporadaActiva();
+    return (string) ($t['fase'] ?? 'CERRADA');
+}
+
 function plCambiarFase(string $temporadaId, string $fase): array
 {
     if (!in_array($fase, PL_FASES, true)) {
