@@ -4,8 +4,9 @@
 // fase, la creación de una temporada nueva y el informe de equipos
 // incompletos que se muestra ANTES de cerrar cada fase.
 //
-// Va en español y sin plT(): lo usa una sola persona hispanohablante, igual
-// que supertecnicas/admin.php. Es una decisión tomada, no un descuido.
+// Va en español y sin pasar por el diccionario de i18n: lo usa una sola
+// persona hispanohablante, igual que supertecnicas/admin.php. Es una decisión
+// tomada, no un descuido.
 
 // El Basic Auth va antes que cualquier otra cosa: nada de la liga se calcula,
 // y mucho menos se imprime, para una petición no autenticada.
@@ -135,27 +136,13 @@ $transiciones = [
     'MERCADO'   => ['a' => 'CERRADA',   'texto' => 'Cerrar Mercado → fin de temporada'],
 ];
 $siguiente = $transiciones[$fase] ?? null;
-?><!doctype html>
-<html lang="es">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="robots" content="noindex, nofollow">
-<title>Admin · Dashboard de plantillas</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<!-- Mismas familias que _fuente/shell.html: el dashboard usa la tipografia de
-     la marca, no la del sistema. -->
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Teko:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="../_fuente/styles.css">
-<link rel="stylesheet" href="css/dashboard.css">
-</head>
-<body>
-<main class="wrap" id="contenido" style="padding-block:2.5rem;display:grid;gap:1.5rem">
-
-  <header style="display:flex;flex-wrap:wrap;gap:1rem;align-items:baseline;justify-content:space-between">
+// La carcasa del admin pone el <head>, la navegación de siete entradas y el
+// <main>. El <head> vive en un solo sitio, plImprimirHead() de chrome.php.
+plCabeceraAdmin('Temporada', 'dashboard');
+?>
+  <header class="dash-cabecera">
     <div>
-      <h1 style="margin:0">Admin · Dashboard de plantillas</h1>
+      <h1>Temporada</h1>
       <p class="ayuda" style="margin:.35rem 0 0">
         Controla la fase de la temporada y crea la siguiente. Los presidentes
         editan lo que la fase permita en cada momento.
@@ -229,7 +216,7 @@ $siguiente = $transiciones[$fase] ?? null;
       </section>
     <?php endif; ?>
 
-    <section class="card" style="padding:1.25rem;display:grid;gap:1rem">
+    <section class="card" id="temporada" style="padding:1.25rem;display:grid;gap:1rem">
       <h2 style="margin:0;font-size:1rem">Fase de la temporada</h2>
 
       <?php if ($siguiente !== null): ?>
@@ -296,8 +283,6 @@ $siguiente = $transiciones[$fase] ?? null;
     </div>
   </dialog>
 
-</main>
-
 <script>
 // El modal es una confirmación, no una puerta: si <dialog> no estuviera
 // disponible, el botón envía el formulario igual.
@@ -320,5 +305,5 @@ $siguiente = $transiciones[$fase] ?? null;
   document.getElementById('dlg-confirmar').addEventListener('click', function () { form.submit(); });
 })();
 </script>
-</body>
-</html>
+<?php
+plPieAdmin();

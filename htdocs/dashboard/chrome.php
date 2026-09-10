@@ -61,23 +61,8 @@ function plClaseFase(string $fase): string
 // pantalla no está en la navegación (el login).
 function plCabecera(string $titulo, string $activo = '', ?string $fase = null): void
 {
-    $idioma = $GLOBALS['PL_IDIOMA_ACTUAL'] ?? 'es';
-    ?><!doctype html>
-<html lang="<?= plEsc($idioma) ?>">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="robots" content="noindex, nofollow">
-<title><?= plEsc($titulo) ?> · <?= plEsc(plT('login.titulo')) ?></title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<!-- Mismas familias que _fuente/shell.html: el dashboard usa la tipografia de
-     la marca, no la del sistema. -->
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Teko:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="../_fuente/styles.css">
-<link rel="stylesheet" href="css/dashboard.css">
-</head>
-<body>
+    plImprimirHead($titulo . ' · ' . plT('login.titulo'), (string) ($GLOBALS['PL_IDIOMA_ACTUAL'] ?? 'es'));
+    ?><body>
 <a class="skip-link" href="#contenido"><?= plEsc(plT('nav.saltar')) ?></a>
 <header class="dash-top">
   <div class="wrap dash-top-int">
@@ -106,14 +91,20 @@ function plCabecera(string $titulo, string $activo = '', ?string $fase = null): 
 
 function plPie(): void
 {
-    ?></main>
-<script>
+    echo "</main>\n";
+    plScriptConfirmar();
+    echo "</body>\n</html>\n";
+}
+
 // Confirmación para los botones marcados con data-confirmar (borrar un
-// jugador). Se usa el confirm() nativo y no un modal propio porque la acción
-// es barata de deshacer en ROSTER —se vuelve a añadir— y un <dialog> por fila
-// sería marcado de sobra. Las confirmaciones con consecuencias de verdad (nueva
-// temporada, clausulación) sí van en <dialog>. Sin JavaScript, el botón envía
-// igual: es una confirmación, no una puerta.
+// jugador, archivar un equipo). Se usa el confirm() nativo y no un modal propio
+// porque son acciones baratas de deshacer, y un <dialog> por fila sería marcado
+// de sobra. Las que no se pueden deshacer tienen otra vía: la clausulación se
+// confirma en el servidor, y la nueva temporada con su propio <dialog>. Sin
+// JavaScript el botón envía igual: es una confirmación, no una puerta.
+function plScriptConfirmar(): void
+{
+    ?><script>
 (function () {
   'use strict';
   document.addEventListener('click', function (e) {
@@ -124,7 +115,75 @@ function plPie(): void
   });
 })();
 </script>
-</body>
-</html>
 <?php
+}
+
+// ------------------------------------------------------------ panel de admin
+
+// Las siete entradas de la navegación del admin, en el orden de §34 de la
+// especificación. Dashboard y Temporada viven en la misma pantalla, y Mercado
+// es la vista de corrección de clausulaciones dentro de Plantillas: son siete
+// entradas porque son siete cosas que el admin va a buscar, no siete ficheros.
+const PL_NAV_ADMIN = [
+    'dashboard'   => ['href' => 'admin.php',                         'texto' => 'Dashboard'],
+    'equipos'     => ['href' => 'admin_equipos.php',                 'texto' => 'Equipos'],
+    'presidentes' => ['href' => 'admin_presidentes.php',             'texto' => 'Presidentes'],
+    'plantillas'  => ['href' => 'admin_plantillas.php',              'texto' => 'Plantillas'],
+    'tiers'       => ['href' => 'admin_tiers.php',                   'texto' => 'Tiers'],
+    'mercado'     => ['href' => 'admin_plantillas.php?vista=mercado', 'texto' => 'Mercado'],
+    'temporada'   => ['href' => 'admin.php#temporada',               'texto' => 'Temporada'],
+];
+
+// El <head> común. Lo comparten las dos carcasas para que el enlace a las
+// fuentes y a las dos hojas de estilo exista en un solo sitio.
+function plImprimirHead(string $titulo, string $idioma): void
+{
+    ?><!doctype html>
+<html lang="<?= plEsc($idioma) ?>">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title><?= plEsc($titulo) ?></title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- Mismas familias que _fuente/shell.html: el dashboard usa la tipografía de
+     la marca, no la del sistema. -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Teko:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../_fuente/styles.css">
+<link rel="stylesheet" href="css/dashboard.css">
+</head>
+<?php
+}
+
+// Carcasa del panel de admin. En español y sin plT(), igual que las pantallas
+// que la usan: lo maneja una sola persona hispanohablante.
+function plCabeceraAdmin(string $titulo, string $activo): void
+{
+    plImprimirHead($titulo . ' · Admin · Dashboard de plantillas', 'es');
+    $fase = plFaseActiva();
+    ?><body>
+<a class="skip-link" href="#contenido">Saltar al contenido</a>
+<header class="dash-top dash-top-admin">
+  <div class="wrap dash-top-int">
+    <span class="dash-marca">Admin · Dashboard de plantillas</span>
+    <nav class="dash-nav" aria-label="Panel de administración">
+      <?php foreach (PL_NAV_ADMIN as $clave => $item): ?>
+        <a href="<?= plEsc($item['href']) ?>"<?= $clave === $activo ? ' aria-current="page"' : '' ?>><?= plEsc($item['texto']) ?></a>
+      <?php endforeach; ?>
+    </nav>
+    <div class="dash-top-fin">
+      <span class="fase <?= plEsc(plClaseFase($fase)) ?>"><?= plEsc($fase) ?></span>
+    </div>
+  </div>
+</header>
+<main class="wrap dash-main" id="contenido">
+<?php
+}
+
+function plPieAdmin(): void
+{
+    echo "</main>\n";
+    plScriptConfirmar();
+    echo "</body>\n</html>\n";
 }

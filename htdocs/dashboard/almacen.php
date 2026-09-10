@@ -248,6 +248,171 @@ function plRegistrarEvento(string $tipo, string $actor, string $actorNombre, arr
         });
 }
 
+// --------------------------------------------------------------- equipos
+
+// Importa a equipos.json los equipos NO archivados de la web pública que aún
+// no estén aquí, comparando por equipoId. Es idempotente: pulsarlo dos veces
+// no duplica nada, y un equipo que aquí se archivó no se reactiva.
+//
+// datos_oficiales.json se lee con plLeerJson(), SIN lock, y solo se lee. Con
+// lock se crearía un datos_oficiales.json.lock en la raíz de la web pública,
+// fuera del subproyecto. Tampoco se arrastra su plantilla deportiva: los
+// jugadores de este subproyecto son otra capa y se inscriben aparte.
+function plImportarEquiposDeWeb(string $rutaOficiales): array
+{
+    $oficiales = plLeerJson($rutaOficiales, []);
+    if (!isset($oficiales['equipos']) || !is_array($oficiales['equipos'])) {
+        return ['ok' => false, 'importados' => 0, 'saltados' => 0];
+    }
+
+    $nuevos   = [];
+    $saltados = 0;
+    $ok = plActualizarJson(plRutaDatos('equipos.json'), ['equipos' => []],
+        static function (array $propios) use ($oficiales, &$nuevos, &$saltados): ?array {
+            $enlazados = [];
+            foreach ($propios['equipos'] as $e) {
+                if (($e['equipoId'] ?? null) !== null) {
+                    $enlazados[(string) $e['equipoId']] = true;
+                }
+            }
+            foreach ($oficiales['equipos'] as $o) {
+                $origen = (string) ($o['id'] ?? '');
+                if ($origen === '' || !empty($o['archivado'])) {
+                    continue;
+                }
+                if (isset($enlazados[$origen])) {
+                    $saltados++;
+                    continue;
+                }
+                // El id local es el de origen: ya es único en la web, y así un
+                // equipo se reconoce igual en los dos sitios. Los creados a
+                // mano llevan el prefijo eq_m_ y no pueden chocar con ellos.
+                $propios['equipos'][] = [
+                    'id'             => $origen,
+                    'nombre'         => (string) ($o['nombre'] ?? $origen),
+                    'nombre_en'      => (string) ($o['nombre_en'] ?? ''),
+                    'abreviatura'    => (string) ($o['abreviatura'] ?? ''),
+                    'abreviatura_en' => (string) ($o['abreviatura_en'] ?? ''),
+                    'escudo'         => (string) ($o['escudo'] ?? ''),
+                    'color1'         => (string) ($o['color1'] ?? ''),
+                    'equipoId'       => $origen,
+                    'activo'         => true,
+                ];
+                $enlazados[$origen] = true;
+                $nuevos[] = $origen;
+            }
+            return $nuevos === [] ? null : $propios;
+        });
+
+    if ($ok && $nuevos !== []) {
+        plIncorporarEquiposATemporadaActiva($nuevos);
+    }
+    return ['ok' => $ok, 'importados' => count($nuevos), 'saltados' => $saltados];
+}
+
+function plCrearEquipo(string $nombre, string $abreviatura): array
+{
+    $nombre = trim($nombre);
+    if ($nombre === '') {
+        return ['ok' => false, 'id' => null, 'mensaje' => 'Escribe el nombre del equipo.'];
+    }
+    // Prefijo eq_m_: un equipo creado aquí no puede recibir nunca el mismo id
+    // que uno importado de la web.
+    $id = 'eq_m_' . bin2hex(random_bytes(4));
+    $ok = plActualizarJson(plRutaDatos('equipos.json'), ['equipos' => []],
+        static function (array $d) use ($id, $nombre, $abreviatura): array {
+            $d['equipos'][] = [
+                'id' => $id, 'nombre' => $nombre, 'nombre_en' => '',
+                'abreviatura' => strtoupper(trim($abreviatura)), 'abreviatura_en' => '',
+                'escudo' => '', 'color1' => '', 'equipoId' => null, 'activo' => true,
+            ];
+            return $d;
+        });
+    if ($ok) {
+        plIncorporarEquiposATemporadaActiva([$id]);
+    }
+    return ['ok' => $ok, 'id' => $id, 'mensaje' => $ok ? '' : 'No se pudo guardar el equipo.'];
+}
+
+function plEditarEquipo(string $id, string $nombre, string $abreviatura, string $nombreEn): array
+{
+    $nombre = trim($nombre);
+    if ($nombre === '') {
+        return ['ok' => false, 'mensaje' => 'El nombre del equipo no puede quedar vacío.'];
+    }
+    $encontrado = false;
+    $ok = plActualizarJson(plRutaDatos('equipos.json'), ['equipos' => []],
+        static function (array $d) use ($id, $nombre, $abreviatura, $nombreEn, &$encontrado): ?array {
+            foreach ($d['equipos'] as $i => $e) {
+                if ((string) ($e['id'] ?? '') === $id) {
+                    $d['equipos'][$i]['nombre']      = $nombre;
+                    $d['equipos'][$i]['abreviatura'] = strtoupper(trim($abreviatura));
+                    $d['equipos'][$i]['nombre_en']   = trim($nombreEn);
+                    $encontrado = true;
+                    return $d;
+                }
+            }
+            return null;
+        });
+    if (!$encontrado) {
+        return ['ok' => false, 'mensaje' => 'Ese equipo ya no existe.'];
+    }
+    return ['ok' => $ok, 'mensaje' => $ok ? '' : 'No se pudo guardar el equipo.'];
+}
+
+// Archivar no saca al equipo de la temporada en curso: eso borraría su
+// plantilla. Solo deja de entrar en las temporadas nuevas. Reactivar sí lo
+// incorpora a la temporada abierta si no estaba.
+function plCambiarActivoEquipo(string $id, bool $activo): array
+{
+    $encontrado = false;
+    $ok = plActualizarJson(plRutaDatos('equipos.json'), ['equipos' => []],
+        static function (array $d) use ($id, $activo, &$encontrado): ?array {
+            foreach ($d['equipos'] as $i => $e) {
+                if ((string) ($e['id'] ?? '') === $id) {
+                    $d['equipos'][$i]['activo'] = $activo;
+                    $encontrado = true;
+                    return $d;
+                }
+            }
+            return null;
+        });
+    if (!$encontrado) {
+        return ['ok' => false, 'mensaje' => 'Ese equipo ya no existe.'];
+    }
+    if ($ok && $activo) {
+        plIncorporarEquiposATemporadaActiva([$id]);
+    }
+    return ['ok' => $ok, 'mensaje' => $ok ? '' : 'No se pudo guardar el equipo.'];
+}
+
+// Da entrada en la temporada abierta, con la plantilla vacía, a los equipos
+// que aún no la tengan. Sin esto, el orden natural de un primer uso —crear la
+// temporada y DESPUÉS importar los equipos— dejaría una temporada sin nadie, y
+// todos los presidentes verían «tu equipo no forma parte de la temporada».
+// Solo añade: nunca toca la plantilla ni el rev de un equipo que ya estaba.
+function plIncorporarEquiposATemporadaActiva(array $equipoIds): bool
+{
+    $temporada = plTemporadaActiva();
+    if ($temporada === null || $equipoIds === []) {
+        return true;
+    }
+    return plActualizarJson(plRutaDatos('temporada-' . $temporada['id'] . '.json'), [],
+        static function (array $data) use ($equipoIds): ?array {
+            if (!isset($data['equipos']) || !is_array($data['equipos'])) {
+                return null;
+            }
+            $cambio = false;
+            foreach ($equipoIds as $id) {
+                if (!isset($data['equipos'][$id])) {
+                    $data['equipos'][$id] = ['rev' => 0, 'jugadores' => []];
+                    $cambio = true;
+                }
+            }
+            return $cambio ? $data : null;
+        });
+}
+
 // -------------------------------------------------------------- usuarios
 
 function plBuscarUsuarioPorEmail(string $email): ?array

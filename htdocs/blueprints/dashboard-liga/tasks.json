@@ -331,7 +331,7 @@
                 "dashboard/admin_equipos.php",
                 "dashboard/tests/test_equipos.php"
             ],
-            "status": "pending"
+            "status": "done"
         },
         {
             "id": "E3-T2",
