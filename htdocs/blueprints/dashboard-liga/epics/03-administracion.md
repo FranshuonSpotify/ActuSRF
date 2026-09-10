@@ -73,9 +73,9 @@ Las formas completas están en `blueprint.md` §4.
 - **`ajustes.tiers` está congelado por temporada.** `admin_tiers.php` escribe `tiers.json` y eso solo
   afecta a las temporadas que se creen **a partir de ese momento**. Es lo que hace imposible que
   subir S++ de 75 a 90 reviente retroactivamente el cap de treinta equipos ya inscritos.
-- **El admin puede saltarse el orden de las fases; no la aritmética.** Sus pantallas llaman a
-  `plValidarAltaJugador()` y `plValidarClausulas()` igual que las del presidente. Hay dos `grep` que
-  lo verifican.
+- **El admin puede saltarse el orden de las fases; no la aritmética.** Sus operaciones en
+  `almacen.php` llaman a `plValidarAltaJugador()` y `plValidarClausulas()` igual que las pantallas
+  del presidente, y las pantallas de admin solo llaman a esas operaciones. Un `grep` lo verifica.
 - **El importador es idempotente.** Ejecutarlo dos veces deja el mismo número de equipos.
 - **`plT()` cae a español** y devuelve `[clave]` si no existe en ningún idioma, para que una clave
   sin traducir se vea a simple vista en vez de romper la página.
@@ -204,6 +204,7 @@ quien la usa necesita entenderlo antes de tocar un número.
 **Files**
 
 - `dashboard/admin_tiers.php`
+- `dashboard/almacen.php`
 - `dashboard/tests/test_tiers.php`
 
 **Verify**
@@ -229,10 +230,10 @@ La pantalla de arbitraje. Tres piezas:
 2. **Corrección de clausulaciones** —estado y comprador—, que escribe un evento `CORRECCION`. Es la
    vía de respaldo de §23 de la especificación, y con la vista del `registro.json` es lo que cierra
    el riesgo R4: una disputa se arbitra con datos, no de memoria.
-3. **Aviso de nombres duplicados** (R2): agrupa por `plNormalizarTexto($nombre)` y lista los grupos
-   con más de un jugador. **Avisa, no bloquea** — «Endou Mamoru» y «Endo Mamoru» pueden ser dos
-   personas distintas de verdad, y bloquear obligaría al admin a resolver algo que quizá no es un
-   problema.
+3. **Aviso de nombres duplicados** (R2): `plPosiblesDuplicados()` de `dominio.php` señala el mismo
+   nombre normalizado («Kidou Yuuto» / «KIDOU  yuuto») y los nombres a una sola letra («Endou» /
+   «Endo»), que la normalización sola no ve. **Avisa, no bloquea**: pueden ser dos personas
+   distintas de verdad, y bloquear obligaría al admin a resolver algo que quizá no es un problema.
 
 **Acceptance**
 
@@ -245,6 +246,9 @@ La pantalla de arbitraje. Tres piezas:
 **Files**
 
 - `dashboard/admin_plantillas.php`
+- `dashboard/almacen.php`
+- `dashboard/dominio.php`
+- `dashboard/i18n.php`
 - `dashboard/tests/test_admin_plantillas.php`
 
 **Verify**
@@ -252,7 +256,7 @@ La pantalla de arbitraje. Tres piezas:
 ```bash
 /c/xampp/php/php.exe -l dashboard/admin_plantillas.php
 /c/xampp/php/php.exe dashboard/tests/test_admin_plantillas.php
-grep -q "plValidarAltaJugador" dashboard/admin_plantillas.php && grep -q "plValidarClausulas" dashboard/admin_plantillas.php
+grep -q "plValidarAltaJugador" dashboard/almacen.php && grep -q "plValidarClausulas" dashboard/almacen.php && grep -q "plAdminAltaJugador" dashboard/admin_plantillas.php && grep -q "plAdminGuardarClausulas" dashboard/admin_plantillas.php
 ```
 
 **Checkpoint**

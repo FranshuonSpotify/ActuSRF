@@ -239,6 +239,20 @@ function plT(string $clave, array $marcadores = []): string
     return $texto;
 }
 
+// El texto en ESPAÑOL de una clave, sin mirar el idioma activo, con sus
+// marcadores sustituidos. Lo usa el panel de admin, que va siempre en español,
+// para enseñar los mismos mensajes de error que devuelve dominio.php sin
+// copiarlos en otro sitio. No traduce nada: por eso el admin no pasa por la
+// función de traducción del presidente.
+function plTextoEs(string $clave, array $marcadores = []): string
+{
+    $texto = $GLOBALS['PL_I18N']['es'][$clave] ?? ('[' . $clave . ']');
+    foreach ($marcadores as $nombre => $valor) {
+        $texto = str_replace('{' . $nombre . '}', (string) $valor, $texto);
+    }
+    return $texto;
+}
+
 // Etiqueta traducida de una fase, a partir del valor que guarda el JSON.
 function plFaseTexto(string $fase): string
 {

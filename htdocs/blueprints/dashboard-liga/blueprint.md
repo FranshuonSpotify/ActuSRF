@@ -798,7 +798,7 @@ del servidor: en IONOS no se ejecuta ningún comando de este blueprint (§12).
 | 11 | Admin · equipos e importador | 04 | `admin_equipos.php`, `almacen.php`, `chrome.php`, `admin.php`, `tests/test_equipos.php` | `test_equipos.php` sale 0 |
 | 12 | Admin · presidentes | 04 | `admin_presidentes.php`, `almacen.php`, `tests/test_presidentes.php` | `test_presidentes.php` sale 0 |
 | 13 | Admin · tiers | 04 | `admin_tiers.php`, `tests/test_tiers.php` | `test_tiers.php` sale 0 |
-| 14 | Admin · plantillas y correcciones | 10, 11 | `admin_plantillas.php`, `tests/test_admin_plantillas.php` | `test_admin_plantillas.php` sale 0 |
+| 14 | Admin · plantillas y correcciones | 10, 11 | `admin_plantillas.php`, `almacen.php`, `dominio.php`, `i18n.php`, `tests/test_admin_plantillas.php` | `test_admin_plantillas.php` sale 0 |
 | 15 | Motor de i18n con los diez idiomas | 10 | `i18n.php`, `tests/test_i18n.php` | `test_i18n.php` sale 0 |
 | 16 | Traducir el envoltorio y las dos pantallas base | 15 | `chrome.php`, `index.php`, `plantilla.php`, `tests/test_traduccion.php` | `test_traduccion.php` sale 0 |
 | 17 | Traducir pegado, cláusulas y mercado | 16 | `pegado.php`, `clausulas.php`, `mercado.php`, `tests/test_traduccion_mercado.php` | `test_traduccion_mercado.php` sale 0 |
@@ -1517,9 +1517,10 @@ git tag step-13-admin-tiers
   `CORRECCION` en `registro.json`.
 - Vista del `registro.json`, en orden cronológico inverso, con actor, fecha y detalle. Es la
   herramienta con la que se arbitra una disputa (R4).
-- **Aviso de nombres duplicados** (R2): agrupa todos los jugadores de la temporada por
-  `plNormalizarTexto($nombre)` y avisa de los grupos con más de un jugador en equipos distintos.
-  Es un aviso, no un bloqueo: «Endou Mamoru» y «Endo Mamoru» pueden ser dos personas.
+- **Aviso de nombres duplicados** (R2): `plPosiblesDuplicados()` de `dominio.php` señala dos
+  casos: el mismo nombre normalizado («Kidou Yuuto» / «KIDOU  yuuto») y nombres a una sola letra
+  («Endou» / «Endo»), que la normalización sola no ve y es la errata típica. Es un aviso, no un
+  bloqueo: pueden ser dos personas.
 
 **Done when**
 
@@ -1539,8 +1540,11 @@ git tag step-13-admin-tiers
 /c/xampp/php/php.exe dashboard/tests/test_admin_plantillas.php
 # expect: Todas las comprobaciones pasan.   (exit 0)
 
-# Las validaciones de rango se aplican tambien en el panel de admin.
-grep -q "plValidarAltaJugador" dashboard/admin_plantillas.php && grep -q "plValidarClausulas" dashboard/admin_plantillas.php
+# Las validaciones de rango se aplican también al admin. Viven en las
+# operaciones de admin de almacen.php y no en la pantalla: el panel no se
+# puede renderizar en test —su primera línea es el Basic Auth—, así que la
+# lógica tiene que estar donde sí se prueba. La pantalla solo llama a ellas.
+grep -q "plValidarAltaJugador" dashboard/almacen.php && grep -q "plValidarClausulas" dashboard/almacen.php && grep -q "plAdminAltaJugador" dashboard/admin_plantillas.php && grep -q "plAdminGuardarClausulas" dashboard/admin_plantillas.php
 # expect: exit 0
 ```
 

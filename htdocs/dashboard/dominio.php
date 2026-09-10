@@ -307,6 +307,61 @@ function plParsearPegado(string $texto, array $jugadoresActuales, array $ajustes
     ];
 }
 
+// ------------------------------------------------------------- duplicados
+
+// Posibles nombres repetidos entre TODOS los jugadores de una temporada, del
+// mismo equipo o de equipos distintos. Es la mitigación del riesgo de los
+// nombres escritos a mano: el mismo jugador inscrito dos veces con otra
+// grafía. Avisa, no bloquea: dos nombres parecidos pueden ser dos personas.
+//
+// Dos señales, de más a menos segura:
+//   'igual'    — el mismo nombre una vez normalizado: «Kidou Yuuto» y
+//                «KIDOU  yuuto», o «Sakúma» y «Sakuma».
+//   'parecido' — a una sola letra de distancia: «Endou» y «Endo». La
+//                normalización sola no lo ve, y es el caso típico de errata.
+//                Solo con nombres de 4 letras o más, porque entre nombres muy
+//                cortos una letra de diferencia es casi siempre otro nombre.
+//
+// Límite conocido: compara cada par, O(n²). Con ~600 jugadores son unas
+// 180 000 comparaciones de cadenas cortas, milisegundos. Si la liga creciera a
+// miles de jugadores, habría que agrupar antes por inicial.
+function plPosiblesDuplicados(array $datosTemporada): array
+{
+    $todos = [];
+    foreach ($datosTemporada['equipos'] ?? [] as $equipoId => $entrada) {
+        foreach ($entrada['jugadores'] ?? [] as $j) {
+            $todos[] = [
+                'equipoId'  => (string) $equipoId,
+                'jugadorId' => (string) ($j['id'] ?? ''),
+                'nombre'    => (string) ($j['nombre'] ?? ''),
+                'norma'     => plNormalizarTexto($j['nombre'] ?? ''),
+            ];
+        }
+    }
+
+    $pares = [];
+    $n = count($todos);
+    for ($i = 0; $i < $n; $i++) {
+        for ($k = $i + 1; $k < $n; $k++) {
+            $a = $todos[$i]['norma'];
+            $b = $todos[$k]['norma'];
+            if ($a === '' || $b === '') {
+                continue;
+            }
+            if ($a === $b) {
+                $tipo = 'igual';
+            } elseif (min(strlen($a), strlen($b)) >= 4 && levenshtein($a, $b) <= 1) {
+                $tipo = 'parecido';
+            } else {
+                continue;
+            }
+            $sinNorma = static fn(array $x) => ['equipoId' => $x['equipoId'], 'jugadorId' => $x['jugadorId'], 'nombre' => $x['nombre']];
+            $pares[] = ['a' => $sinNorma($todos[$i]), 'b' => $sinNorma($todos[$k]), 'tipo' => $tipo];
+        }
+    }
+    return $pares;
+}
+
 // --------------------------------------------------------------- informes
 
 // Qué equipos no han terminado, para enseñárselo al admin ANTES de que cierre

@@ -465,6 +465,204 @@ function plIncorporarEquiposATemporadaActiva(array $equipoIds): bool
         });
 }
 
+// ------------------------------------------------------ operaciones de admin
+
+// Lo que hace el admin sobre una plantilla, en CUALQUIER fase. Se salta el
+// orden de las fases, pero no la aritmética: cada operación pasa por los
+// mismos validadores de dominio.php que las pantallas del presidente.
+//
+// Viven aquí y no en admin_plantillas.php porque el panel no se puede
+// renderizar en un test —su primera línea es el Basic Auth, que lee
+// config/secrets.php—, y una regla que no se puede probar es una regla que
+// algún día deja de cumplirse sin que nadie se entere.
+//
+// Devuelven ['ok', 'error' => clave de i18n o null, 'datos', 'mensaje']. Los
+// errores de dominio van como clave (la pantalla los enseña en español con
+// plTextoEs); los propios del admin, ya como frase en 'mensaje'.
+
+function plResultadoAdmin(bool $ok, ?string $error = null, array $datos = [], string $mensaje = ''): array
+{
+    return ['ok' => $ok, 'error' => $error, 'datos' => $datos, 'mensaje' => $mensaje];
+}
+
+// Guardado común de las operaciones de admin, con el rev que trajo el
+// formulario: si un presidente guardó mientras el admin editaba, se rechaza
+// igual que entre copresidentes, en vez de pisar su cambio.
+function plAdminGuardar(string $temporadaId, string $equipoId, array $jugadores, int $rev): array
+{
+    $g = plGuardarEquipoTemporada($temporadaId, $equipoId, ['jugadores' => $jugadores], $rev);
+    if ($g['ok']) {
+        return plResultadoAdmin(true);
+    }
+    return plResultadoAdmin(false, null, [], match ($g['error'] ?? '') {
+        'error.rev_desfasado'          => 'Alguien ha guardado esta plantilla mientras la editabas. Recarga y repite el cambio.',
+        'error.equipo_no_en_temporada' => 'Ese equipo no está en la temporada en curso.',
+        default                        => 'No se pudo guardar la plantilla.',
+    });
+}
+
+function plAdminAltaJugador(string $temporadaId, string $equipoId, array $nuevo, int $rev): array
+{
+    $e = plEquipoEnTemporada($temporadaId, $equipoId);
+    if ($e === null) {
+        return plResultadoAdmin(false, null, [], 'Ese equipo no está en la temporada en curso.');
+    }
+    $nuevo['nombre'] = trim((string) ($nuevo['nombre'] ?? ''));
+    $v = plValidarAltaJugador($e['jugadores'], $nuevo, $e['ajustes']);
+    if (!$v['ok']) {
+        return plResultadoAdmin(false, $v['error'], $v['datos']);
+    }
+    $id = plNuevoIdJugador();
+    $jugadores = $e['jugadores'];
+    $jugadores[] = [
+        'id' => $id, 'nombre' => $nuevo['nombre'], 'posicion' => (string) $nuevo['posicion'],
+        'tier' => (string) $nuevo['tier'], 'salario' => $v['datos']['salario'], 'clausula' => 0,
+        'estado' => 'DISPONIBLE', 'clausuladoPor' => null, 'clausuladoEn' => null,
+    ];
+    return plAdminGuardar($temporadaId, $equipoId, $jugadores, $rev) + ['id' => $id];
+}
+
+function plAdminEditarJugador(string $temporadaId, string $equipoId, string $jugadorId, string $nombre,
+                              string $posicion, string $tier, int $rev): array
+{
+    $e = plEquipoEnTemporada($temporadaId, $equipoId);
+    if ($e === null) {
+        return plResultadoAdmin(false, null, [], 'Ese equipo no está en la temporada en curso.');
+    }
+    $nombre = trim($nombre);
+    if ($nombre === '') {
+        return plResultadoAdmin(false, 'error.nombre_vacio');
+    }
+    if (!in_array($posicion, PL_POSICIONES, true)) {
+        return plResultadoAdmin(false, 'error.posicion_invalida');
+    }
+    // Sustituye el salario del jugador en el total: bajar de tier nunca se
+    // rechaza por cap. Si sube por encima, la frase dice "cambiar", no "añadir".
+    $v = plValidarCambioTier($e['jugadores'], $jugadorId, $tier, $e['ajustes']);
+    if (!$v['ok']) {
+        $clave = $v['error'] === 'error.cap_superado' ? 'error.cap_superado_cambio' : $v['error'];
+        return plResultadoAdmin(false, $clave, $v['datos']);
+    }
+    $jugadores = $e['jugadores'];
+    foreach ($jugadores as $i => $j) {
+        if ((string) ($j['id'] ?? '') === $jugadorId) {
+            $jugadores[$i] = array_merge($j, ['nombre' => $nombre, 'posicion' => $posicion,
+                                               'tier' => $tier, 'salario' => $v['datos']['salario']]);
+        }
+    }
+    return plAdminGuardar($temporadaId, $equipoId, $jugadores, $rev);
+}
+
+function plAdminBorrarJugador(string $temporadaId, string $equipoId, string $jugadorId, int $rev): array
+{
+    $e = plEquipoEnTemporada($temporadaId, $equipoId);
+    if ($e === null) {
+        return plResultadoAdmin(false, null, [], 'Ese equipo no está en la temporada en curso.');
+    }
+    $jugadores = array_values(array_filter($e['jugadores'],
+        static fn($j) => (string) ($j['id'] ?? '') !== $jugadorId));
+    if (count($jugadores) === count($e['jugadores'])) {
+        return plResultadoAdmin(false, null, [], 'Ese jugador ya no está en la plantilla.');
+    }
+    return plAdminGuardar($temporadaId, $equipoId, $jugadores, $rev);
+}
+
+function plAdminGuardarClausulas(string $temporadaId, string $equipoId, array $clausulas, int $rev): array
+{
+    $e = plEquipoEnTemporada($temporadaId, $equipoId);
+    if ($e === null) {
+        return plResultadoAdmin(false, null, [], 'Ese equipo no está en la temporada en curso.');
+    }
+    // Mismo criterio que la pantalla del presidente: un campo vaciado es 0.
+    $limpias = [];
+    foreach ($clausulas as $id => $valor) {
+        $texto = is_int($valor) ? (string) $valor : trim((string) $valor);
+        $limpias[(string) $id] = $texto === '' ? '0' : $texto;
+    }
+    $v = plValidarClausulas($e['jugadores'], $limpias, $e['ajustes']);
+    if (!$v['ok']) {
+        return plResultadoAdmin(false, $v['error'], $v['datos']);
+    }
+    $jugadores = $e['jugadores'];
+    foreach ($jugadores as $i => $j) {
+        $jugadores[$i]['clausula'] = (int) ($limpias[(string) ($j['id'] ?? '')] ?? 0);
+    }
+    return plAdminGuardar($temporadaId, $equipoId, $jugadores, $rev);
+}
+
+// La vía de respaldo de la especificación (§23): el admin fija el estado de un
+// jugador y quién lo clausuló, en cualquier fase, también para deshacer una
+// clausulación mal registrada. Cada corrección real deja un evento CORRECCION
+// con el estado de antes y el de después; una "corrección" que no cambia nada
+// no escribe ni ensucia el registro.
+function plCorregirClausulacion(string $temporadaId, string $equipoId, string $jugadorId, string $estado,
+                                string $comprador, int $rev): array
+{
+    if (!in_array($estado, PL_ESTADOS, true)) {
+        return plResultadoAdmin(false, null, [], 'Ese estado no existe.');
+    }
+    $e = plEquipoEnTemporada($temporadaId, $equipoId);
+    if ($e === null) {
+        return plResultadoAdmin(false, null, [], 'Ese equipo no está en la temporada en curso.');
+    }
+    $indice = null;
+    foreach ($e['jugadores'] as $i => $j) {
+        if ((string) ($j['id'] ?? '') === $jugadorId) {
+            $indice = $i;
+            break;
+        }
+    }
+    if ($indice === null) {
+        return plResultadoAdmin(false, null, [], 'Ese jugador ya no está en la plantilla.');
+    }
+
+    if ($estado === 'CLAUSULADO') {
+        $enTemporada = array_map('strval', array_keys(plCargarTemporada($temporadaId)['equipos'] ?? []));
+        if ($comprador === '' || !in_array($comprador, $enTemporada, true)) {
+            return plResultadoAdmin(false, null, [], 'Elige qué equipo lo clausuló.');
+        }
+        if ($comprador === $equipoId) {
+            return plResultadoAdmin(false, null, [], 'Un jugador no puede estar clausulado por su propio equipo.');
+        }
+    }
+
+    $jugador = $e['jugadores'][$indice];
+    $antes   = ['estado' => (string) ($jugador['estado'] ?? 'DISPONIBLE'), 'clausuladoPor' => $jugador['clausuladoPor'] ?? null];
+    $despues = $estado === 'CLAUSULADO'
+        ? ['estado' => 'CLAUSULADO', 'clausuladoPor' => $comprador]
+        : ['estado' => 'DISPONIBLE', 'clausuladoPor' => null];
+
+    if ($antes == $despues) {
+        return plResultadoAdmin(true, null, [], 'Sin cambios: el jugador ya estaba así.');
+    }
+
+    $jugadores = $e['jugadores'];
+    $jugadores[$indice]['estado']        = $despues['estado'];
+    $jugadores[$indice]['clausuladoPor'] = $despues['clausuladoPor'];
+    $jugadores[$indice]['clausuladoEn']  = $estado === 'CLAUSULADO' ? plAhora() : null;
+
+    $r = plAdminGuardar($temporadaId, $equipoId, $jugadores, $rev);
+    if ($r['ok']) {
+        plRegistrarEvento('CORRECCION', 'admin', 'admin', [
+            'temporada' => $temporadaId,
+            'jugadorId' => $jugadorId,
+            'jugador'   => (string) ($jugador['nombre'] ?? ''),
+            'equipo'    => $equipoId,
+            'antes'     => $antes,
+            'despues'   => $despues,
+        ]);
+    }
+    return $r;
+}
+
+// El registro, del evento más reciente al más antiguo, recortado a los
+// $limite últimos: es lo que el admin consulta para arbitrar una disputa.
+function plCargarRegistroReciente(int $limite = 200): array
+{
+    $eventos = plCargarJson(plRutaDatos('registro.json'), ['eventos' => []])['eventos'] ?? [];
+    return array_slice(array_reverse($eventos), 0, max(0, $limite));
+}
+
 // ----------------------------------------------------------- presidentes
 
 // La especificación no fija un mínimo. Ocho caracteres es la base habitual, y

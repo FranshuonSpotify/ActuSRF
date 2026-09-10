@@ -411,14 +411,17 @@
             "verify": [
                 "/c/xampp/php/php.exe -l dashboard/admin_plantillas.php",
                 "/c/xampp/php/php.exe dashboard/tests/test_admin_plantillas.php",
-                "grep -q \"plValidarAltaJugador\" dashboard/admin_plantillas.php && grep -q \"plValidarClausulas\" dashboard/admin_plantillas.php"
+                "grep -q \"plValidarAltaJugador\" dashboard/almacen.php && grep -q \"plValidarClausulas\" dashboard/almacen.php && grep -q \"plAdminAltaJugador\" dashboard/admin_plantillas.php && grep -q \"plAdminGuardarClausulas\" dashboard/admin_plantillas.php"
             ],
             "checkpoint": "step-14-admin-plantillas",
             "files": [
                 "dashboard/admin_plantillas.php",
+                "dashboard/almacen.php",
+                "dashboard/dominio.php",
+                "dashboard/i18n.php",
                 "dashboard/tests/test_admin_plantillas.php"
             ],
-            "status": "pending"
+            "status": "done"
         },
         {
             "id": "E3-T5",
