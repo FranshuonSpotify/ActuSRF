@@ -198,7 +198,7 @@ plCabecera(plT('nav.dashboard'), 'dashboard', $fase);
             <?php foreach ($jugadores as $j): $pos = (string) ($j['posicion'] ?? ''); ?>
               <tr<?= ($j['estado'] ?? '') === 'CLAUSULADO' ? ' class="clausulado"' : '' ?>>
                 <td><?= plEsc($j['nombre'] ?? '') ?></td>
-                <td><span class="chip chip-<?= plEsc(strtolower($pos)) ?>"><?= plEsc($pos) ?></span></td>
+                <td><span class="chip chip-<?= plEsc(strtolower($pos)) ?>"><?= plEsc(plPosicionTexto($pos)) ?></span></td>
                 <td class="cifra"><?= plEsc($j['tier'] ?? '') ?></td>
                 <td class="cifra"><?= plEsc(plM((int) ($j['salario'] ?? 0))) ?></td>
                 <td class="cifra"><?= plEsc(plM((int) ($j['clausula'] ?? 0))) ?></td>

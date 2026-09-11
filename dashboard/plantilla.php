@@ -160,10 +160,12 @@ $opcionesTier = static function (array $tiers, string $elegido): string {
     }
     return $html;
 };
+// El value que se envía es siempre el código canónico (POR/DEF/MED/ATA): lo
+// único que cambia con el idioma es la etiqueta visible.
 $opcionesPosicion = static function (string $elegida): string {
     $html = '';
     foreach (PL_POSICIONES as $p) {
-        $html .= '<option value="' . plEsc($p) . '"' . ($p === $elegida ? ' selected' : '') . '>' . plEsc($p) . '</option>';
+        $html .= '<option value="' . plEsc($p) . '"' . ($p === $elegida ? ' selected' : '') . '>' . plEsc(plPosicionTexto($p)) . '</option>';
     }
     return $html;
 };
@@ -253,7 +255,7 @@ plCabecera(plT('plantilla.titulo'), 'plantilla', $fase);
                 </td>
               <?php else: ?>
                 <td><?= plEsc($j['nombre'] ?? '') ?></td>
-                <td><span class="chip chip-<?= plEsc(strtolower($pos)) ?>"><?= plEsc($pos) ?></span></td>
+                <td><span class="chip chip-<?= plEsc(strtolower($pos)) ?>"><?= plEsc(plPosicionTexto($pos)) ?></span></td>
                 <td class="cifra"><?= plEsc($j['tier'] ?? '') ?></td>
                 <td class="cifra"><?= plEsc(plM((int) ($j['salario'] ?? 0))) ?></td>
               <?php endif; ?>

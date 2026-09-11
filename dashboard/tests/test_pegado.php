@@ -66,6 +66,17 @@ $h = plArnesPeticion($PANTALLA, $SA)['html'] ?? '';
 plVerificar('en ROSTER se pinta el cuadro de texto', str_contains($h, 'name="texto"'));
 plVerificar('sin previsualizar no hay botón de confirmar', !str_contains($h, 'value="confirmar"'));
 
+// -- reconocimiento de capturas (Tesseract.js) ----------------------------
+// La lógica de "líneas reconocidas -> filas" la prueba aparte
+// tests/test_pegado_ocr.js (un script de Node, sin framework); aquí solo se
+// comprueba que la pantalla la carga y la cablea correctamente.
+plVerificar('carga el módulo propio con la lógica de reconocimiento', file_exists(__DIR__ . '/../js/pegado_ocr.js'));
+plVerificar('la pantalla referencia ese módulo', str_contains($h, 'src="js/pegado_ocr.js"'));
+plVerificar('el input de imagen y el botón de leer están presentes', str_contains($h, 'id="ocr-archivo"') && str_contains($h, 'id="ocr-boton"'));
+preg_match('#https://cdn\.jsdelivr\.net/npm/tesseract\.js@([^/]+)/#', $h, $m);
+plVerificar('Tesseract.js viene pinneado a una versión exacta, no @latest',
+    isset($m[1]) && $m[1] !== 'latest' && preg_match('/^\d/', $m[1]));
+
 $r = plArnesPeticion($PANTALLA, $SA, [], ['accion' => 'previsualizar', 'rev' => 0, 'texto' => 'A;MED;C']);
 plVerificar('un POST sin token CSRF se corta con 403', $r['tipo'] === 'cortar' && $r['codigo'] === 403);
 
@@ -119,6 +130,7 @@ plVerificar('cada jugador con su propio id', count(array_unique(array_column($e[
 plCambiarFase($T, 'CLAUSULAS');
 $h = plArnesPeticion($PANTALLA, $SA)['html'] ?? '';
 plVerificar('en CLAUSULAS no se ofrece pegar', !str_contains($h, 'name="texto"'));
+plVerificar('ni tampoco el reconocimiento de capturas', !str_contains($h, 'id="ocr-boton"'));
 plVerificar('y se avisa de que la inscripción terminó', str_contains($h, 'ya ha finalizado'));
 
 $r = plArnesPeticion($PANTALLA, $SA, [], ['csrf' => 'tok', 'accion' => 'confirmar', 'rev' => 1, 'texto' => 'Tarde;MED;C']);

@@ -104,6 +104,8 @@ foreach (PL_IDIOMAS as $idioma) {
         && str_contains($h, plEsc(plT('plantilla.campo_posicion')))
         && str_contains($h, plEsc(plT('plantilla.salario_auto'))));
     plVerificar("[$idioma] Mi plantilla no deja ninguna [clave] ni {marcador}", $sinClaves($h) && $sinMarcadores($h));
+    plVerificar("[$idioma] la posición se pinta con su abreviatura real, no una traducción literal del código",
+        str_contains($h, plEsc(plPosicionTexto('MED'))));
 
     // -- error de Salary Cap -------------------------------------------------
     $r = plArnesPeticion($PLANTILLA, $sesion, [],

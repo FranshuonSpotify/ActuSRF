@@ -185,6 +185,17 @@ $GLOBALS['PL_I18N'] = [
         'error.rev_desfasado'        => 'Tu copresidente ha guardado mientras editabas. Recarga la página y repite el cambio.',
         'error.escritura'            => 'No se ha podido guardar. Vuelve a intentarlo; si sigue fallando, avisa al admin.',
         'error.csrf'                 => 'La sesión ha caducado. Recarga la página y vuelve a enviar el formulario.',
+        'posicion.por' => 'POR',
+        'posicion.def' => 'DEF',
+        'posicion.med' => 'MED',
+        'posicion.ata' => 'ATA',
+        'pegado.ocr_titulo' => '¿Tienes una captura de pantalla?',
+        'pegado.ocr_explicacion' => 'Súbela y el cuadro de abajo se rellena solo. Revisa el resultado antes de previsualizar: el reconocimiento no es perfecto.',
+        'pegado.ocr_boton' => 'Leer la imagen',
+        'pegado.ocr_procesando' => 'Leyendo la imagen…',
+        'pegado.ocr_resultado' => '{n} jugadores detectados en la imagen. Revisa el texto antes de previsualizar.',
+        'pegado.ocr_vacio' => 'No se ha reconocido ningún jugador en esa imagen. Prueba con una foto más nítida, o pega el texto a mano.',
+        'pegado.ocr_error' => 'No se ha podido leer la imagen. Comprueba tu conexión, o pega el texto a mano.',
     ],
     'en' => [
         'login.titulo' => 'Squad dashboard',
@@ -310,6 +321,17 @@ $GLOBALS['PL_I18N'] = [
         'error.rev_desfasado' => 'Your co-president saved while you were editing. Reload the page and make the change again.',
         'error.escritura' => 'It couldn\'t be saved. Try again; if it keeps failing, tell the admin.',
         'error.csrf' => 'Your session has expired. Reload the page and submit the form again.',
+        'posicion.por' => 'GK',
+        'posicion.def' => 'DF',
+        'posicion.med' => 'MF',
+        'posicion.ata' => 'FW',
+        'pegado.ocr_titulo' => 'Got a screenshot?',
+        'pegado.ocr_explicacion' => 'Upload it and the box below fills in on its own. Check the result before previewing — recognition isn\'t perfect.',
+        'pegado.ocr_boton' => 'Read the image',
+        'pegado.ocr_procesando' => 'Reading the image…',
+        'pegado.ocr_resultado' => '{n} players detected in the image. Check the text before previewing.',
+        'pegado.ocr_vacio' => 'No players were recognized in that image. Try a sharper photo, or paste the text by hand.',
+        'pegado.ocr_error' => 'Couldn\'t read the image. Check your connection, or paste the text by hand.',
     ],
     'pt' => [
         'login.titulo' => 'Painel de plantéis',
@@ -435,6 +457,17 @@ $GLOBALS['PL_I18N'] = [
         'error.rev_desfasado' => 'O teu copresidente guardou enquanto editavas. Recarrega a página e repete a alteração.',
         'error.escritura' => 'Não foi possível guardar. Tenta de novo; se continuar a falhar, avisa o admin.',
         'error.csrf' => 'A sessão expirou. Recarrega a página e volta a enviar o formulário.',
+        'posicion.por' => 'GR',
+        'posicion.def' => 'DEF',
+        'posicion.med' => 'MED',
+        'posicion.ata' => 'AV',
+        'pegado.ocr_titulo' => 'Tens uma captura de ecrã?',
+        'pegado.ocr_explicacion' => 'Carrega-a e a caixa abaixo preenche-se sozinha. Revê o resultado antes de pré-visualizar: o reconhecimento não é perfeito.',
+        'pegado.ocr_boton' => 'Ler a imagem',
+        'pegado.ocr_procesando' => 'A ler a imagem…',
+        'pegado.ocr_resultado' => '{n} jogadores detetados na imagem. Revê o texto antes de pré-visualizar.',
+        'pegado.ocr_vacio' => 'Não foi reconhecido nenhum jogador nessa imagem. Tenta uma foto mais nítida, ou cola o texto à mão.',
+        'pegado.ocr_error' => 'Não foi possível ler a imagem. Verifica a tua ligação, ou cola o texto à mão.',
     ],
     'it' => [
         'login.titulo' => 'Dashboard delle rose',
@@ -560,6 +593,17 @@ $GLOBALS['PL_I18N'] = [
         'error.rev_desfasado' => 'Il tuo copresidente ha salvato mentre modificavi. Ricarica la pagina e ripeti la modifica.',
         'error.escritura' => 'Non è stato possibile salvare. Riprova; se continua a fallire, avvisa l\'admin.',
         'error.csrf' => 'La sessione è scaduta. Ricarica la pagina e invia di nuovo il modulo.',
+        'posicion.por' => 'POR',
+        'posicion.def' => 'DIF',
+        'posicion.med' => 'CEN',
+        'posicion.ata' => 'ATT',
+        'pegado.ocr_titulo' => 'Hai uno screenshot?',
+        'pegado.ocr_explicacion' => 'Caricalo e il campo qui sotto si compila da solo. Controlla il risultato prima dell\'anteprima: il riconoscimento non è perfetto.',
+        'pegado.ocr_boton' => 'Leggi l\'immagine',
+        'pegado.ocr_procesando' => 'Lettura dell\'immagine…',
+        'pegado.ocr_resultado' => '{n} giocatori rilevati nell\'immagine. Controlla il testo prima dell\'anteprima.',
+        'pegado.ocr_vacio' => 'Non è stato riconosciuto nessun giocatore in quell\'immagine. Prova con una foto più nitida, oppure incolla il testo a mano.',
+        'pegado.ocr_error' => 'Non è stato possibile leggere l\'immagine. Controlla la connessione, oppure incolla il testo a mano.',
     ],
     'fr' => [
         'login.titulo' => 'Tableau de bord des effectifs',
@@ -685,6 +729,17 @@ $GLOBALS['PL_I18N'] = [
         'error.rev_desfasado' => 'Ton coprésident a enregistré pendant que tu modifiais. Recharge la page et refais le changement.',
         'error.escritura' => 'L\'enregistrement a échoué. Réessaie ; si ça continue, préviens l\'admin.',
         'error.csrf' => 'La session a expiré. Recharge la page et renvoie le formulaire.',
+        'posicion.por' => 'GB',
+        'posicion.def' => 'DEF',
+        'posicion.med' => 'MIL',
+        'posicion.ata' => 'ATT',
+        'pegado.ocr_titulo' => 'Tu as une capture d\'écran ?',
+        'pegado.ocr_explicacion' => 'Charge-la et le champ ci-dessous se remplit tout seul. Vérifie le résultat avant l\'aperçu : la reconnaissance n\'est pas parfaite.',
+        'pegado.ocr_boton' => 'Lire l\'image',
+        'pegado.ocr_procesando' => 'Lecture de l\'image…',
+        'pegado.ocr_resultado' => '{n} joueurs détectés dans l\'image. Vérifie le texte avant l\'aperçu.',
+        'pegado.ocr_vacio' => 'Aucun joueur n\'a été reconnu dans cette image. Essaie une photo plus nette, ou colle le texte à la main.',
+        'pegado.ocr_error' => 'Impossible de lire l\'image. Vérifie ta connexion, ou colle le texte à la main.',
     ],
     'ja' => [
         'login.titulo' => 'ロースター管理画面',
@@ -810,6 +865,17 @@ $GLOBALS['PL_I18N'] = [
         'error.rev_desfasado' => '編集中に共同会長が保存しました。ページを再読み込みして、変更をやり直してください。',
         'error.escritura' => '保存できませんでした。もう一度お試しください。失敗が続く場合は管理者に連絡してください。',
         'error.csrf' => 'セッションの有効期限が切れました。ページを再読み込みして、フォームをもう一度送信してください。',
+        'posicion.por' => 'GK',
+        'posicion.def' => 'DF',
+        'posicion.med' => 'MF',
+        'posicion.ata' => 'FW',
+        'pegado.ocr_titulo' => 'スクリーンショットはありますか？',
+        'pegado.ocr_explicacion' => 'アップロードすると下の欄に自動で入力されます。文字認識は完璧ではないので、プレビューの前に内容を確認してください。',
+        'pegado.ocr_boton' => '画像を読み取る',
+        'pegado.ocr_procesando' => '画像を読み取っています…',
+        'pegado.ocr_resultado' => '画像から{n}人の選手を検出しました。プレビューの前に内容を確認してください。',
+        'pegado.ocr_vacio' => 'その画像からは選手を検出できませんでした。もっと鮮明な写真を試すか、テキストを直接貼り付けてください。',
+        'pegado.ocr_error' => '画像を読み取れませんでした。接続を確認するか、テキストを直接貼り付けてください。',
     ],
     'ko' => [
         'login.titulo' => '로스터 대시보드',
@@ -935,6 +1001,17 @@ $GLOBALS['PL_I18N'] = [
         'error.rev_desfasado' => '편집하는 동안 공동 구단주가 저장했습니다. 페이지를 새로고침하고 변경을 다시 하세요.',
         'error.escritura' => '저장하지 못했습니다. 다시 시도하세요. 계속 실패하면 관리자에게 알리세요.',
         'error.csrf' => '세션이 만료되었습니다. 페이지를 새로고침하고 양식을 다시 제출하세요.',
+        'posicion.por' => 'GK',
+        'posicion.def' => 'DF',
+        'posicion.med' => 'MF',
+        'posicion.ata' => 'FW',
+        'pegado.ocr_titulo' => '스크린샷이 있나요?',
+        'pegado.ocr_explicacion' => '업로드하면 아래 칸이 자동으로 채워집니다. 인식이 완벽하지 않으니 미리 보기 전에 내용을 확인하세요.',
+        'pegado.ocr_boton' => '이미지 읽기',
+        'pegado.ocr_procesando' => '이미지를 읽는 중…',
+        'pegado.ocr_resultado' => '이미지에서 선수 {n}명을 감지했습니다. 미리 보기 전에 내용을 확인하세요.',
+        'pegado.ocr_vacio' => '해당 이미지에서 선수를 인식하지 못했습니다. 더 선명한 사진을 시도하거나 텍스트를 직접 붙여넣으세요.',
+        'pegado.ocr_error' => '이미지를 읽을 수 없습니다. 연결을 확인하거나 텍스트를 직접 붙여넣으세요.',
     ],
     'pl' => [
         'login.titulo' => 'Panel kadr',
@@ -1060,6 +1137,17 @@ $GLOBALS['PL_I18N'] = [
         'error.rev_desfasado' => 'Twój współprezes zapisał zmiany, gdy edytowałeś. Odśwież stronę i powtórz zmianę.',
         'error.escritura' => 'Nie udało się zapisać. Spróbuj ponownie; jeśli nadal nie działa, daj znać adminowi.',
         'error.csrf' => 'Sesja wygasła. Odśwież stronę i wyślij formularz ponownie.',
+        'posicion.por' => 'BR',
+        'posicion.def' => 'OBR',
+        'posicion.med' => 'POM',
+        'posicion.ata' => 'NAP',
+        'pegado.ocr_titulo' => 'Masz zrzut ekranu?',
+        'pegado.ocr_explicacion' => 'Wgraj go, a pole poniżej wypełni się samo. Sprawdź wynik przed podglądem: rozpoznawanie nie jest doskonałe.',
+        'pegado.ocr_boton' => 'Odczytaj obraz',
+        'pegado.ocr_procesando' => 'Odczytywanie obrazu…',
+        'pegado.ocr_resultado' => 'Wykryto {n} zawodników na obrazie. Sprawdź tekst przed podglądem.',
+        'pegado.ocr_vacio' => 'Nie rozpoznano żadnego zawodnika na tym obrazie. Spróbuj wyraźniejszego zdjęcia albo wklej tekst ręcznie.',
+        'pegado.ocr_error' => 'Nie udało się odczytać obrazu. Sprawdź połączenie albo wklej tekst ręcznie.',
     ],
     'bg' => [
         'login.titulo' => 'Табло на отборите',
@@ -1185,6 +1273,17 @@ $GLOBALS['PL_I18N'] = [
         'error.rev_desfasado' => 'Съпрезидентът ти е запазил, докато редактираше. Презареди страницата и направи промяната отново.',
         'error.escritura' => 'Не успяхме да запазим. Опитай отново; ако продължава да не става, съобщи на администратора.',
         'error.csrf' => 'Сесията е изтекла. Презареди страницата и изпрати формуляра отново.',
+        'posicion.por' => 'ВР',
+        'posicion.def' => 'ЗАЩ',
+        'posicion.med' => 'ПОЛ',
+        'posicion.ata' => 'НАП',
+        'pegado.ocr_titulo' => 'Имаш ли екранна снимка?',
+        'pegado.ocr_explicacion' => 'Качи я и полето по-долу ще се попълни само. Провери резултата, преди да прегледаш: разпознаването не е съвършено.',
+        'pegado.ocr_boton' => 'Прочети изображението',
+        'pegado.ocr_procesando' => 'Изображението се чете…',
+        'pegado.ocr_resultado' => '{n} играчи открити в изображението. Провери текста, преди да прегледаш.',
+        'pegado.ocr_vacio' => 'В това изображение не беше разпознат нито един играч. Опитай с по-ясна снимка или постави текста ръчно.',
+        'pegado.ocr_error' => 'Изображението не можа да бъде прочетено. Провери връзката си или постави текста ръчно.',
     ],
     'sr' => [
         'login.titulo' => 'Табла тимова',
@@ -1310,6 +1409,17 @@ $GLOBALS['PL_I18N'] = [
         'error.rev_desfasado' => 'Твој копредседник је сачувао док си уређивао. Освежи страницу и понови измену.',
         'error.escritura' => 'Чување није успело. Покушај поново; ако и даље не ради, јави админу.',
         'error.csrf' => 'Сесија је истекла. Освежи страницу и поново пошаљи формулар.',
+        'posicion.por' => 'ГОЛ',
+        'posicion.def' => 'ОДБ',
+        'posicion.med' => 'ВЕЗ',
+        'posicion.ata' => 'НАП',
+        'pegado.ocr_titulo' => 'Имаш ли снимак екрана?',
+        'pegado.ocr_explicacion' => 'Отпреми је и поље испод ће се само попунити. Провери резултат пре прегледа: препознавање није савршено.',
+        'pegado.ocr_boton' => 'Прочитај слику',
+        'pegado.ocr_procesando' => 'Читање слике…',
+        'pegado.ocr_resultado' => '{n} играча откривено на слици. Провери текст пре прегледа.',
+        'pegado.ocr_vacio' => 'На тој слици није препознат ниједан играч. Пробај јаснију фотографију или налепи текст ручно.',
+        'pegado.ocr_error' => 'Слика није могла да се прочита. Провери везу или налепи текст ручно.',
     ],
 ];
 
@@ -1389,6 +1499,26 @@ function plTextoEs(string $clave, array $marcadores = []): string
 function plFaseTexto(string $fase): string
 {
     return plT('fase.' . strtolower($fase));
+}
+
+// Abreviatura de una posición en el idioma activo — no es una traducción
+// literal de POR/DEF/MED/ATA, es la sigla real que usa el fútbol de cada
+// país (GK en inglés, BR en polaco, ВР en búlgaro…), el mismo criterio que
+// ya sigue _fuente/dict.js para el resto del sitio.
+//
+// El pegado masivo puede traer cualquier texto tecleado, aún sin validar
+// (dominio.php lo rechaza después, no antes): si $posicion no es ninguna de
+// las cuatro reconocidas, no hay traducción que inventar para un error
+// todavía sin resolver — se devuelve tal cual, en vez de un '[clave]' feo.
+function plPosicionTexto(string $posicion): string
+{
+    global $PL_I18N;
+    $clave  = 'posicion.' . strtolower($posicion);
+    $idioma = $GLOBALS['PL_IDIOMA_ACTUAL'] ?? 'es';
+    if (!isset($PL_I18N[$idioma][$clave]) && !isset($PL_I18N['es'][$clave])) {
+        return $posicion;
+    }
+    return plT($clave);
 }
 
 // Selector de idioma con la forma del de la web pública: un botón con la

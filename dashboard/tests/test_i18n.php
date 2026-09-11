@@ -90,6 +90,27 @@ foreach (PL_IDIOMAS as $idioma) {
     plVerificar("las cuatro fases tienen nombre en $idioma", $ok);
 }
 
+// -- abreviaturas de posición: siglas reales, no traducción literal --------
+foreach (PL_IDIOMAS as $idioma) {
+    plEstablecerIdioma($idioma);
+    $ok = true;
+    foreach (['POR', 'DEF', 'MED', 'ATA'] as $p) {
+        $ok = $ok && !str_starts_with(plPosicionTexto($p), '[') && plPosicionTexto($p) !== '';
+    }
+    plVerificar("las cuatro posiciones tienen abreviatura en $idioma", $ok);
+}
+plEstablecerIdioma('en');
+plVerificar('en inglés POR se lee GK (portero -> goalkeeper), no una traducción literal',
+    plPosicionTexto('POR') === 'GK');
+plVerificar('y ATA se lee FW (ataque -> forward)', plPosicionTexto('ATA') === 'FW');
+plEstablecerIdioma('es');
+plVerificar('en español se queda igual que el código: no cambia nada para el idioma por defecto',
+    plPosicionTexto('POR') === 'POR' && plPosicionTexto('ATA') === 'ATA');
+plEstablecerIdioma('en');
+plVerificar('un texto que no es ninguna de las cuatro posiciones (pegado sin validar aún) se devuelve tal cual, sin [clave] fea',
+    plPosicionTexto('XYZ') === 'XYZ');
+plEstablecerIdioma('es');
+
 plEstablecerIdioma('ko');
 plVerificar('plTextoEs da español aunque el idioma activo sea otro: el admin no se traduce',
     plTextoEs('login.boton_entrar') === $es['login.boton_entrar']);

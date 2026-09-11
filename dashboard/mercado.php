@@ -253,7 +253,7 @@ plCabecera(plT('mercado.titulo'), 'mercado', $fase);
             <tr class="<?= trim(($propio ? 'propio ' : '') . (($j['estado'] ?? '') === 'CLAUSULADO' ? 'clausulado' : '')) ?>">
               <td><?= plEsc($j['nombre'] ?? '') ?></td>
               <td><?= plEsc(plNombreEquipo($equiposPorId[$f['equipoId']] ?? null, $f['equipoId'])) ?></td>
-              <td><span class="chip chip-<?= plEsc(strtolower($pos)) ?>"><?= plEsc($pos) ?></span></td>
+              <td><span class="chip chip-<?= plEsc(strtolower($pos)) ?>"><?= plEsc(plPosicionTexto($pos)) ?></span></td>
               <td class="cifra"><?= plEsc($j['tier'] ?? '') ?></td>
               <td class="cifra"><?= plEsc(plM((int) ($j['salario'] ?? 0))) ?></td>
               <td class="cifra"><?= plEsc(plM((int) ($j['clausula'] ?? 0))) ?></td>

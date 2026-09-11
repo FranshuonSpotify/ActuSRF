@@ -103,6 +103,36 @@ plCabecera(plT('pegado.titulo'), 'plantilla', $fase);
   <?php endif; ?>
 <?php else: ?>
 
+  <?php
+    // Reconocimiento de capturas de pantalla, en el propio navegador (Tesseract.js
+    // por CDN — única excepción documentada a la regla de "sin CDN de JS" de
+    // dashboard/, decidida expresamente para esto). La imagen nunca sale del
+    // dispositivo del presidente ni pasa por el servidor: el resultado solo
+    // rellena el mismo cuadro de texto de abajo, y de ahí en adelante es el
+    // mismo camino de siempre — "Previsualizar" revalida todo en el servidor,
+    // igual que con un pegado manual. Si Tesseract.js no llega a cargar (CDN
+    // caído, sin conexión), esta sección deja de servir para nada, pero el
+    // pegado de texto de siempre sigue funcionando exactamente igual.
+  ?>
+  <section class="card dash-seccion" id="ocr-seccion">
+    <h2><?= plEsc(plT('pegado.ocr_titulo')) ?></h2>
+    <p class="ayuda"><?= plEsc(plT('pegado.ocr_explicacion')) ?></p>
+    <div class="dash-form-fila">
+      <label class="campo">
+        <span class="sr-only"><?= plEsc(plT('pegado.ocr_titulo')) ?></span>
+        <input class="inp" type="file" id="ocr-archivo" accept="image/*">
+      </label>
+      <button class="btn btn-secondary" type="button" id="ocr-boton" disabled><?= plEsc(plT('pegado.ocr_boton')) ?></button>
+    </div>
+    <?php // data-txt-*, no texto embebido en el <script>: un apóstrofo en
+          // francés o italiano rompería una cadena JS de comillas simples. ?>
+    <p id="ocr-estado" role="status" aria-live="polite"
+       data-txt-procesando="<?= plEsc(plT('pegado.ocr_procesando')) ?>"
+       data-txt-resultado="<?= plEsc(plT('pegado.ocr_resultado')) ?>"
+       data-txt-vacio="<?= plEsc(plT('pegado.ocr_vacio')) ?>"
+       data-txt-error="<?= plEsc(plT('pegado.ocr_error')) ?>"></p>
+  </section>
+
   <section class="card dash-seccion">
     <p class="ayuda"><?= plEsc(plT('pegado.explicacion')) ?></p>
     <p class="ayuda"><code><?= plEsc(plT('pegado.ejemplo')) ?></code></p>
@@ -112,7 +142,7 @@ plCabecera(plT('pegado.titulo'), 'plantilla', $fase);
       <input type="hidden" name="accion" value="previsualizar">
       <label class="campo">
         <span><?= plEsc(plT('pegado.campo')) ?></span>
-        <textarea class="inp inp-mono" name="texto" rows="12" spellcheck="false"><?= plEsc($texto) ?></textarea>
+        <textarea class="inp inp-mono" id="pegado-texto" name="texto" rows="12" spellcheck="false"><?= plEsc($texto) ?></textarea>
       </label>
       <button class="btn btn-secondary" type="submit"><?= plEsc(plT('pegado.previsualizar')) ?></button>
     </form>
@@ -137,7 +167,7 @@ plCabecera(plT('pegado.titulo'), 'plantilla', $fase);
               <tr<?= $l['error'] !== null ? ' class="con-error"' : '' ?>>
                 <td class="cifra"><?= plEsc($l['n']) ?></td>
                 <td><?= plEsc($l['nombre'] !== '' ? $l['nombre'] : $l['texto']) ?></td>
-                <td><?= plEsc($l['posicion']) ?></td>
+                <td><?= plEsc(plPosicionTexto($l['posicion'])) ?></td>
                 <td class="cifra"><?= plEsc($l['tier']) ?></td>
                 <td class="cifra"><?= $l['error'] === null ? plEsc(plM($l['salario'])) : '' ?></td>
                 <td><?= plEsc($l['error'] === null ? plT('pegado.linea_ok') : plT($l['error'])) ?></td>
@@ -175,6 +205,79 @@ plCabecera(plT('pegado.titulo'), 'plantilla', $fase);
   <?php elseif ($analisis !== null && $analisis['errorLote'] !== null): ?>
     <p class="mal"><?= plEsc(plT($analisis['errorLote'], $analisis['datosLote'])) ?></p>
   <?php endif; ?>
+
+<script src="js/pegado_ocr.js"></script>
+<script>
+// Cableado con el DOM y con Tesseract.js. La lógica de "líneas reconocidas
+// -> filas Nombre;POS;TIER" vive aparte, en js/pegado_ocr.js, que es lo que
+// prueba dashboard/tests/test_pegado_ocr.js (un script de Node normal, sin
+// framework — igual que _fuente/test-intl-equipos.js).
+//
+// Todo ocurre en el navegador, con Tesseract.js cargado bajo demanda (nunca
+// en páginas que no usan este botón). La imagen no se sube a ningún sitio.
+// El resultado solo rellena el <textarea> de pegado.php — "Previsualizar"
+// revalida todo en el servidor exactamente igual que con un pegado manual,
+// así que un reconocimiento imperfecto nunca puede colar un jugador inválido.
+(function () {
+  'use strict';
+  var input    = document.getElementById('ocr-archivo');
+  var boton    = document.getElementById('ocr-boton');
+  var estado   = document.getElementById('ocr-estado');
+  var textarea = document.getElementById('pegado-texto');
+  if (!input || !boton || !estado || !textarea || !window.PLPegadoOcr) { return; }
+
+  input.addEventListener('change', function () {
+    boton.disabled = !input.files || input.files.length === 0;
+  });
+
+  // Pinnado a una versión exacta, como el resto de librerías externas del
+  // sitio (Google Fonts, Phosphor Icons en tcg_srf/): nunca @latest.
+  var TESSERACT_SRC = 'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';
+  var cargando = null;
+  function cargarTesseract() {
+    if (window.Tesseract) { return Promise.resolve(); }
+    if (cargando) { return cargando; }
+    cargando = new Promise(function (resolve, reject) {
+      var script = document.createElement('script');
+      script.src = TESSERACT_SRC;
+      script.onload = function () { resolve(); };
+      script.onerror = function () { reject(new Error('no se pudo cargar Tesseract.js')); };
+      document.head.appendChild(script);
+    });
+    return cargando;
+  }
+
+  boton.addEventListener('click', function () {
+    var archivo = input.files && input.files[0];
+    if (!archivo) { return; }
+
+    boton.disabled = true;
+    estado.textContent = estado.getAttribute('data-txt-procesando');
+
+    cargarTesseract()
+      .then(function () { return window.Tesseract.recognize(archivo, 'eng'); })
+      .then(function (resultado) {
+        var lineas = (resultado.data && resultado.data.lines) || [];
+        var filas  = window.PLPegadoOcr.filasDesdeLineas(lineas);
+        if (filas.length === 0) {
+          estado.textContent = estado.getAttribute('data-txt-vacio');
+          return;
+        }
+        // Se AÑADE al final de lo que ya hubiera escrito: una segunda
+        // captura no debe borrar la primera.
+        var previo = textarea.value.trim();
+        textarea.value = (previo ? previo + '\n' : '') + filas.join('\n');
+        estado.textContent = estado.getAttribute('data-txt-resultado').replace('{n}', String(filas.length));
+      })
+      .catch(function () {
+        estado.textContent = estado.getAttribute('data-txt-error');
+      })
+      .finally(function () {
+        boton.disabled = !input.files || input.files.length === 0;
+      });
+  });
+})();
+</script>
 
 <?php endif; ?>
 
