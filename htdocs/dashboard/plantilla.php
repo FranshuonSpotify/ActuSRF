@@ -204,10 +204,11 @@ plCabecera(plT('plantilla.titulo'), 'plantilla', $fase);
       // Un <form> por fila, colocado FUERA de la tabla y enlazado desde cada
       // celda con el atributo form=: una tabla no puede contener formularios
       // directamente, y así cada fila se guarda por separado sin romper el HTML.
+      // Llevan hidden porque no tienen nada visible; sus campos se envían igual.
     ?>
     <?php if ($editable): ?>
       <?php foreach ($jugadores as $j): $id = (string) ($j['id'] ?? ''); ?>
-        <form id="f-<?= plEsc($id) ?>" method="post" action="plantilla.php">
+        <form id="f-<?= plEsc($id) ?>" method="post" action="plantilla.php" hidden>
           <input type="hidden" name="csrf" value="<?= plEsc(plTokenCsrf()) ?>">
           <input type="hidden" name="rev" value="<?= plEsc($rev) ?>">
           <input type="hidden" name="id" value="<?= plEsc($id) ?>">

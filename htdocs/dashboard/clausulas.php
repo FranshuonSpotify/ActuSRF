@@ -147,7 +147,7 @@ plCabecera(plT('clausulas.titulo'), 'clausulas', $fase);
       <div><dt><?= plEsc(plT('clausulas.asignado')) ?></dt><dd class="cifra" id="asignado"><?= plEsc(plM($asignado)) ?></dd></div>
       <div><dt><?= plEsc(plT('clausulas.disponible')) ?></dt><dd class="cifra" id="disponible"><?= plEsc(plM($disponible)) ?></dd></div>
     </dl>
-    <div class="barra <?= plEsc($claseBarra) ?>" id="barra" role="presentation"><i style="width:<?= $porcentaje ?>%"></i></div>
+    <div class="barra <?= plEsc($claseBarra) ?>" id="barra" role="presentation"><i style="width:<?= plEsc($porcentaje) ?>%"></i></div>
     <p class="estado-presupuesto" id="estado" aria-live="polite"><?= plEsc($textoEstado($estado, $disponible)) ?></p>
   </section>
 

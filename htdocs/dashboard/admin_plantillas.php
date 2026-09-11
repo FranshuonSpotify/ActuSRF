@@ -262,7 +262,7 @@ plCabeceraAdmin($vista === 'mercado' ? 'Mercado' : 'Plantillas', $vista === 'mer
   </header>
 
   <?php foreach ($jugadores as $j): $jid = (string) ($j['id'] ?? ''); ?>
-    <form id="f-<?= plEsc(md5($jid)) ?>" method="post" action="admin_plantillas.php">
+    <form id="f-<?= plEsc(md5($jid)) ?>" method="post" action="admin_plantillas.php" hidden>
       <input type="hidden" name="csrf" value="<?= plEsc(plTokenCsrf()) ?>">
       <input type="hidden" name="equipo" value="<?= plEsc($equipoSel) ?>">
       <input type="hidden" name="rev" value="<?= plEsc($rev) ?>">

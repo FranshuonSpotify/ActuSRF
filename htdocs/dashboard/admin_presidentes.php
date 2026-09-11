@@ -135,7 +135,7 @@ plCabeceraAdmin('Presidentes', 'presidentes');
     <p class="ayuda">Todavía no hay ninguno.</p>
   <?php else: ?>
     <?php foreach ($usuarios as $u): $uid = (string) ($u['id'] ?? ''); ?>
-      <form id="f-<?= plEsc($uid) ?>" method="post" action="admin_presidentes.php">
+      <form id="f-<?= plEsc($uid) ?>" method="post" action="admin_presidentes.php" hidden>
         <input type="hidden" name="csrf" value="<?= plEsc(plTokenCsrf()) ?>">
         <input type="hidden" name="id" value="<?= plEsc($uid) ?>">
       </form>

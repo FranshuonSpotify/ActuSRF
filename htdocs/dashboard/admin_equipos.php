@@ -115,7 +115,7 @@ plCabeceraAdmin('Equipos', 'equipos');
     <p class="ayuda">Todavía no hay ninguno. Empieza importándolos de la web.</p>
   <?php else: ?>
     <?php foreach ($equipos as $e): $eid = (string) ($e['id'] ?? ''); ?>
-      <form id="f-<?= plEsc($eid) ?>" method="post" action="admin_equipos.php">
+      <form id="f-<?= plEsc($eid) ?>" method="post" action="admin_equipos.php" hidden>
         <input type="hidden" name="csrf" value="<?= plEsc(plTokenCsrf()) ?>">
         <input type="hidden" name="id" value="<?= plEsc($eid) ?>">
       </form>

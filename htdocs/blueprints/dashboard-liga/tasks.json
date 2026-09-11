@@ -538,7 +538,7 @@
                 "dashboard/DESPLIEGUE.md",
                 "dashboard/tests/test_css.php"
             ],
-            "status": "pending"
+            "status": "done"
         }
     ]
 }

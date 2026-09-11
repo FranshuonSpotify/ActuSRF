@@ -143,7 +143,7 @@ plCabeceraAdmin('Temporada', 'dashboard');
   <header class="dash-cabecera">
     <div>
       <h1>Temporada</h1>
-      <p class="ayuda" style="margin:.35rem 0 0">
+      <p class="ayuda">
         Controla la fase de la temporada y crea la siguiente. Los presidentes
         editan lo que la fase permita en cada momento.
       </p>
@@ -160,8 +160,8 @@ plCabeceraAdmin('Temporada', 'dashboard');
 
   <?php if ($temporada === null): ?>
 
-    <section class="card" style="padding:1.25rem">
-      <h2 style="margin-top:0">Todavía no hay ninguna temporada</h2>
+    <section class="card">
+      <h2>Todavía no hay ninguna temporada</h2>
       <p class="ayuda">
         Crea la primera abajo. Se abrirá en fase ROSTER, con la plantilla vacía
         para cada uno de los <?= count($activos) ?> equipos activos.
@@ -170,8 +170,8 @@ plCabeceraAdmin('Temporada', 'dashboard');
 
   <?php else: ?>
 
-    <section class="card" style="padding:1.25rem;display:grid;gap:1rem">
-      <div style="display:flex;flex-wrap:wrap;gap:2rem">
+    <section class="card">
+      <div class="dash-cifras">
         <div>
           <div class="ayuda">Temporada</div>
           <div class="cifra"><?= plEsc($temporada['nombre'] ?? $temporada['id']) ?></div>
@@ -202,8 +202,8 @@ plCabeceraAdmin('Temporada', 'dashboard');
       }
     ?>
     <?php if ($aviso !== null): ?>
-      <section class="card" style="padding:1.25rem">
-        <h2 style="margin-top:0;font-size:1rem"><?= plEsc($aviso['titulo']) ?></h2>
+      <section class="card">
+        <h2><?= plEsc($aviso['titulo']) ?></h2>
         <p class="ayuda">
           Puedes cerrar la fase de todas formas: esto es un aviso, no un
           bloqueo. Los equipos de esta lista se quedarán como están.
@@ -216,8 +216,8 @@ plCabeceraAdmin('Temporada', 'dashboard');
       </section>
     <?php endif; ?>
 
-    <section class="card" id="temporada" style="padding:1.25rem;display:grid;gap:1rem">
-      <h2 style="margin:0;font-size:1rem">Fase de la temporada</h2>
+    <section class="card" id="temporada">
+      <h2>Fase de la temporada</h2>
 
       <?php if ($siguiente !== null): ?>
         <form method="post">
@@ -230,7 +230,7 @@ plCabeceraAdmin('Temporada', 'dashboard');
         <p class="ayuda">La temporada está cerrada. Crea la siguiente abajo.</p>
       <?php endif; ?>
 
-      <form method="post" style="display:flex;flex-wrap:wrap;gap:.6rem;align-items:end">
+      <form method="post" class="dash-form-fila">
         <input type="hidden" name="csrf" value="<?= plEsc(plTokenCsrf()) ?>">
         <label class="campo">
           <span>Forzar cualquier fase</span>
@@ -251,9 +251,9 @@ plCabeceraAdmin('Temporada', 'dashboard');
 
   <?php endif; ?>
 
-  <section class="card" style="padding:1.25rem">
-    <h2 style="margin-top:0;font-size:1rem">Empezar nueva temporada</h2>
-    <form method="post" id="form-temporada" style="display:flex;flex-wrap:wrap;gap:.6rem;align-items:end">
+  <section class="card">
+    <h2>Empezar nueva temporada</h2>
+    <form method="post" id="form-temporada" class="dash-form-fila">
       <input type="hidden" name="csrf" value="<?= plEsc(plTokenCsrf()) ?>">
       <input type="hidden" name="crear_temporada" value="1">
       <label class="campo">
@@ -266,7 +266,7 @@ plCabeceraAdmin('Temporada', 'dashboard');
       </label>
       <button class="btn btn-accent" type="button" id="btn-nueva-temporada">+ Empezar nueva temporada</button>
     </form>
-    <p class="ayuda" style="margin-bottom:0">
+    <p class="ayuda">
       No se copia nada de la temporada anterior: ni jugadores, ni cláusulas, ni
       posiciones, ni tiers. Los salarios de los tiers se congelan tal y como
       estén en el momento de crearla.
@@ -274,10 +274,10 @@ plCabeceraAdmin('Temporada', 'dashboard');
   </section>
 
   <dialog id="dlg-temporada" class="modal">
-    <h2 style="margin-top:0;font-size:1rem">¿Empezar nueva temporada?</h2>
+    <h2>¿Empezar nueva temporada?</h2>
     <p>Se crearán plantillas vacías para todos los equipos.</p>
     <p>Los presidentes tendrán que volver a inscribir a sus jugadores.</p>
-    <div style="display:flex;gap:.6rem;justify-content:flex-end;margin-top:1rem">
+    <div class="dash-form-fila">
       <button class="btn btn-secondary" type="button" id="dlg-cancelar">Cancelar</button>
       <button class="btn btn-accent" type="button" id="dlg-confirmar">Empezar temporada</button>
     </div>
