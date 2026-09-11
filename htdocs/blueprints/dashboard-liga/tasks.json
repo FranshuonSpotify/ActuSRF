@@ -508,7 +508,7 @@
                 "dashboard/mercado.php",
                 "dashboard/tests/test_traduccion_mercado.php"
             ],
-            "status": "pending"
+            "status": "done"
         },
         {
             "id": "E3-T8",
