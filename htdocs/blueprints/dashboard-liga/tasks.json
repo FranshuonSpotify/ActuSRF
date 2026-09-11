@@ -449,7 +449,7 @@
                 "dashboard/i18n.php",
                 "dashboard/tests/test_i18n.php"
             ],
-            "status": "pending"
+            "status": "done"
         },
         {
             "id": "E3-T6",

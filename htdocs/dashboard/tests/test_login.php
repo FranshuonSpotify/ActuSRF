@@ -50,9 +50,11 @@ plVerificar('los marcadores se sustituyen después de traducir',
 plVerificar('y no queda ningún marcador sin sustituir',
     !str_contains(plT('error.cap_superado', ['cap' => 250, 'total' => 260, 'disponible' => 15]), '{'));
 
+// Desde el paso 15 todos los idiomas están traducidos; la caída al español
+// por clave ausente la cubre test_i18n.php.
 plEstablecerIdioma('en');
-plVerificar('un idioma sin traducir aún cae al español, no rompe',
-    plT('login.boton_entrar') === 'Entrar');
+plVerificar('en inglés el botón ya sale traducido',
+    plT('login.boton_entrar') === 'Sign in');
 plEstablecerIdioma('klingon');
 plVerificar('establecer un idioma inválido deja español',
     ($GLOBALS['PL_IDIOMA_ACTUAL'] ?? '') === 'es');
