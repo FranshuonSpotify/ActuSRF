@@ -22,4 +22,11 @@ return [
     // Token para invocar cron/reconstruir.php por URL. No hace falta si el
     // cron de IONOS ejecuta el script por CLI (php cron/reconstruir.php).
     'cron_token' => '',
+
+    // Admin de dashboard/ (independiente del de supertecnicas y del de
+    // lesiones: cada herramienta tiene sus propias credenciales, para que
+    // revocar una no obligue a tocar las demas).
+    // Genera el hash con: php -r "echo password_hash('tu_clave', PASSWORD_DEFAULT);"
+    'admin_dashboard_user' => 'admin_dashboard',
+    'admin_dashboard_pass_hash' => '',
 ];

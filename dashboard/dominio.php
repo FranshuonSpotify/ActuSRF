@@ -1,0 +1,449 @@
+<?php
+// dashboard/dominio.php
+// Las reglas de la liga, y solo las reglas: cap de 250M, máximo de 20
+// jugadores, presupuesto de 650M en cláusulas, y quién puede hacer qué en
+// cada fase.
+//
+// Este fichero es PURO a propósito: no abre ficheros, no imprime, no lee
+// superglobales y no toca la sesión. Es lo que permite probarlo entero sin
+// arnés, sin datos en disco y sin navegador — y es donde está el valor real
+// del subproyecto, porque es la única parte con aritmética que puede estar
+// mal sin que se note hasta que un equipo quede mal inscrito.
+//
+// Los errores se devuelven como CLAVE de i18n, nunca como frase: las frases
+// viven en i18n.php y llegan traducidas a diez idiomas.
+
+require_once __DIR__ . '/lib.php';
+
+const PL_POSICIONES = ['POR', 'DEF', 'MED', 'ATA'];
+const PL_FASES      = ['ROSTER', 'CLAUSULAS', 'MERCADO', 'CERRADA'];
+const PL_ESTADOS    = ['DISPONIBLE', 'CLAUSULADO'];
+
+// ---------------------------------------------------------------- salarios
+
+// Busca el salario de un tier en la tabla CONGELADA de la temporada
+// ($ajustes['tiers']), nunca en tiers.json. Devuelve null si el código no
+// existe, que es lo que convierte un tier inventado en un error de validación
+// en vez de en un salario 0 silencioso.
+function plSalarioDeTier(string $tier, array $tiers): ?int
+{
+    foreach ($tiers as $t) {
+        if (($t['codigo'] ?? '') === $tier) {
+            return (int) ($t['salario'] ?? 0);
+        }
+    }
+    return null;
+}
+
+function plTotalSalarios(array $jugadores): int
+{
+    $total = 0;
+    foreach ($jugadores as $j) {
+        $total += (int) ($j['salario'] ?? 0);
+    }
+    return $total;
+}
+
+function plTotalClausulas(array $jugadores): int
+{
+    $total = 0;
+    foreach ($jugadores as $j) {
+        $total += (int) ($j['clausula'] ?? 0);
+    }
+    return $total;
+}
+
+// ------------------------------------------------------------- validaciones
+
+// Todas devuelven ['ok' => bool, 'error' => ?clave, 'datos' => array], donde
+// 'datos' lleva las cifras que el mensaje necesita interpolar (total, cap,
+// disponible) para que la pantalla no tenga que recalcularlas.
+function plResultado(bool $ok, ?string $error = null, array $datos = []): array
+{
+    return ['ok' => $ok, 'error' => $error, 'datos' => $datos];
+}
+
+// Orden de comprobación deliberado: primero lo que es culpa del formulario
+// (nombre, posición, tier), después los límites del equipo. Así un tier mal
+// enviado no se reporta como "has superado el cap".
+function plValidarAltaJugador(array $jugadores, array $nuevo, array $ajustes): array
+{
+    $nombre = trim((string) ($nuevo['nombre'] ?? ''));
+    if ($nombre === '') {
+        return plResultado(false, 'error.nombre_vacio');
+    }
+
+    $posicion = (string) ($nuevo['posicion'] ?? '');
+    if (!in_array($posicion, PL_POSICIONES, true)) {
+        return plResultado(false, 'error.posicion_invalida');
+    }
+
+    $tier    = (string) ($nuevo['tier'] ?? '');
+    $salario = plSalarioDeTier($tier, $ajustes['tiers'] ?? []);
+    if ($salario === null) {
+        return plResultado(false, 'error.tier_invalido');
+    }
+
+    $maximo = (int) ($ajustes['maxJugadores'] ?? 20);
+    if (count($jugadores) >= $maximo) {
+        return plResultado(false, 'error.max_jugadores', [
+            'maximo' => $maximo,
+            'actual' => count($jugadores),
+        ]);
+    }
+
+    $cap      = (int) ($ajustes['salaryCap'] ?? 250);
+    $actual   = plTotalSalarios($jugadores);
+    $quedaria = $actual + $salario;
+    if ($quedaria > $cap) {
+        return plResultado(false, 'error.cap_superado', [
+            'total'       => $quedaria,
+            'cap'         => $cap,
+            'disponible'  => max(0, $cap - $actual),
+            'salario'     => $salario,
+        ]);
+    }
+
+    return plResultado(true, null, ['salario' => $salario]);
+}
+
+// El salario del jugador que cambia de tier se SUSTITUYE en el total, no se
+// suma. Sumarlo haría que bajar de S+ (60M) a A+ (25M) fuese rechazado por
+// cap, que es exactamente lo contrario de lo que debe pasar. Es el error que
+// más fácil se cuela en esta función.
+function plValidarCambioTier(array $jugadores, string $jugadorId, string $tierNuevo, array $ajustes): array
+{
+    $salarioNuevo = plSalarioDeTier($tierNuevo, $ajustes['tiers'] ?? []);
+    if ($salarioNuevo === null) {
+        return plResultado(false, 'error.tier_invalido');
+    }
+
+    $encontrado    = false;
+    $salarioViejo  = 0;
+    foreach ($jugadores as $j) {
+        if ((string) ($j['id'] ?? '') === $jugadorId) {
+            $encontrado   = true;
+            $salarioViejo = (int) ($j['salario'] ?? 0);
+            break;
+        }
+    }
+    if (!$encontrado) {
+        return plResultado(false, 'error.jugador_no_encontrado');
+    }
+
+    $cap      = (int) ($ajustes['salaryCap'] ?? 250);
+    $actual   = plTotalSalarios($jugadores);
+    $quedaria = $actual - $salarioViejo + $salarioNuevo;
+    if ($quedaria > $cap) {
+        return plResultado(false, 'error.cap_superado', [
+            'total'      => $quedaria,
+            'cap'        => $cap,
+            'disponible' => max(0, $cap - ($actual - $salarioViejo)),
+            'salario'    => $salarioNuevo,
+        ]);
+    }
+
+    return plResultado(true, null, ['salario' => $salarioNuevo]);
+}
+
+// El reparto de cláusulas nunca puede SUPERAR el presupuesto. Quedarse por
+// debajo sí se permite: es un borrador, y existe para que nadie pierda media
+// hora de reparto por no haber cuadrado todavía. El equipo queda INCOMPLETO
+// hasta llegar al total exacto.
+//
+// $clausulas es un mapa jugadorId => cantidad, tal como llega del formulario.
+function plValidarClausulas(array $jugadores, array $clausulas, array $ajustes): array
+{
+    $total = 0;
+    foreach ($jugadores as $j) {
+        $id = (string) ($j['id'] ?? '');
+        $valor = $clausulas[$id] ?? 0;
+
+        // Se rechaza cualquier cosa que no sea un entero >= 0. Un "40.5" o un
+        // "-10" enviado a mano no puede convertirse silenciosamente en 40 ó 0.
+        //
+        // El signo se comprueba aparte del tipo: -10 ES un int válido para
+        // is_int(), así que sin esta segunda condición una cláusula negativa
+        // pasaría el filtro y además restaría del total, dejando repartir más
+        // de 650M. ctype_digit() ya excluye el signo en la rama de cadena.
+        $esEnteroTextual = is_string($valor) && ctype_digit($valor);
+        if (!is_int($valor) && !$esEnteroTextual) {
+            return plResultado(false, 'error.clausula_invalida', ['jugador' => $j['nombre'] ?? $id]);
+        }
+        if ((int) $valor < 0) {
+            return plResultado(false, 'error.clausula_invalida', ['jugador' => $j['nombre'] ?? $id]);
+        }
+        $total += (int) $valor;
+    }
+
+    $presupuesto = (int) ($ajustes['presupuestoClausulas'] ?? 650);
+    if ($total > $presupuesto) {
+        return plResultado(false, 'error.clausulas_excedidas', [
+            'total'       => $total,
+            'presupuesto' => $presupuesto,
+            'disponible'  => 0,
+            'exceso'      => $total - $presupuesto,
+        ]);
+    }
+
+    return plResultado(true, null, [
+        'total'       => $total,
+        'presupuesto' => $presupuesto,
+        'disponible'  => $presupuesto - $total,
+        'estado'      => plEstadoPresupuesto($total, $presupuesto),
+    ]);
+}
+
+function plEstadoPresupuesto(int $total, int $presupuesto): string
+{
+    if ($total < $presupuesto) {
+        return 'INCOMPLETO';
+    }
+    return $total === $presupuesto ? 'COMPLETO' : 'EXCEDIDO';
+}
+
+// ------------------------------------------------------------------ pegado
+
+// Separadores de una línea del pegado masivo. El punto y coma es el formato
+// de la especificación; el tabulador es lo que llega al copiar tres columnas
+// de una hoja de cálculo, que es de donde saldrá la lista casi siempre. Sin
+// aceptarlo, el caso más habitual fallaría en todas las líneas a la vez.
+const PL_SEPARADORES_PEGADO = "/[;\t]/";
+
+// Analiza un lote pegado de "Nombre;POS;TIER", una línea por jugador. No
+// guarda nada: devuelve lo que pasaría, línea a línea, para la
+// previsualización, y si el lote entero es aceptable.
+//
+// El lote es ATÓMICO por diseño: entra completo o no entra. Importar la mitad
+// y dejar al presidente adivinando qué líneas faltan sería peor que rechazarlo.
+//
+// Los números de línea cuentan también las líneas en blanco, para que casen
+// con lo que el presidente ve en el cuadro de texto y pueda encontrar la mala.
+function plParsearPegado(string $texto, array $jugadoresActuales, array $ajustes): array
+{
+    $tiers  = $ajustes['tiers'] ?? [];
+    $maximo = (int) ($ajustes['maxJugadores'] ?? 20);
+    $cap    = (int) ($ajustes['salaryCap'] ?? 250);
+
+    $lineas         = [];
+    $validas        = 0;
+    $errores        = 0;
+    $salariosNuevos = 0;
+
+    foreach (preg_split('/\r\n|\r|\n/', $texto) as $i => $cruda) {
+        $cruda = trim($cruda);
+        if ($cruda === '') {
+            continue;   // una línea en blanco no es un error, solo espacio
+        }
+
+        $campos = array_map('trim', preg_split(PL_SEPARADORES_PEGADO, $cruda));
+        $linea  = ['n' => $i + 1, 'texto' => $cruda, 'nombre' => '', 'posicion' => '',
+                   'tier' => '', 'salario' => 0, 'error' => null];
+
+        if (count($campos) !== 3) {
+            $linea['error'] = 'pegado.error_campos';
+        } else {
+            // Mayúsculas en posición y tier: "def" y "s++" son lo mismo que
+            // DEF y S++, y rechazarlos por la caja sería pedantería.
+            [$nombre, $posicion, $tier] = [$campos[0], strtoupper($campos[1]), strtoupper($campos[2])];
+            $salario = plSalarioDeTier($tier, $tiers);
+            $linea['nombre']   = $nombre;
+            $linea['posicion'] = $posicion;
+            $linea['tier']     = $tier;
+
+            if ($nombre === '') {
+                $linea['error'] = 'error.nombre_vacio';
+            } elseif (!in_array($posicion, PL_POSICIONES, true)) {
+                $linea['error'] = 'error.posicion_invalida';
+            } elseif ($salario === null) {
+                $linea['error'] = 'error.tier_invalido';
+            } else {
+                $linea['salario'] = $salario;
+            }
+        }
+
+        if ($linea['error'] === null) {
+            $validas++;
+            $salariosNuevos += $linea['salario'];
+        } else {
+            $errores++;
+        }
+        $lineas[] = $linea;
+    }
+
+    $actuales       = count($jugadoresActuales);
+    $salariosAntes  = plTotalSalarios($jugadoresActuales);
+    $totalJugadores = $actuales + $validas;
+    $totalSalarios  = $salariosAntes + $salariosNuevos;
+
+    // Los límites del equipo solo se evalúan cuando todas las líneas son
+    // buenas: con líneas malas el lote ya no entra, y sumar a medias daría
+    // unas cifras que no corresponden a nada que se vaya a guardar.
+    $errorLote = null;
+    $datosLote = [];
+    if ($lineas === []) {
+        $errorLote = 'pegado.error_vacio';
+    } elseif ($errores === 0) {
+        if ($totalJugadores > $maximo) {
+            $errorLote = 'pegado.error_max';
+            $datosLote = ['total' => $totalJugadores, 'maximo' => $maximo, 'libres' => max(0, $maximo - $actuales)];
+        } elseif ($totalSalarios > $cap) {
+            $errorLote = 'pegado.error_cap';
+            $datosLote = ['total' => $totalSalarios, 'cap' => $cap, 'disponible' => max(0, $cap - $salariosAntes)];
+        }
+    }
+
+    return [
+        'ok'             => $errores === 0 && $errorLote === null && $validas > 0,
+        'lineas'         => $lineas,
+        'validas'        => $validas,
+        'errores'        => $errores,
+        'totalJugadores' => $totalJugadores,
+        'totalSalarios'  => $totalSalarios,
+        'maximo'         => $maximo,
+        'cap'            => $cap,
+        'errorLote'      => $errorLote,
+        'datosLote'      => $datosLote,
+    ];
+}
+
+// ------------------------------------------------------------- duplicados
+
+// Posibles nombres repetidos entre TODOS los jugadores de una temporada, del
+// mismo equipo o de equipos distintos. Es la mitigación del riesgo de los
+// nombres escritos a mano: el mismo jugador inscrito dos veces con otra
+// grafía. Avisa, no bloquea: dos nombres parecidos pueden ser dos personas.
+//
+// Dos señales, de más a menos segura:
+//   'igual'    — el mismo nombre una vez normalizado: «Kidou Yuuto» y
+//                «KIDOU  yuuto», o «Sakúma» y «Sakuma».
+//   'parecido' — a una sola letra de distancia: «Endou» y «Endo». La
+//                normalización sola no lo ve, y es el caso típico de errata.
+//                Solo con nombres de 4 letras o más, porque entre nombres muy
+//                cortos una letra de diferencia es casi siempre otro nombre.
+//
+// Límite conocido: compara cada par, O(n²). Con ~600 jugadores son unas
+// 180 000 comparaciones de cadenas cortas, milisegundos. Si la liga creciera a
+// miles de jugadores, habría que agrupar antes por inicial.
+function plPosiblesDuplicados(array $datosTemporada): array
+{
+    $todos = [];
+    foreach ($datosTemporada['equipos'] ?? [] as $equipoId => $entrada) {
+        foreach ($entrada['jugadores'] ?? [] as $j) {
+            $todos[] = [
+                'equipoId'  => (string) $equipoId,
+                'jugadorId' => (string) ($j['id'] ?? ''),
+                'nombre'    => (string) ($j['nombre'] ?? ''),
+                'norma'     => plNormalizarTexto($j['nombre'] ?? ''),
+            ];
+        }
+    }
+
+    $pares = [];
+    $n = count($todos);
+    for ($i = 0; $i < $n; $i++) {
+        for ($k = $i + 1; $k < $n; $k++) {
+            $a = $todos[$i]['norma'];
+            $b = $todos[$k]['norma'];
+            if ($a === '' || $b === '') {
+                continue;
+            }
+            if ($a === $b) {
+                $tipo = 'igual';
+            } elseif (min(strlen($a), strlen($b)) >= 4 && levenshtein($a, $b) <= 1) {
+                $tipo = 'parecido';
+            } else {
+                continue;
+            }
+            $sinNorma = static fn(array $x) => ['equipoId' => $x['equipoId'], 'jugadorId' => $x['jugadorId'], 'nombre' => $x['nombre']];
+            $pares[] = ['a' => $sinNorma($todos[$i]), 'b' => $sinNorma($todos[$k]), 'tipo' => $tipo];
+        }
+    }
+    return $pares;
+}
+
+// --------------------------------------------------------------- informes
+
+// Qué equipos no han terminado, para enseñárselo al admin ANTES de que cierre
+// una fase. Avisa, no bloquea: el admin manda, pero decide con la lista
+// delante en vez de a ciegas.
+//
+// Vive aquí y no dentro de la pantalla para que se pueda probar: si estuviera
+// embebido en el HTML de admin.php, la parte con más consecuencias del paso
+// se quedaría sin ninguna comprobación automática.
+//
+// Devuelve ['roster' => [equipoId => [n, max]], 'clausulas' => [equipoId => [suma, presupuesto]]].
+function plEquiposIncompletos(array $datosTemporada): array
+{
+    $ajustes     = $datosTemporada['ajustes'] ?? [];
+    $maximo      = (int) ($ajustes['maxJugadores'] ?? 20);
+    $presupuesto = (int) ($ajustes['presupuestoClausulas'] ?? 650);
+
+    $roster    = [];
+    $clausulas = [];
+
+    foreach ($datosTemporada['equipos'] ?? [] as $equipoId => $entrada) {
+        $jugadores = $entrada['jugadores'] ?? [];
+
+        if (count($jugadores) < $maximo) {
+            $roster[(string) $equipoId] = ['n' => count($jugadores), 'max' => $maximo];
+        }
+
+        // Un equipo sin jugadores tampoco tiene las cláusulas repartidas: se
+        // reporta igual, porque 0 de 650 no es "completo".
+        $suma = plTotalClausulas($jugadores);
+        if ($suma !== $presupuesto) {
+            $clausulas[(string) $equipoId] = ['suma' => $suma, 'presupuesto' => $presupuesto];
+        }
+    }
+
+    return ['roster' => $roster, 'clausulas' => $clausulas];
+}
+
+// ------------------------------------------------------------ autorización
+
+// Qué pantalla es editable en cada fase. El admin se salta el ORDEN de las
+// fases, pero no la aritmética de arriba: eso se comprueba igual para él.
+function plPuedeEditarPlantilla(string $fase): bool
+{
+    return $fase === 'ROSTER';
+}
+
+function plPuedeEditarClausulas(string $fase): bool
+{
+    return $fase === 'CLAUSULAS';
+}
+
+function plPuedeMarcarClausulado(string $fase): bool
+{
+    return $fase === 'MERCADO';
+}
+
+// Las cuatro condiciones que tiene que cumplir un presidente para registrar
+// una clausulación. Se llama en el camino del POST, no solo al decidir si se
+// pinta el botón: ocultar el botón es presentación, y un formulario reenviado
+// a mano con el equipoId de otro club tiene que ser rechazado igual.
+function plPuedeClausular(array $usuario, array $jugador, string $equipoDelJugador, string $equipoComprador): bool
+{
+    $miEquipo = (string) ($usuario['equipoId'] ?? '');
+
+    // 1. El presidente tiene equipo asignado.
+    if ($miEquipo === '') {
+        return false;
+    }
+    // 2. El jugador NO es de su propio equipo.
+    if ($equipoDelJugador === $miEquipo) {
+        return false;
+    }
+    // 3. El comprador es su propio equipo, nunca otro.
+    if ($equipoComprador !== $miEquipo) {
+        return false;
+    }
+    // 4. El jugador sigue disponible: no se revierte ni se roba una
+    //    clausulación ya registrada por otro. Corregir es cosa del admin.
+    if ((string) ($jugador['estado'] ?? 'DISPONIBLE') !== 'DISPONIBLE') {
+        return false;
+    }
+
+    return true;
+}

@@ -1,0 +1,286 @@
+/* dashboard/css/dashboard.css
+   Se carga DESPUÉS de ../_fuente/styles.css, la hoja de la web pública, y el
+   dashboard la usa a fondo: tokens (:root), reset, .nav/.nav-in/.nav-logo/
+   .nav-right/.nav-sep, .tabbar, .eyebrow, .lede, .grad-text, .hero-title .l2,
+   .btn*, .badge*, .card, table.tbl, .lang-btn/.lang-item/.lang-flag-circle,
+   .wrap, .sr-only, .skip-link y el :focus-visible naranja. La estética es la de
+   superligafrontier.es porque ES su hoja; aquí va solo lo que la web no tiene
+   (formularios, fases, barra de cláusulas) y los ajustes para que sus piezas
+   encajen en un panel de trabajo.
+
+   Sin tokens nuevos: todo color sale de var(--…); los únicos literales son los
+   del bloque de §7 del blueprint (.chip-ata y fondos de .fase-*) y los de
+   p.mal, replicado tal cual de supertecnicas.css. test_css.php lo comprueba.
+
+   Como el reset deja todos los márgenes a 0, el ritmo vertical lo ponen los
+   gap de flex/grid de los contenedores, no márgenes sueltos en cada elemento. */
+
+/* ============================ ENVOLTORIO ============================ */
+/* El pie queda abajo aunque la pantalla tenga poco contenido (el login). */
+body{ display:flex; flex-direction:column; }
+/* Las dos barras de arriba son sticky (60 px la nav, ~50 la de pestañas):
+   sin este margen, al tabular hacia arriba el elemento con foco quedaría
+   escondido debajo de ellas. */
+html{ scroll-padding-top:8rem; }
+
+/* La .nav de la web es fixed y transparente hasta que se hace scroll sobre un
+   hero; aquí no hay hero, así que va sticky y ya en su estado .stuck. */
+.nav.dash-nav-top{ position:sticky; }
+.dash-nav-top .nav-in{ gap:1.25rem; }
+.dash-producto{
+  font-family:var(--f-mono); font-size:.6875rem; font-weight:500; letter-spacing:.16em;
+  text-transform:uppercase; color:var(--ink-3); white-space:nowrap;
+  overflow:hidden; text-overflow:ellipsis; min-width:0;
+}
+.dash-nav-top .nav-right{ gap:.75rem; }
+/* La barra de pestañas es la de la sección de datos de la web. Dentro de un
+   contenedor con scroll un outline hacia fuera se recortaría: va hacia dentro. */
+.tabbar a:focus-visible{ outline-offset:-3px; }
+
+.dash-main{ flex:1 0 auto; display:flex; flex-direction:column; gap:2rem; padding-block:clamp(2rem,4vw,3.5rem) 4rem; }
+.dash-main h2{ font-size:clamp(1.125rem,1.8vw,1.375rem); font-weight:600; letter-spacing:-.025em; line-height:1.2; }
+.dash-main code{ font-family:var(--f-mono); font-size:.8125rem; background:var(--surface-3); padding:.1rem .4rem; border-radius:4px; }
+.dash-main p a{ text-decoration:underline; text-underline-offset:3px; color:var(--ink); }
+
+/* Cabecera de pantalla: la gramática de .sec-head de la web (eyebrow, titular
+   con degradado, entradilla). El degradado se hace con tokens, sin tocar el
+   marcado del <h1>. */
+.dash-cabecera{ display:flex; flex-wrap:wrap; justify-content:space-between; align-items:flex-end; gap:1rem 1.5rem; }
+.dash-cabecera > div{ display:grid; gap:.75rem; justify-items:start; }
+.dash-cabecera h1{
+  font-size:clamp(1.875rem,4.2vw,3rem); font-weight:600; letter-spacing:-.04em; line-height:1.02;
+  overflow-wrap:anywhere;
+  background:linear-gradient(180deg,var(--ink) 30%,var(--ink-3) 100%);
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+}
+.dash-cabecera .ayuda{ max-width:60ch; }
+
+.dash-seccion{ display:grid; gap:1rem; min-width:0; }
+.dash-main .card{ padding:1.25rem; display:grid; gap:.85rem; align-content:start; min-width:0; }
+
+/* Formularios: rejilla vertical por defecto (sin especificidad, con :where,
+   para que cualquier clase de abajo la pise). Los hijos se estiran para que
+   una tabla ancha dentro de un form no desborde la página; los botones no. */
+/* :not([hidden]) porque una regla de autor con display gana siempre al
+   [hidden]{display:none} del navegador, y los formularios de fila (solo campos
+   ocultos, con hidden) dejaban un hueco de un gap cada uno. */
+/* Todo el selector va dentro de :where(): :not() suma la especificidad de su
+   argumento, y entonces esta regla pisaba a .dash-form-fila. */
+:where(.dash-main form:not([hidden])){ display:grid; gap:1rem; min-width:0; }
+:where(.dash-main form) > .btn{ justify-self:start; }
+.dash-form{ display:grid; gap:1.1rem; }
+.dash-form .btn{ margin-top:.25rem; }
+.dash-form-fila{ display:flex; flex-wrap:wrap; align-items:flex-end; gap:.75rem; }
+.dash-form-fila .campo{ flex:1 1 11rem; }
+.dash-form-fila .campo-check{ flex:0 0 auto; }
+
+/* ============================ PIE ============================ */
+.dash-pie{ border-top:1px solid var(--line); padding-block:1.75rem; }
+.dash-pie-in{ display:flex; align-items:center; justify-content:space-between; gap:1rem; }
+.dash-pie img{ height:24px; width:auto; opacity:.6; }
+.dash-pie a{ font-family:var(--f-mono); font-size:.75rem; color:var(--ink-3); padding-block:.5rem; transition:color var(--t1); }
+.dash-pie a:hover{ color:var(--ink); }
+
+/* ============================ LOGIN ============================ */
+/* Panel como los .ov-panel de la web, con el halo naranja de su pantalla de
+   carga hecho con sombra: una sombra no ensancha la página a 375 px. */
+.dash-login{
+  width:100%; max-width:420px; margin:clamp(1rem,8vh,4.5rem) auto 0;
+  padding:clamp(1.5rem,5vw,2.5rem); display:grid; gap:1.1rem;
+  border:1px solid var(--line-2); border-radius:var(--r-lg); background:var(--bg-raised);
+  box-shadow:0 0 120px -30px var(--accent-glow), 0 30px 90px -20px var(--bg);
+}
+.dash-login .hero-title{ margin:0; font-size:clamp(2.25rem,9vw,3rem); font-weight:700; letter-spacing:-.045em; line-height:.98; }
+.dash-login .hero-title .l2{ font-size:.5em; }
+
+/* ============================ SELECTOR DE IDIOMA ============================ */
+/* El botón (.lang-btn) y las filas (.lang-item) son los de la web. Aquí solo
+   el <details> que los abre y el panel flotante. */
+details.idioma{ position:relative; }
+details.idioma > summary{ list-style:none; cursor:pointer; }
+details.idioma > summary::-webkit-details-marker{ display:none; }
+details.idioma[open] > summary{ color:var(--ink); background:var(--surface-3); }
+/* position:fixed dentro de la .nav, que por su backdrop-filter es el bloque
+   contenedor: el panel cae justo bajo la barra y pegado a su borde derecho, en
+   cualquier ancho, sin salirse de la pantalla en móvil. */
+details.idioma .idiomas{
+  position:fixed; top:64px; right:var(--pad-x); z-index:450;
+  width:min(340px, calc(100vw - 2 * var(--pad-x)));
+  display:grid; grid-template-columns:1fr 1fr; gap:.25rem; padding:.5rem;
+  background:var(--bg-raised); border:1px solid var(--line-2); border-radius:var(--r-lg);
+  box-shadow:0 30px 90px -20px var(--bg);
+}
+
+/* ============================ FASE ============================ */
+/* Forma de .badge de la web (píldora mono sin borde); colores de §7 del
+   blueprint. El color NUNCA es la única señal: el badge lleva siempre su
+   texto, para un daltónico o una captura en blanco y negro. */
+.fase{
+  display:inline-flex; align-items:center; gap:.375rem; white-space:nowrap;
+  font-family:var(--f-mono); font-size:.625rem; font-weight:500; letter-spacing:.1em; text-transform:uppercase;
+  padding:.32rem .65rem; border-radius:var(--r-full);
+}
+.fase-roster   { color:var(--pos-def); background:rgba(62,123,255,.13); }
+.fase-clausulas{ color:var(--gold);    background:rgba(255,201,74,.13); }
+.fase-mercado  { color:var(--pos-med); background:rgba(70,180,95,.13); }
+.fase-cerrada  { color:var(--ink-3);   background:rgba(255,255,255,.05); }
+
+/* ============================ FORMULARIOS ============================
+   Mismo lenguaje que supertecnicas/css/supertecnicas.css, replicado aquí
+   porque esa hoja no se enlaza desde dashboard/. */
+.campo{ display:flex; flex-direction:column; gap:.4rem; min-width:0; }
+.campo > span:first-child{ font-size:.75rem; font-weight:500; color:var(--ink-3); letter-spacing:.01em; }
+.campo-check{ flex-direction:row; align-items:center; gap:.5rem; min-height:42px; font-size:.875rem; }
+.campo-check input{ width:18px; height:18px; accent-color:var(--accent); }
+.ayuda{ font-size:.8125rem; color:var(--ink-3); line-height:1.5; }
+.mal{
+  display:flex; align-items:center; gap:.5rem;
+  color:#FF8A7A; background:rgba(255,59,59,.1); border:1px solid rgba(255,59,59,.25);
+  border-radius:var(--r-sm); padding:.65rem .85rem; font-size:.8125rem;
+}
+.inp{
+  height:42px; width:100%; padding:0 .8rem; border-radius:var(--r-sm);
+  background:var(--surface-2); border:1px solid var(--line-2); color:var(--ink);
+  font-family:var(--f-sans); font-size:.875rem;
+  transition:border-color var(--t1) var(--ease), background var(--t1) var(--ease), box-shadow var(--t1) var(--ease);
+}
+textarea.inp{ height:auto; min-height:76px; padding:.65rem .8rem; line-height:1.55; resize:vertical; }
+.inp::placeholder{ color:var(--ink-4); }
+.inp:hover{ border-color:var(--line-3); }
+/* El foco del campo es borde + halo, no outline: se ve igual de claro y no lo
+   recorta el overflow de la tabla que lo contiene. */
+.inp:focus{ outline:none; border-color:var(--accent); background:var(--surface-3); box-shadow:0 0 0 3px var(--accent-glow); }
+.inp:disabled{ opacity:.45; cursor:not-allowed; background:var(--surface); }
+.inp-sm{ height:36px; font-size:.8125rem; }
+.inp-mono{ font-family:var(--f-mono); letter-spacing:.01em; }
+select.inp{
+  appearance:none; -webkit-appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%237A7A7A' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat:no-repeat; background-position:right .6rem center; padding-right:2.1rem;
+}
+.campo-clausula{ max-width:9rem; }
+
+/* ============================ AVISOS ============================ */
+.banda-ok{
+  padding:.75rem 1rem; border-radius:var(--r); font-size:.875rem; line-height:1.5;
+  background:var(--surface); border:1px solid var(--line-2); border-left:3px solid var(--pos-med); color:var(--ink);
+}
+.aviso{
+  padding:.75rem 1rem; border-radius:var(--r); font-size:.875rem; line-height:1.5;
+  background:var(--surface); border:1px solid var(--line-2); color:var(--ink-2);
+}
+.lista-avisos{ display:grid; gap:.35rem; font-size:.875rem; color:var(--ink-2); }
+.lista-avisos li{ position:relative; padding-left:1rem; }
+.lista-avisos li::before{ content:'–'; position:absolute; left:0; color:var(--ink-4); }
+
+/* ============================ CIFRAS ============================ */
+/* Toda cifra en JetBrains Mono y con dígitos de ancho fijo: las columnas de
+   millones se alinean y un total que cambia en vivo no hace bailar el texto. */
+.cifra{ font-family:var(--f-mono); font-variant-numeric:tabular-nums; }
+.cifras{ display:flex; flex-wrap:wrap; gap:.35rem 1.25rem; font-family:var(--f-mono); font-size:.875rem; color:var(--ink-2); }
+
+/* Las cuatro tarjetas del dashboard son la banda .metrics de la portada de la
+   web: una sola caja partida por hairlines, cifra grande en mono y etiqueta
+   pequeña en mayúsculas. Las hairlines son el fondo de la caja asomando por
+   un gap de 1 px; con 4, 2 o 1 columnas la rejilla siempre se llena entera. */
+.dash-tarjetas{
+  display:grid; grid-template-columns:repeat(4,1fr); gap:1px;
+  background:var(--line); border:1px solid var(--line); border-radius:var(--r-lg); overflow:hidden;
+}
+.dash-main .dash-tarjeta{
+  border:0; border-radius:0; background:var(--surface);
+  padding:clamp(1.25rem,2.5vw,2rem) clamp(1rem,2vw,1.5rem); gap:.6rem;
+}
+.dash-tarjeta-titulo{ font-family:var(--f-mono); font-size:.625rem; font-weight:500; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-4); }
+.dash-tarjeta .cifra{ font-size:clamp(1.5rem,2.6vw,2.25rem); font-weight:500; letter-spacing:-.045em; line-height:1; color:var(--ink); }
+.dash-tarjeta[data-estado="abierto"] .cifra{ color:var(--pos-med); }
+@media (max-width:900px){ .dash-tarjetas{ grid-template-columns:1fr 1fr; } }
+@media (max-width:440px){ .dash-tarjetas{ grid-template-columns:1fr; } }
+
+.dash-cifras{ display:flex; flex-wrap:wrap; gap:1rem 2.5rem; }
+.dash-cifras dt, .dash-cifras .ayuda{ font-size:.75rem; color:var(--ink-3); }
+.dash-cifras .cifra{ font-size:1.35rem; font-weight:600; }
+
+/* ============================ PRESUPUESTO DE CLÁUSULAS ============================ */
+.barra{ height:8px; border-radius:var(--r-full); background:var(--surface-3); overflow:hidden; }
+/* Tres estados, y los tres se anuncian también por texto en el aria-live de
+   al lado. Colores de §7: los mismos que --pos-med y --pos-del. */
+.barra > i{ display:block; height:100%; max-width:100%; border-radius:inherit; background:var(--ink-3);
+            transition:width var(--t2) var(--ease), background var(--t1) var(--ease); }
+.barra-parcial  > i{ background:var(--accent); }    /* < 650M: borrador válido */
+.barra-completa > i{ background:var(--pos-med); }   /* = 650M exactos */
+.barra-excedida > i{ background:var(--pos-del); }   /* > 650M: se rechaza */
+.estado-presupuesto{ font-size:.875rem; font-weight:500; }
+
+/* ============================ MERCADO ============================ */
+.estado-mercado{
+  display:inline-flex; align-items:center; font-family:var(--f-mono); font-size:.75rem; font-weight:600;
+  letter-spacing:.08em; padding:.4rem .8rem; border-radius:var(--r-full);
+  border:1px solid var(--line-2); color:var(--ink-3);
+}
+/* Mismo color que el badge de la fase MERCADO: dicen lo mismo. */
+.estado-mercado[data-estado="abierto"]{ color:var(--pos-med); border-color:currentColor; background:rgba(70,180,95,.13); }
+.dash-main .dash-confirmar{ border-color:var(--accent); }
+
+/* ============================ TABLAS ============================ */
+/* La tabla ancha se desplaza dentro de su caja; la página nunca.
+   position:relative no es decorativo: las etiquetas .sr-only de las celdas
+   son position:absolute, y sin un ancestro posicionado dentro de la caja se
+   escapaban de su scroll y ensanchaban la página entera a 375 px. */
+.tabla-scroll{
+  position:relative; max-width:100%; overflow-x:auto; overscroll-behavior-x:contain;
+  border:1px solid var(--line); border-radius:var(--r-lg); background:var(--surface);
+}
+/* En la web pública cada fila es un enlace; aquí no, así que fuera el cursor de mano. */
+table.tbl tbody tr{ cursor:auto; }
+table.tbl td.cifra{ white-space:nowrap; }
+/* Un campo al 100 % dentro de una tabla de ancho automático no tiene ancho
+   propio y se encoge hasta no dejar leer el nombre: se le da un mínimo. */
+table.tbl td .inp{ min-width:6.5rem; }
+table.tbl td input.inp[name="nombre"]{ min-width:12rem; }
+/* Un formulario dentro de una celda (la corrección del admin) va en una sola
+   línea: si envolviera, cada fila de la tabla crecería al triple de alto. La
+   tabla ya se desplaza en horizontal. */
+table.tbl td .dash-form-fila{ flex-wrap:nowrap; align-items:center; }
+table.tbl td .dash-form-fila .campo{ flex:0 0 auto; }
+table.tbl td.acciones{ white-space:nowrap; text-align:right; }
+.acciones .btn + .btn, .acciones form + form{ margin-left:.4rem; }
+.acciones form{ display:inline-flex; }
+tr.clausulado td, tr.archivado td{ color:var(--ink-3); }
+/* Los jugadores propios en el mercado: una marca discreta a la izquierda. */
+tr.propio td:first-child{ box-shadow:inset 2px 0 0 var(--line-3); }
+/* Línea con error en el pegado: la raya roja es refuerzo, el texto del error
+   va escrito en la última columna. */
+tr.con-error td{ background:rgba(255,59,59,.1); }
+tr.con-error td:first-child{ box-shadow:inset 2px 0 0 var(--pos-del); }
+tr.con-error td:last-child{ color:#FF8A7A; }
+
+/* ATA no existe en la web pública (allí es DEL). Reusa su color: es el mismo
+   rol en el campo, y un quinto color de posición rompería la paleta. */
+.chip-ata{ background:rgba(255,59,59,.14); color:var(--pos-del); }
+
+/* ============================ MODAL ============================ */
+.modal{
+  margin:auto; width:min(440px, calc(100% - 2rem)); padding:1.5rem;
+  border:1px solid var(--line-2); border-radius:var(--r-lg);
+  background:var(--bg-raised); color:var(--ink);
+}
+.modal[open]{ display:grid; gap:.75rem; }
+.modal::backdrop{ background:var(--bg); opacity:.75; }
+.modal .dash-form-fila{ justify-content:flex-end; margin-top:.5rem; }
+
+/* ============================ MÓVIL ============================ */
+@media (max-width:760px){
+  /* En móvil la nav se queda con logo, fase, idioma y salir: el nombre del
+     producto ya lo dice el titular de cada pantalla. */
+  .dash-producto{ display:none; }
+  .dash-nav-top .nav-right{ gap:.5rem; }
+  .dash-main{ padding-block:1.5rem 3rem; gap:1.5rem; }
+  .dash-main .card{ padding:1rem; }
+  .dash-form-fila > .btn{ flex:1 1 100%; }
+}
+
+/* ============================ MOTION ============================ */
+@media (prefers-reduced-motion:reduce){
+  .inp, .barra > i, .dash-pie a{ transition:none !important; }
+}
