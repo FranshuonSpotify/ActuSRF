@@ -1,9 +1,9 @@
 <?php
 // dashboard/i18n.php
-// Motor de idioma de las pantallas de presidente. En este paso lleva SOLO el
-// esqueleto y el español: los otros nueve idiomas llegan en el paso 15, porque
-// traducir pantallas cuyos textos todavía van a cambiar es trabajo que se tira
-// dos veces.
+// Motor de idioma de las pantallas de presidente, con los diez idiomas del
+// sitio. El español es la referencia: una clave nueva se añade primero ahí y
+// luego en los otros nueve, con los mismos marcadores {…} (test_i18n.php lo
+// comprueba).
 //
 // El panel de admin (admin*.php) NO usa plT(): va en español, igual que
 // supertecnicas/admin.php. Es una decisión tomada.
@@ -21,6 +21,13 @@ const PL_IDIOMAS = ['es', 'en', 'pt', 'it', 'fr', 'ja', 'ko', 'pl', 'bg', 'sr'];
 const PL_BANDERAS = [
     'es' => 'es', 'en' => 'gb', 'pt' => 'pt', 'it' => 'it', 'fr' => 'fr',
     'ja' => 'jp', 'ko' => 'kr', 'pl' => 'pl', 'bg' => 'bg', 'sr' => 'rs',
+];
+
+// Nombre de cada idioma en ese mismo idioma: es el alt de su bandera. Un
+// lector de pantalla que lea "en" no dice nada; "English" sí.
+const PL_NOMBRES_IDIOMA = [
+    'es' => 'Español', 'en' => 'English', 'pt' => 'Português', 'it' => 'Italiano', 'fr' => 'Français',
+    'ja' => '日本語', 'ko' => '한국어', 'pl' => 'Polski', 'bg' => 'Български', 'sr' => 'Српски',
 ];
 
 // Se asigna a $GLOBALS y no a una variable suelta: si este fichero se carga
@@ -1395,10 +1402,10 @@ function plRenderSelectorIdioma(): void
         $query['lang'] = $codigo;
         $href = '?' . http_build_query($query);
         $esActivo = $activo === $codigo;
-        echo '<a href="' . plEsc($href) . '"'
+        echo '<a href="' . plEsc($href) . '" hreflang="' . plEsc($codigo) . '" lang="' . plEsc($codigo) . '"'
             . ($esActivo ? ' class="activo" aria-current="true"' : '')
             . '><img src="https://flagcdn.com/16x12/' . plEsc($pais) . '.png"'
-            . ' alt="' . plEsc($codigo) . '" width="16" height="12" loading="lazy"></a>';
+            . ' alt="' . plEsc(PL_NOMBRES_IDIOMA[$codigo]) . '" width="16" height="12" loading="lazy"></a>';
     }
     echo '</nav>';
 }

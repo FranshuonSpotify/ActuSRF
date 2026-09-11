@@ -478,7 +478,7 @@
                 "dashboard/plantilla.php",
                 "dashboard/tests/test_traduccion.php"
             ],
-            "status": "pending"
+            "status": "done"
         },
         {
             "id": "E3-T7",
