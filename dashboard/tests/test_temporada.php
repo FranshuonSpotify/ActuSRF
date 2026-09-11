@@ -27,6 +27,18 @@ plVerificar('y corta con 403 si falla', str_contains($fuente, 'plCortar(403'));
 plVerificar('sin header()+exit a pelo: todo sale por plRedirigir/plCortar',
     !preg_match('/header\s*\(\s*[\'"]Location/', $fuente) && !str_contains($fuente, 'http_response_code('));
 
+// -- toda pantalla de admin requiere chrome.php --------------------------
+// Nunca se renderizan aquí (el Basic Auth mata el proceso en CLI), así que
+// esto es lo único que puede cazar un require olvidado: admin.php lo tuvo
+// hasta este mismo paso — llamaba a plCabeceraAdmin() sin requerir el
+// fichero que la define, y como nada la renderiza, ningún test lo vio hasta
+// que dio un 500 real en producción.
+foreach (['admin.php', 'admin_equipos.php', 'admin_presidentes.php', 'admin_tiers.php', 'admin_plantillas.php'] as $pantalla) {
+    $src = (string) file_get_contents(__DIR__ . '/../' . $pantalla);
+    plVerificar("$pantalla requiere chrome.php (de donde salen plCabeceraAdmin/plPieAdmin)",
+        str_contains($src, "require_once __DIR__ . '/chrome.php'"));
+}
+
 // -- secrets.example.php ------------------------------------------------
 $ejemplo = (string) file_get_contents(__DIR__ . '/../../config/secrets.example.php');
 plVerificar('secrets.example.php declara las dos claves nuevas',
