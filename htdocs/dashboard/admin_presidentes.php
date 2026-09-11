@@ -123,7 +123,7 @@ plCabeceraAdmin('Presidentes', 'presidentes');
     <label class="campo"><span>Contraseña</span><input class="inp" type="password" name="clave" required minlength="8" autocomplete="new-password"></label>
     <label class="campo"><span>Equipo</span><select class="inp" name="equipo"><?= $opcionesEquipo(null) ?></select></label>
     <label class="campo campo-check"><input type="checkbox" name="activo" value="1" checked> <span>Activo</span></label>
-    <button class="btn btn-accent" type="submit">Añadir presidente</button>
+    <button class="btn btn-primary" type="submit">Añadir presidente</button>
   </form>
   <p class="ayuda">La contraseña tiene que tener al menos 8 caracteres. Se guarda cifrada: ni tú podrás leerla después.</p>
 </section>

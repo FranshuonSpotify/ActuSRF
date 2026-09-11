@@ -222,7 +222,7 @@ plCabeceraAdmin('Temporada', 'dashboard');
       <?php if ($siguiente !== null): ?>
         <form method="post">
           <input type="hidden" name="csrf" value="<?= plEsc(plTokenCsrf()) ?>">
-          <button class="btn btn-accent" type="submit" name="cambiar_fase" value="<?= plEsc($siguiente['a']) ?>">
+          <button class="btn btn-primary" type="submit" name="cambiar_fase" value="<?= plEsc($siguiente['a']) ?>">
             <?= plEsc($siguiente['texto']) ?>
           </button>
         </form>
@@ -264,7 +264,7 @@ plCabeceraAdmin('Temporada', 'dashboard');
         <span>Nombre visible</span>
         <input class="inp" type="text" name="temporada_nombre" placeholder="2027/28" required>
       </label>
-      <button class="btn btn-accent" type="button" id="btn-nueva-temporada">+ Empezar nueva temporada</button>
+      <button class="btn btn-primary" type="button" id="btn-nueva-temporada">+ Empezar nueva temporada</button>
     </form>
     <p class="ayuda">
       No se copia nada de la temporada anterior: ni jugadores, ni cláusulas, ni
@@ -279,7 +279,7 @@ plCabeceraAdmin('Temporada', 'dashboard');
     <p>Los presidentes tendrán que volver a inscribir a sus jugadores.</p>
     <div class="dash-form-fila">
       <button class="btn btn-secondary" type="button" id="dlg-cancelar">Cancelar</button>
-      <button class="btn btn-accent" type="button" id="dlg-confirmar">Empezar temporada</button>
+      <button class="btn btn-primary" type="button" id="dlg-confirmar">Empezar temporada</button>
     </div>
   </dialog>
 

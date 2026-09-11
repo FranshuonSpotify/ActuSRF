@@ -196,7 +196,7 @@ plCabecera(plT('mercado.titulo'), 'mercado', $fase);
         <input type="hidden" name="jugador" value="<?= plEsc($confirmar['j']['id'] ?? '') ?>">
         <input type="hidden" name="comprador" value="<?= plEsc($miEquipo) ?>">
         <a class="btn btn-secondary" href="mercado.php"><?= plEsc(plT('mercado.cancelar')) ?></a>
-        <button class="btn btn-accent" type="submit"><?= plEsc(plT('mercado.confirmar')) ?></button>
+        <button class="btn btn-primary" type="submit"><?= plEsc(plT('mercado.confirmar')) ?></button>
       </form>
     </section>
   <?php endif; ?>

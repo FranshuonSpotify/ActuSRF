@@ -64,27 +64,34 @@ function plCabecera(string $titulo, string $activo = '', ?string $fase = null): 
     plImprimirHead($titulo . ' · ' . plT('login.titulo'), (string) ($GLOBALS['PL_IDIOMA_ACTUAL'] ?? 'es'));
     ?><body>
 <a class="skip-link" href="#contenido"><?= plEsc(plT('nav.saltar')) ?></a>
-<header class="dash-top">
-  <div class="wrap dash-top-int">
-    <span class="dash-marca"><?= plEsc(plT('login.titulo')) ?></span>
-    <?php if ($activo !== ''): ?>
-      <nav class="dash-nav" aria-label="<?= plEsc(plT('nav.dashboard')) ?>">
-        <?php foreach (PL_NAV as $clave => $item): ?>
-          <a href="<?= plEsc($item['href']) ?>"<?= $clave === $activo ? ' aria-current="page"' : '' ?>><?= plEsc(plT($item['clave'])) ?></a>
-        <?php endforeach; ?>
-      </nav>
-    <?php endif; ?>
-    <div class="dash-top-fin">
+<?php // Misma gramática que la cabecera de la web pública (.nav, .nav-logo,
+      // .nav-right, .tabbar de _fuente/styles.css): el presidente tiene que
+      // sentir que sigue dentro de superligafrontier.es. ?>
+<header class="nav stuck dash-nav-top">
+  <div class="wrap nav-in">
+    <a class="nav-logo" href="index.php"><img src="../assets/sf-logo-blanco.png" alt="Superliga Frontier" width="43" height="24"></a>
+    <span class="dash-producto"><?= plEsc(plT('login.titulo')) ?></span>
+    <div class="nav-right">
       <?php if ($fase !== null): ?>
         <span class="fase <?= plEsc(plClaseFase($fase)) ?>"><?= plEsc(plFaseTexto($fase)) ?></span>
       <?php endif; ?>
       <?php plRenderSelectorIdioma(); ?>
       <?php if ($activo !== ''): ?>
+        <span class="nav-sep" aria-hidden="true"></span>
         <a class="btn btn-secondary btn-sm" href="logout.php"><?= plEsc(plT('login.cerrar_sesion')) ?></a>
       <?php endif; ?>
     </div>
   </div>
 </header>
+<?php if ($activo !== ''): ?>
+<nav class="tabbar" aria-label="<?= plEsc(plT('nav.dashboard')) ?>">
+  <div class="wrap tabbar-in">
+    <?php foreach (PL_NAV as $clave => $item): ?>
+      <a href="<?= plEsc($item['href']) ?>"<?= $clave === $activo ? ' class="on" aria-current="page"' : '' ?>><?= plEsc(plT($item['clave'])) ?></a>
+    <?php endforeach; ?>
+  </div>
+</nav>
+<?php endif; ?>
 <main class="wrap dash-main" id="contenido">
 <?php
 }
@@ -92,8 +99,23 @@ function plCabecera(string $titulo, string $activo = '', ?string $fase = null): 
 function plPie(): void
 {
     echo "</main>\n";
+    plPieMarca();
     plScriptConfirmar();
     echo "</body>\n</html>\n";
+}
+
+// Pie común, con la misma raya y el mismo logo que .foot de la web pública.
+// El enlace es el dominio, que se lee igual en los diez idiomas y no necesita
+// traducción.
+function plPieMarca(): void
+{
+    ?><footer class="dash-pie">
+  <div class="wrap dash-pie-in">
+    <img src="../assets/sf-logo-blanco.png" alt="" width="43" height="24">
+    <a href="/">superligafrontier.es</a>
+  </div>
+</footer>
+<?php
 }
 
 // Confirmación para los botones marcados con data-confirmar (borrar un
@@ -111,6 +133,21 @@ function plScriptConfirmar(): void
     var boton = e.target.closest ? e.target.closest('[data-confirmar]') : null;
     if (boton && !window.confirm(boton.getAttribute('data-confirmar'))) {
       e.preventDefault();
+    }
+    // El selector de idioma es un <details>: se abre y se cierra solo, sin JS.
+    // Esto solo añade lo que un menú desplegable debe hacer y <details> no
+    // hace: cerrarse al pulsar fuera.
+    var menu = document.querySelector('details.idioma[open]');
+    if (menu && !menu.contains(e.target)) {
+      menu.removeAttribute('open');
+    }
+  });
+  // …y con Escape, devolviendo el foco al botón que lo abrió.
+  document.addEventListener('keydown', function (e) {
+    var menu = document.querySelector('details.idioma[open]');
+    if (e.key === 'Escape' && menu) {
+      menu.removeAttribute('open');
+      menu.querySelector('summary').focus();
     }
   });
 })();
@@ -149,7 +186,7 @@ function plImprimirHead(string $titulo, string $idioma): void
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <!-- Mismas familias que _fuente/shell.html: el dashboard usa la tipografía de
      la marca, no la del sistema. -->
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Teko:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Teko:wght@500;600;700&family=Fraunces:ital,opsz,wght@1,9..144,300;1,9..144,400&family=JetBrains+Mono:wght@400;500;600&display=swap">
 <link rel="stylesheet" href="../_fuente/styles.css">
 <link rel="stylesheet" href="css/dashboard.css">
 </head>
@@ -164,19 +201,24 @@ function plCabeceraAdmin(string $titulo, string $activo): void
     $fase = plFaseActiva();
     ?><body>
 <a class="skip-link" href="#contenido">Saltar al contenido</a>
-<header class="dash-top dash-top-admin">
-  <div class="wrap dash-top-int">
-    <span class="dash-marca">Admin · Dashboard de plantillas</span>
-    <nav class="dash-nav" aria-label="Panel de administración">
-      <?php foreach (PL_NAV_ADMIN as $clave => $item): ?>
-        <a href="<?= plEsc($item['href']) ?>"<?= $clave === $activo ? ' aria-current="page"' : '' ?>><?= plEsc($item['texto']) ?></a>
-      <?php endforeach; ?>
-    </nav>
-    <div class="dash-top-fin">
+<header class="nav stuck dash-nav-top">
+  <div class="wrap nav-in">
+    <a class="nav-logo" href="admin.php"><img src="../assets/sf-logo-blanco.png" alt="Superliga Frontier" width="43" height="24"></a>
+    <span class="dash-producto">Dashboard de plantillas</span>
+    <div class="nav-right">
+      <?php // El badge dice de un vistazo que no se está en la vista de un presidente. ?>
+      <span class="badge badge-superliga">Admin</span>
       <span class="fase <?= plEsc(plClaseFase($fase)) ?>"><?= plEsc($fase) ?></span>
     </div>
   </div>
 </header>
+<nav class="tabbar" aria-label="Panel de administración">
+  <div class="wrap tabbar-in">
+    <?php foreach (PL_NAV_ADMIN as $clave => $item): ?>
+      <a href="<?= plEsc($item['href']) ?>"<?= $clave === $activo ? ' class="on" aria-current="page"' : '' ?>><?= plEsc($item['texto']) ?></a>
+    <?php endforeach; ?>
+  </div>
+</nav>
 <main class="wrap dash-main" id="contenido">
 <?php
 }
@@ -184,6 +226,7 @@ function plCabeceraAdmin(string $titulo, string $activo): void
 function plPieAdmin(): void
 {
     echo "</main>\n";
+    plPieMarca();
     plScriptConfirmar();
     echo "</body>\n</html>\n";
 }

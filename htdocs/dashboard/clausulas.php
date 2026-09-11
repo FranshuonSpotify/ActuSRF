@@ -185,7 +185,7 @@ plCabecera(plT('clausulas.titulo'), 'clausulas', $fase);
       </div>
       <?php if ($editable): ?>
         <p class="ayuda"><?= plEsc(plT('clausulas.nota_borrador')) ?></p>
-        <button class="btn btn-accent" type="submit"><?= plEsc(plT('clausulas.guardar')) ?></button>
+        <button class="btn btn-primary" type="submit"><?= plEsc(plT('clausulas.guardar')) ?></button>
       <?php endif; ?>
     </form>
   <?php endif; ?>

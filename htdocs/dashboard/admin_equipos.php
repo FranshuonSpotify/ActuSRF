@@ -92,7 +92,7 @@ plCabeceraAdmin('Equipos', 'equipos');
   <form method="post" action="admin_equipos.php">
     <input type="hidden" name="csrf" value="<?= plEsc(plTokenCsrf()) ?>">
     <input type="hidden" name="accion" value="importar">
-    <button class="btn btn-accent" type="submit">Importar equipos de la web</button>
+    <button class="btn btn-primary" type="submit">Importar equipos de la web</button>
   </form>
 </section>
 

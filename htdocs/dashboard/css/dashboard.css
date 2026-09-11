@@ -1,55 +1,57 @@
 /* dashboard/css/dashboard.css
-   Se carga DESPUÉS de ../_fuente/styles.css, que ya pone los tokens (:root),
-   el reset (margin:0 en todo), .btn*, .card, .chip-por/def/med, table.tbl,
-   .wrap, .sr-only, .skip-link y el :focus-visible naranja. Aquí va solo lo que
-   el dashboard necesita y la web pública no tiene. Sin tokens nuevos: todo
-   color sale de var(--…); los únicos literales son los del bloque de §7 del
-   blueprint (.chip-ata y fondos de .fase-*) y los de p.mal, replicado tal cual
-   de supertecnicas.css. test_css.php lo comprueba.
+   Se carga DESPUÉS de ../_fuente/styles.css, la hoja de la web pública, y el
+   dashboard la usa a fondo: tokens (:root), reset, .nav/.nav-in/.nav-logo/
+   .nav-right/.nav-sep, .tabbar, .eyebrow, .lede, .grad-text, .hero-title .l2,
+   .btn*, .badge*, .card, table.tbl, .lang-btn/.lang-item/.lang-flag-circle,
+   .wrap, .sr-only, .skip-link y el :focus-visible naranja. La estética es la de
+   superligafrontier.es porque ES su hoja; aquí va solo lo que la web no tiene
+   (formularios, fases, barra de cláusulas) y los ajustes para que sus piezas
+   encajen en un panel de trabajo.
+
+   Sin tokens nuevos: todo color sale de var(--…); los únicos literales son los
+   del bloque de §7 del blueprint (.chip-ata y fondos de .fase-*) y los de
+   p.mal, replicado tal cual de supertecnicas.css. test_css.php lo comprueba.
 
    Como el reset deja todos los márgenes a 0, el ritmo vertical lo ponen los
    gap de flex/grid de los contenedores, no márgenes sueltos en cada elemento. */
 
 /* ============================ ENVOLTORIO ============================ */
-.dash-top{ border-bottom:1px solid var(--line); background:var(--bg-raised); }
-/* En el admin la raya inferior es naranja: se sabe de un vistazo que no se
-   está en la vista de un presidente. */
-.dash-top-admin{ border-bottom-color:var(--accent); }
-.dash-top-int{
-  display:flex; align-items:center; flex-wrap:wrap; gap:.75rem 1.5rem;
-  min-height:64px; padding-block:.75rem;
-}
-.dash-marca{
-  font-family:var(--f-display); font-size:1.35rem; font-weight:600; line-height:1;
-  letter-spacing:.03em; text-transform:uppercase; white-space:nowrap;
-}
-.dash-nav{ display:flex; gap:.25rem; flex:1 1 auto; min-width:0; overflow-x:auto; scrollbar-width:none; }
-.dash-nav::-webkit-scrollbar{ display:none; }
-.dash-nav a{
-  padding:.5rem .75rem; border-radius:var(--r-sm); white-space:nowrap;
-  font-size:.875rem; color:var(--ink-3);
-  transition:color var(--t1) var(--ease), background var(--t1) var(--ease);
-}
-.dash-nav a:hover{ color:var(--ink); }
-/* Dentro de un contenedor con scroll, un outline hacia fuera se recortaría:
-   se dibuja hacia dentro para que el foco nunca quede tapado. */
-.dash-nav a:focus-visible{ outline-offset:-2px; }
-.dash-nav a[aria-current="page"]{ color:var(--ink); background:var(--surface-3); font-weight:500; }
-.dash-top-fin{ display:flex; align-items:center; flex-wrap:wrap; gap:.75rem; margin-left:auto; }
+/* El pie queda abajo aunque la pantalla tenga poco contenido (el login). */
+body{ display:flex; flex-direction:column; }
+/* Las dos barras de arriba son sticky (60 px la nav, ~50 la de pestañas):
+   sin este margen, al tabular hacia arriba el elemento con foco quedaría
+   escondido debajo de ellas. */
+html{ scroll-padding-top:8rem; }
 
-.dash-main{ display:flex; flex-direction:column; gap:1.5rem; padding-block:2rem 4rem; }
-.dash-main h2{ font-size:1rem; font-weight:600; letter-spacing:-.01em; line-height:1.3; }
+/* La .nav de la web es fixed y transparente hasta que se hace scroll sobre un
+   hero; aquí no hay hero, así que va sticky y ya en su estado .stuck. */
+.nav.dash-nav-top{ position:sticky; }
+.dash-nav-top .nav-in{ gap:1.25rem; }
+.dash-producto{
+  font-family:var(--f-mono); font-size:.6875rem; font-weight:500; letter-spacing:.16em;
+  text-transform:uppercase; color:var(--ink-3); white-space:nowrap;
+  overflow:hidden; text-overflow:ellipsis; min-width:0;
+}
+.dash-nav-top .nav-right{ gap:.75rem; }
+/* La barra de pestañas es la de la sección de datos de la web. Dentro de un
+   contenedor con scroll un outline hacia fuera se recortaría: va hacia dentro. */
+.tabbar a:focus-visible{ outline-offset:-3px; }
+
+.dash-main{ flex:1 0 auto; display:flex; flex-direction:column; gap:2rem; padding-block:clamp(2rem,4vw,3.5rem) 4rem; }
+.dash-main h2{ font-size:clamp(1.125rem,1.8vw,1.375rem); font-weight:600; letter-spacing:-.025em; line-height:1.2; }
 .dash-main code{ font-family:var(--f-mono); font-size:.8125rem; background:var(--surface-3); padding:.1rem .4rem; border-radius:4px; }
 .dash-main p a{ text-decoration:underline; text-underline-offset:3px; color:var(--ink); }
 
-.dash-cabecera{
-  display:flex; flex-wrap:wrap; justify-content:space-between; align-items:flex-end;
-  gap:.75rem 1.5rem; padding-bottom:1.25rem; border-bottom:1px solid var(--line);
-}
-.dash-cabecera > div{ display:grid; gap:.35rem; }
+/* Cabecera de pantalla: la gramática de .sec-head de la web (eyebrow, titular
+   con degradado, entradilla). El degradado se hace con tokens, sin tocar el
+   marcado del <h1>. */
+.dash-cabecera{ display:flex; flex-wrap:wrap; justify-content:space-between; align-items:flex-end; gap:1rem 1.5rem; }
+.dash-cabecera > div{ display:grid; gap:.75rem; justify-items:start; }
 .dash-cabecera h1{
-  font-family:var(--f-display); font-size:clamp(2rem,6vw,2.75rem); font-weight:600;
-  line-height:.95; letter-spacing:.01em; text-transform:uppercase; overflow-wrap:anywhere;
+  font-size:clamp(1.875rem,4.2vw,3rem); font-weight:600; letter-spacing:-.04em; line-height:1.02;
+  overflow-wrap:anywhere;
+  background:linear-gradient(180deg,var(--ink) 30%,var(--ink-3) 100%);
+  -webkit-background-clip:text; background-clip:text; color:transparent;
 }
 .dash-cabecera .ayuda{ max-width:60ch; }
 
@@ -72,35 +74,51 @@
 .dash-form-fila .campo{ flex:1 1 11rem; }
 .dash-form-fila .campo-check{ flex:0 0 auto; }
 
+/* ============================ PIE ============================ */
+.dash-pie{ border-top:1px solid var(--line); padding-block:1.75rem; }
+.dash-pie-in{ display:flex; align-items:center; justify-content:space-between; gap:1rem; }
+.dash-pie img{ height:24px; width:auto; opacity:.6; }
+.dash-pie a{ font-family:var(--f-mono); font-size:.75rem; color:var(--ink-3); padding-block:.5rem; transition:color var(--t1); }
+.dash-pie a:hover{ color:var(--ink); }
+
 /* ============================ LOGIN ============================ */
+/* Panel como los .ov-panel de la web, con el halo naranja de su pantalla de
+   carga hecho con sombra: una sombra no ensancha la página a 375 px. */
 .dash-login{
-  width:100%; max-width:400px; margin:clamp(1rem,8vh,4rem) auto 0;
-  padding:clamp(1.25rem,5vw,2.25rem); display:grid; gap:1rem;
-  border:1px solid var(--line); border-radius:var(--r-xl); background:var(--bg-raised);
+  width:100%; max-width:420px; margin:clamp(1rem,8vh,4.5rem) auto 0;
+  padding:clamp(1.5rem,5vw,2.5rem); display:grid; gap:1.1rem;
+  border:1px solid var(--line-2); border-radius:var(--r-lg); background:var(--bg-raised);
+  box-shadow:0 0 120px -30px var(--accent-glow), 0 30px 90px -20px var(--bg);
 }
-.dash-login h1{
-  font-family:var(--f-display); font-size:2.25rem; font-weight:600; line-height:1;
-  letter-spacing:.02em; text-transform:uppercase;
-}
+.dash-login .hero-title{ margin:0; font-size:clamp(2.25rem,9vw,3rem); font-weight:700; letter-spacing:-.045em; line-height:.98; }
+.dash-login .hero-title .l2{ font-size:.5em; }
 
 /* ============================ SELECTOR DE IDIOMA ============================ */
-.idiomas{ display:flex; flex-wrap:wrap; gap:.25rem; }
-.idiomas a{
-  display:inline-flex; padding:.35rem; border-radius:var(--r-sm);
-  border:1px solid transparent; opacity:.55;
-  transition:opacity var(--t1) var(--ease), border-color var(--t1) var(--ease);
+/* El botón (.lang-btn) y las filas (.lang-item) son los de la web. Aquí solo
+   el <details> que los abre y el panel flotante. */
+details.idioma{ position:relative; }
+details.idioma > summary{ list-style:none; cursor:pointer; }
+details.idioma > summary::-webkit-details-marker{ display:none; }
+details.idioma[open] > summary{ color:var(--ink); background:var(--surface-3); }
+/* position:fixed dentro de la .nav, que por su backdrop-filter es el bloque
+   contenedor: el panel cae justo bajo la barra y pegado a su borde derecho, en
+   cualquier ancho, sin salirse de la pantalla en móvil. */
+details.idioma .idiomas{
+  position:fixed; top:64px; right:var(--pad-x); z-index:450;
+  width:min(340px, calc(100vw - 2 * var(--pad-x)));
+  display:grid; grid-template-columns:1fr 1fr; gap:.25rem; padding:.5rem;
+  background:var(--bg-raised); border:1px solid var(--line-2); border-radius:var(--r-lg);
+  box-shadow:0 30px 90px -20px var(--bg);
 }
-.idiomas a:hover, .idiomas a:focus-visible{ opacity:1; }
-.idiomas a.activo{ opacity:1; border-color:var(--line-2); background:var(--surface-2); }
-.idiomas img{ display:block; border-radius:2px; }
 
 /* ============================ FASE ============================ */
-/* Los de §7 del blueprint. El color NUNCA es la única señal: el badge lleva
-   siempre su texto, para un daltónico o una captura en blanco y negro. */
+/* Forma de .badge de la web (píldora mono sin borde); colores de §7 del
+   blueprint. El color NUNCA es la única señal: el badge lleva siempre su
+   texto, para un daltónico o una captura en blanco y negro. */
 .fase{
-  display:inline-flex; align-items:center; gap:.4rem; white-space:nowrap;
-  font-family:var(--f-mono); font-size:.6875rem; font-weight:500; letter-spacing:.08em; text-transform:uppercase;
-  padding:.28rem .6rem; border-radius:var(--r-full); border:1px solid currentColor;
+  display:inline-flex; align-items:center; gap:.375rem; white-space:nowrap;
+  font-family:var(--f-mono); font-size:.625rem; font-weight:500; letter-spacing:.1em; text-transform:uppercase;
+  padding:.32rem .65rem; border-radius:var(--r-full);
 }
 .fase-roster   { color:var(--pos-def); background:rgba(62,123,255,.13); }
 .fase-clausulas{ color:var(--gold);    background:rgba(255,201,74,.13); }
@@ -161,12 +179,23 @@ select.inp{
 .cifra{ font-family:var(--f-mono); font-variant-numeric:tabular-nums; }
 .cifras{ display:flex; flex-wrap:wrap; gap:.35rem 1.25rem; font-family:var(--f-mono); font-size:.875rem; color:var(--ink-2); }
 
-.dash-tarjetas{ display:grid; gap:1rem; grid-template-columns:repeat(auto-fit,minmax(min(100%,13rem),1fr)); }
-.dash-main .dash-tarjeta{ gap:.5rem; }
-.dash-tarjeta-titulo{ font-family:var(--f-mono); font-size:.6875rem; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-3); }
-.dash-tarjeta .cifra{ font-size:1.6rem; font-weight:600; line-height:1.1; color:var(--ink); }
-.dash-tarjeta[data-estado="abierto"]{ border-color:var(--pos-med); }
+/* Las cuatro tarjetas del dashboard son la banda .metrics de la portada de la
+   web: una sola caja partida por hairlines, cifra grande en mono y etiqueta
+   pequeña en mayúsculas. Las hairlines son el fondo de la caja asomando por
+   un gap de 1 px; con 4, 2 o 1 columnas la rejilla siempre se llena entera. */
+.dash-tarjetas{
+  display:grid; grid-template-columns:repeat(4,1fr); gap:1px;
+  background:var(--line); border:1px solid var(--line); border-radius:var(--r-lg); overflow:hidden;
+}
+.dash-main .dash-tarjeta{
+  border:0; border-radius:0; background:var(--surface);
+  padding:clamp(1.25rem,2.5vw,2rem) clamp(1rem,2vw,1.5rem); gap:.6rem;
+}
+.dash-tarjeta-titulo{ font-family:var(--f-mono); font-size:.625rem; font-weight:500; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-4); }
+.dash-tarjeta .cifra{ font-size:clamp(1.5rem,2.6vw,2.25rem); font-weight:500; letter-spacing:-.045em; line-height:1; color:var(--ink); }
 .dash-tarjeta[data-estado="abierto"] .cifra{ color:var(--pos-med); }
+@media (max-width:900px){ .dash-tarjetas{ grid-template-columns:1fr 1fr; } }
+@media (max-width:440px){ .dash-tarjetas{ grid-template-columns:1fr; } }
 
 .dash-cifras{ display:flex; flex-wrap:wrap; gap:1rem 2.5rem; }
 .dash-cifras dt, .dash-cifras .ayuda{ font-size:.75rem; color:var(--ink-3); }
@@ -242,14 +271,16 @@ tr.con-error td:last-child{ color:#FF8A7A; }
 
 /* ============================ MÓVIL ============================ */
 @media (max-width:760px){
-  /* La navegación baja a su propia línea y se desplaza en horizontal. */
-  .dash-nav{ order:3; flex-basis:100%; }
-  .dash-main{ padding-block:1.25rem 3rem; gap:1.25rem; }
+  /* En móvil la nav se queda con logo, fase, idioma y salir: el nombre del
+     producto ya lo dice el titular de cada pantalla. */
+  .dash-producto{ display:none; }
+  .dash-nav-top .nav-right{ gap:.5rem; }
+  .dash-main{ padding-block:1.5rem 3rem; gap:1.5rem; }
   .dash-main .card{ padding:1rem; }
   .dash-form-fila > .btn{ flex:1 1 100%; }
 }
 
 /* ============================ MOTION ============================ */
 @media (prefers-reduced-motion:reduce){
-  .dash-nav a, .idiomas a, .inp, .barra > i{ transition:none !important; }
+  .inp, .barra > i, .dash-pie a{ transition:none !important; }
 }

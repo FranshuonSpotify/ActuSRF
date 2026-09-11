@@ -287,7 +287,7 @@ plCabecera(plT('plantilla.titulo'), 'plantilla', $fase);
             <span><?= plEsc(plT('plantilla.campo_tier')) ?></span>
             <select class="inp inp-mono" name="tier"><?= $opcionesTier($tiers, $borrador['tier']) ?></select>
           </label>
-          <button class="btn btn-accent" type="submit"><?= plEsc(plT('plantilla.anadir')) ?></button>
+          <button class="btn btn-primary" type="submit"><?= plEsc(plT('plantilla.anadir')) ?></button>
         </form>
         <p class="ayuda"><?= plEsc(plT('plantilla.salario_auto')) ?></p>
         <p><a href="pegado.php"><?= plEsc(plT('plantilla.pegar')) ?></a></p>

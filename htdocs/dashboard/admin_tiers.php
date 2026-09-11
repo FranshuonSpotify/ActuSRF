@@ -106,7 +106,7 @@ plCabeceraAdmin('Tiers', 'tiers');
   <p class="ayuda">
     Solo existen estos diez tiers. No se pueden crear otros ni borrar ninguno.
   </p>
-  <button class="btn btn-accent" type="submit">Guardar salarios</button>
+  <button class="btn btn-primary" type="submit">Guardar salarios</button>
 </form>
 
 <?php

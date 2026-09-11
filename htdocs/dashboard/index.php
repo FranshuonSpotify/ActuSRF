@@ -52,8 +52,10 @@ $usuario = plUsuarioActual();
 if ($usuario === null):
     plCabecera(plT('login.boton_entrar'));
     ?>
+    <?php // El titular copia el del hero de la web: la marca con degradado
+          // y, debajo, la línea en Fraunces cursiva y naranja. ?>
     <section class="dash-login">
-      <h1><?= plEsc(plT('login.titulo')) ?></h1>
+      <h1 class="hero-title"><span class="grad-text">Superliga Frontier</span><span class="l2"><?= plEsc(plT('login.titulo')) ?></span></h1>
       <p class="ayuda"><?= plEsc(plT('login.subtitulo')) ?></p>
 
       <?php if ($error !== ''): ?>
@@ -70,7 +72,7 @@ if ($usuario === null):
           <span><?= plEsc(plT('login.campo_clave')) ?></span>
           <input class="inp" type="password" name="clave" autocomplete="current-password" required>
         </label>
-        <button class="btn btn-accent" type="submit"><?= plEsc(plT('login.boton_entrar')) ?></button>
+        <button class="btn btn-primary" type="submit"><?= plEsc(plT('login.boton_entrar')) ?></button>
       </form>
     </section>
     <?php
@@ -105,13 +107,13 @@ $mercadoAbierto = $fase === 'MERCADO';
 plCabecera(plT('nav.dashboard'), 'dashboard', $fase);
 ?>
 <header class="dash-cabecera">
-  <h1><?= plEsc(plNombreEquipo($equipo, plT('nav.dashboard'))) ?></h1>
-  <p class="ayuda">
-    <?= plEsc(plT('dash.presidente', ['nombre' => $usuario['nombre'] ?? ''])) ?>
+  <div>
     <?php if ($temporada !== null): ?>
-      · <?= plEsc(plT('dash.temporada', ['nombre' => $temporada['nombre'] ?? $temporada['id']])) ?>
+      <span class="eyebrow"><?= plEsc(plT('dash.temporada', ['nombre' => $temporada['nombre'] ?? $temporada['id']])) ?></span>
     <?php endif; ?>
-  </p>
+    <h1><?= plEsc(plNombreEquipo($equipo, plT('nav.dashboard'))) ?></h1>
+    <p class="lede"><?= plEsc(plT('dash.presidente', ['nombre' => $usuario['nombre'] ?? ''])) ?></p>
+  </div>
 </header>
 
 <?php if ($equipo === null): ?>
@@ -175,7 +177,7 @@ plCabecera(plT('nav.dashboard'), 'dashboard', $fase);
     <?php if ($jugadores === []): ?>
       <?php if (plPuedeEditarPlantilla($fase)): ?>
         <p class="ayuda"><?= plEsc(plT('dash.vacio_roster')) ?></p>
-        <a class="btn btn-accent" href="plantilla.php"><?= plEsc(plT('dash.vacio_accion')) ?></a>
+        <a class="btn btn-primary" href="plantilla.php"><?= plEsc(plT('dash.vacio_accion')) ?></a>
       <?php else: ?>
         <p class="ayuda"><?= plEsc(plT('dash.vacio_cerrado')) ?></p>
       <?php endif; ?>

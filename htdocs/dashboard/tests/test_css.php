@@ -83,8 +83,10 @@ foreach ($pantallas as $f) {
         }
     }
 }
-// Clases que se ponen desde PHP sin class="…" literal.
-foreach (['archivado', 'clausulado', 'con-error', 'propio', 'activo'] as $extra) {
+// Clases que se ponen desde PHP sin class="…" literal, más las del selector
+// de idioma, que vive en i18n.php (fuera de la lista de pantallas).
+foreach (['archivado', 'clausulado', 'con-error', 'propio',
+          'idioma', 'lang-btn', 'lang-item', 'active', 'lang-flag-circle', 'lang-item-code', 'lang-item-name'] as $extra) {
     $usadas[$extra][] = '(PHP)';
 }
 // Ganchos semánticos que no necesitan estilo propio (el contenedor ya maqueta).

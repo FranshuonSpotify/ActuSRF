@@ -1391,21 +1391,32 @@ function plFaseTexto(string $fase): string
     return plT('fase.' . strtolower($fase));
 }
 
-// Fila de banderas, un enlace por idioma y sin JavaScript. Se conserva el
-// resto de la query para no perder filtros al cambiar de idioma.
+// Selector de idioma con la forma del de la web pública: un botón con la
+// bandera en círculo y el código (.lang-btn) que despliega la lista de los
+// diez (.lang-item, .lang-flag-circle). Es un <details>, así que abre y cierra
+// sin JavaScript; cada idioma es un enlace normal. Se conserva el resto de la
+// query para no perder filtros al cambiar de idioma.
 function plRenderSelectorIdioma(): void
 {
     $activo = $GLOBALS['PL_IDIOMA_ACTUAL'] ?? 'es';
+    echo '<details class="idioma"><summary class="lang-btn">'
+        . '<img src="https://flagcdn.com/' . plEsc(PL_BANDERAS[$activo]) . '.svg" alt="" width="20" height="20">'
+        . '<span aria-hidden="true">' . plEsc(strtoupper($activo)) . '</span>'
+        . '<span class="sr-only">' . plEsc(PL_NOMBRES_IDIOMA[$activo]) . '</span></summary>';
     echo '<nav class="idiomas" aria-label="Idioma">';
     foreach (PL_BANDERAS as $codigo => $pais) {
         $query = $_GET;
         $query['lang'] = $codigo;
         $href = '?' . http_build_query($query);
         $esActivo = $activo === $codigo;
+        // El nombre lo lee el lector de pantalla por el alt de la bandera; el
+        // código y el nombre visibles van aria-hidden para no oírlo tres veces.
         echo '<a href="' . plEsc($href) . '" hreflang="' . plEsc($codigo) . '" lang="' . plEsc($codigo) . '"'
-            . ($esActivo ? ' class="activo" aria-current="true"' : '')
-            . '><img src="https://flagcdn.com/16x12/' . plEsc($pais) . '.png"'
-            . ' alt="' . plEsc(PL_NOMBRES_IDIOMA[$codigo]) . '" width="16" height="12" loading="lazy"></a>';
+            . ($esActivo ? ' class="lang-item active" aria-current="true"' : ' class="lang-item"')
+            . '><span class="lang-flag-circle"><img src="https://flagcdn.com/' . plEsc($pais) . '.svg"'
+            . ' alt="' . plEsc(PL_NOMBRES_IDIOMA[$codigo]) . '" width="24" height="24" loading="lazy"></span>'
+            . '<span class="lang-item-code" aria-hidden="true">' . plEsc(strtoupper($codigo)) . '</span>'
+            . '<span class="lang-item-name" aria-hidden="true">' . plEsc(PL_NOMBRES_IDIOMA[$codigo]) . '</span></a>';
     }
-    echo '</nav>';
+    echo '</nav></details>';
 }

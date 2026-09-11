@@ -168,7 +168,7 @@ plCabecera(plT('pegado.titulo'), 'plantilla', $fase);
           <input type="hidden" name="rev" value="<?= plEsc($rev) ?>">
           <input type="hidden" name="accion" value="confirmar">
           <input type="hidden" name="texto" value="<?= plEsc($texto) ?>">
-          <button class="btn btn-accent" type="submit"><?= plEsc(plT('pegado.confirmar', ['n' => $analisis['validas']])) ?></button>
+          <button class="btn btn-primary" type="submit"><?= plEsc(plT('pegado.confirmar', ['n' => $analisis['validas']])) ?></button>
         </form>
       <?php endif; ?>
     </section>
