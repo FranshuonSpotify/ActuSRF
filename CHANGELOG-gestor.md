@@ -1,5 +1,16 @@
 # Changelog del gestor
 
+## 2026-09-13 — Escudos de Fandom sin proxy
+
+**Los escudos de `static.wikia.nocookie.net` se cargan directos.** Fandom
+empezó a devolver 403 al proxy `images.weserv.nl`, así que cualquier escudo
+nuevo de la wiki (Shuriken, Northbright) salía roto; los antiguos solo
+funcionaban porque weserv los tenía en caché. Se añade el host al `img-src`
+del CSP en `.htaccess`, a `CSP_IMG_PERMITIDOS` en `_fuente/app.js` y a
+`SF_CSP_IMG_PERMITIDOS` en `cron/render.php`. Fandom responde con
+`Access-Control-Allow-Origin`, así que las tarjetas compartibles (canvas)
+también pintan el escudo con la carga directa de `loadImg()`.
+
 ## 2026-09-09 — Palmarés inclinado, antigüedad real por temporadas, dos moderadores y peso de la página
 
 **Fotos de trofeo inclinadas 35°.** Las fotos que se suben desde la sección

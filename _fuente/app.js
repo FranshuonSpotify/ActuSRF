@@ -101,7 +101,9 @@ function esImagen(u){ return isHttp(u) || (!!u && /^data:image\//.test(u)); }
    o cloudfront (el gestor no lo controla), así que cualquier URL fuera de la
    whitelist se reescribe para pasar por el proxy images.weserv.nl, que sí está
    permitido. Se aplica una sola vez al cargar el JSON (ver DOMContentLoaded). */
-var CSP_IMG_PERMITIDOS=['images.weserv.nl','flagcdn.com','i.imgur.com'];
+/* static.wikia.nocookie.net va directo: Fandom empezó a devolver 403 a weserv
+   y los escudos nuevos salían rotos (los viejos solo vivían de su caché). */
+var CSP_IMG_PERMITIDOS=['images.weserv.nl','flagcdn.com','i.imgur.com','static.wikia.nocookie.net'];
 var CSP_IMG_CAMPOS=['escudo','foto','afinidad','imagen'];
 function normalizarUrlImagen(u){
   var host;
@@ -1704,6 +1706,8 @@ window.renderQuotes=renderQuotes; // faltaba: sin esto i18n.js nunca la repinta 
    canvas y toDataURL lanza. Por eso se reintenta a través de un proxy de
    imágenes que sí manda ACAO. Si el proxy también falla, la ficha cae a la
    inicial del jugador y la tarjeta sigue saliendo.
+   ESCUDOS de static.wikia.nocookie.net: Fandom sí manda ACAO, así que cargan
+   directos; al proxy no se puede caer porque Fandom le devuelve 403.
    ponytail: el día que los retratos se sirvan desde dominio propio, sobra
    el proxy y basta con la carga directa.
    ========================================================================== */

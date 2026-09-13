@@ -42,7 +42,8 @@ function sf_abbr3(string $nombre, ?string $ab = null): string {
    cualquier otro host (wikia, cloudfront...) se reescribe para pasar por el
    proxy images.weserv.nl. Sin esto, escudos añadidos directamente en IONOS
    se quedarían bloqueados por el propio CSP del sitio. */
-const SF_CSP_IMG_PERMITIDOS = ['images.weserv.nl', 'flagcdn.com', 'i.imgur.com'];
+// static.wikia.nocookie.net va directo: Fandom devuelve 403 a weserv.
+const SF_CSP_IMG_PERMITIDOS = ['images.weserv.nl', 'flagcdn.com', 'i.imgur.com', 'static.wikia.nocookie.net'];
 function sf_normalizarUrlImagen(string $u): string {
     $host = parse_url($u, PHP_URL_HOST);
     if ($host === null) return $u;
