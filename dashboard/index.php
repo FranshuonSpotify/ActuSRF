@@ -23,6 +23,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         plCortar(403, plT('error.csrf'));
     }
 
+    // A esta misma pantalla llegan dos POST distintos: el login (sin sesión) y
+    // la generación del código de invitación (con sesión). Se distinguen por
+    // 'accion' y no por adivinar: un POST de invitación tratado como login
+    // respondería "correo o contraseña incorrectos" sin que nadie entienda por qué.
+    if (($_POST['accion'] ?? '') === 'invitar') {
+        $yo = plUsuarioActual();
+        if ($yo === null) {
+            plRedirigir('index.php');
+        }
+        // El equipo sale de la CUENTA, nunca del formulario: así nadie puede
+        // generar una invitación para un club que no es el suyo.
+        $miEquipo = (string) ($yo['equipoId'] ?? '');
+        if ($miEquipo !== '' && (plPresidentesPorEquipo()[$miEquipo] ?? 0) < PL_MAX_PRESIDENTES_POR_EQUIPO) {
+            plCrearInvitacion($miEquipo, (string) ($yo['id'] ?? ''), (string) ($yo['nombre'] ?? ''));
+        }
+        plRedirigir('index.php');
+    }
+
     $email = (string) ($_POST['email'] ?? '');
     $clave = (string) ($_POST['clave'] ?? '');
     $usuario = plBuscarUsuarioPorEmail($email);
@@ -36,7 +54,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Regenerar ANTES de escribir el id en la sesión: si se hiciera
         // después, el id ya habría viajado con el identificador de sesión
         // viejo y la protección contra fijación no serviría de nada.
-        session_regenerate_id(true);
+        // El !headers_sent() es el mismo guard que el session_start() de
+        // arriba: en una petición real aquí no se ha impreso nada y siempre
+        // regenera; bajo el arnés, que renderiza con la salida ya empezada,
+        // se salta en vez de llenar el test de avisos.
+        if (!headers_sent()) {
+            session_regenerate_id(true);
+        }
         $_SESSION['pl_usuario_id'] = $usuario['id'];
         plRedirigir('index.php');
     }
@@ -74,6 +98,8 @@ if ($usuario === null):
         </label>
         <button class="btn btn-primary" type="submit"><?= plEsc(plT('login.boton_entrar')) ?></button>
       </form>
+
+      <p><a href="registro.php"><?= plEsc(plT('registro.desde_login')) ?></a></p>
     </section>
     <?php
     plPie();
@@ -115,6 +141,36 @@ plCabecera(plT('nav.dashboard'), 'dashboard', $fase);
     <p class="lede"><?= plEsc(plT('dash.presidente', ['nombre' => $usuario['nombre'] ?? ''])) ?></p>
   </div>
 </header>
+
+<?php if ($equipo !== null): ?>
+  <?php
+    // La invitación no depende de la temporada: un presidente recién registrado
+    // tiene que poder invitar a su copresidente antes de que se abra nada.
+    $presidentesEquipo = plPresidentesPorEquipo()[$equipoId] ?? 0;
+    $invitacion = plInvitacionDe($equipoId);
+  ?>
+  <section class="card dash-seccion">
+    <h2><?= plEsc(plT('invitacion.titulo')) ?></h2>
+    <?php if ($presidentesEquipo >= PL_MAX_PRESIDENTES_POR_EQUIPO): ?>
+      <p class="ayuda"><?= plEsc(plT('invitacion.completo', ['maximo' => PL_MAX_PRESIDENTES_POR_EQUIPO])) ?></p>
+    <?php else: ?>
+      <p class="ayuda"><?= plEsc(plT('invitacion.explicacion', ['equipo' => plNombreEquipo($equipo)])) ?></p>
+      <?php if ($invitacion !== null): ?>
+        <p class="cifra"><?= plEsc($invitacion['codigo'] ?? '') ?></p>
+        <p class="ayuda"><?= plEsc(plT('invitacion.aviso_regenerar')) ?></p>
+      <?php else: ?>
+        <p class="ayuda"><?= plEsc(plT('invitacion.sin_codigo')) ?></p>
+      <?php endif; ?>
+      <form method="post" action="index.php" class="dash-form-fila">
+        <input type="hidden" name="csrf" value="<?= plEsc(plTokenCsrf()) ?>">
+        <input type="hidden" name="accion" value="invitar">
+        <button class="btn btn-secondary" type="submit">
+          <?= plEsc(plT($invitacion !== null ? 'invitacion.regenerar' : 'invitacion.generar')) ?>
+        </button>
+      </form>
+    <?php endif; ?>
+  </section>
+<?php endif; ?>
 
 <?php if ($equipo === null): ?>
 

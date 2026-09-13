@@ -7,44 +7,66 @@ stEstablecerIdioma(stResolverIdioma());
 
 $error = '';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'login') {
-    $codigoIntento = stNormalizarTexto($_POST['codigo'] ?? '');
-    $pinIntento = stNormalizarTexto($_POST['pin'] ?? '');
-    $codigos = stCargarCodigos();
-
-    $equipoEncontrado = null;
-    if ($codigoIntento !== '') {
-        foreach ($codigos as $id => $c) {
-            $codigoGuardado = stNormalizarTexto($c['codigo'] ?? '');
-            $pinGuardado = stNormalizarTexto($c['pin'] ?? '');
-            if (hash_equals($codigoGuardado, $codigoIntento) && hash_equals($pinGuardado, $pinIntento)) {
-                $equipoEncontrado = $id;
-                break;
-            }
+// Generar el código de invitación para el copresidente. Lleva CSRF porque es
+// una acción con la sesión ya iniciada; el login de abajo no puede llevarlo,
+// porque se envía justo antes de tener sesión.
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'invitar') {
+    if (!stCsrfValido()) {
+        http_response_code(403);
+        exit('Token CSRF inválido.');
+    }
+    $yo = stUsuarioActual();
+    if ($yo !== null) {
+        // El equipo sale de la CUENTA, nunca del formulario: así nadie genera
+        // una invitación para un club que no es el suyo.
+        $miEquipo = (string) ($yo['equipoId'] ?? '');
+        if ($miEquipo !== '' && (stPresidentesPorEquipo()[$miEquipo] ?? 0) < ST_MAX_PRESIDENTES_POR_EQUIPO) {
+            stCrearInvitacion($miEquipo, (string) ($yo['id'] ?? ''), (string) ($yo['nombre'] ?? ''));
         }
     }
+    header('Location: index.php');
+    exit;
+}
 
-    if ($equipoEncontrado !== null) {
-        $_SESSION['st_equipo_id'] = $equipoEncontrado;
+// Login por cuenta propia (correo + contraseña), igual que dashboard/. El
+// código y el PIN por equipo ya no se usan: cada presidente se registra él
+// mismo en registro.php y el admin no reparte credenciales una a una.
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'login') {
+    $usuarioIntento = stBuscarUsuarioPorEmail($_POST['email'] ?? '');
+
+    // Las tres razones de fallo —no existe, contraseña mala, cuenta
+    // desactivada— dan el MISMO mensaje. Distinguirlas convertiría el
+    // formulario en un oráculo de qué correos están dados de alta.
+    if ($usuarioIntento !== null
+        && !empty($usuarioIntento['activo'])
+        && password_verify((string) ($_POST['clave'] ?? ''), (string) ($usuarioIntento['hash'] ?? ''))) {
+        // Regenerar ANTES de escribir el id: si se hiciera después, el id ya
+        // habría viajado con el identificador de sesión viejo.
         session_regenerate_id(true);
+        $_SESSION['st_usuario_id'] = $usuarioIntento['id'];
         header('Location: index.php');
         exit;
     }
     $error = stT('login.error');
 }
 
-$equipoId = $_SESSION['st_equipo_id'] ?? null;
+// El equipo sale de la CUENTA y se resuelve en cada petición, no de un valor
+// guardado en la sesión: así, desactivar una cuenta corta el acceso en el
+// siguiente clic en vez de esperar a que caduque la sesión.
+$usuario = stUsuarioActual();
+$equipoId = $usuario === null ? null : (string) ($usuario['equipoId'] ?? '');
 $equipo = null;
 
-if ($equipoId !== null) {
+if ($equipoId !== null && $equipoId !== '') {
     $data = stCargarDatosOficiales();
     $idx = stBuscarEquipoPorId($data, $equipoId);
     if ($idx === null || !empty($data['equipos'][$idx]['archivado'])) {
-        unset($_SESSION['st_equipo_id']);
         $equipoId = null;
     } else {
         $equipo = $data['equipos'][$idx];
     }
+} else {
+    $equipoId = null;
 }
 
 $config = stCargarConfig();
@@ -89,17 +111,18 @@ function stIniciales($nombre) {
       <?php endif; ?>
       <form method="post" action="index.php" class="st-form">
         <input type="hidden" name="accion" value="login">
-        <label class="campo"><span><?= stEsc(stT('login.campo_codigo')) ?></span>
-          <input class="inp" type="text" name="codigo" required autofocus autocomplete="off">
+        <label class="campo"><span><?= stEsc(stT('login.campo_email')) ?></span>
+          <input class="inp" type="email" name="email" required autofocus autocomplete="username">
         </label>
-        <label class="campo"><span><?= stEsc(stT('login.campo_pin')) ?></span>
-          <input class="inp inp-mono" type="text" name="pin" required autocomplete="off">
+        <label class="campo"><span><?= stEsc(stT('login.campo_clave')) ?></span>
+          <input class="inp" type="password" name="clave" required autocomplete="current-password">
         </label>
         <button class="btn btn-accent btn-lg btn-icon-txt" type="submit">
           <?= stEsc(stT('login.boton_entrar')) ?>
           <svg class="icon" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
         </button>
       </form>
+      <p class="ayuda"><a href="registro.php"><?= stEsc(stT('registro.desde_login')) ?></a></p>
     </div>
   </main>
 <?php else: ?>
@@ -121,6 +144,39 @@ function stIniciales($nombre) {
         </a>
       </div>
     </header>
+
+    <?php
+      // La invitación no depende de la ventana: un presidente recién
+      // registrado tiene que poder invitar a su copresidente aunque la ventana
+      // de supertécnicas esté cerrada.
+      $presidentesEquipo = stPresidentesPorEquipo()[$equipoId] ?? 0;
+      $invitacion = stInvitacionDe($equipoId);
+    ?>
+    <div class="st-panel">
+      <div class="st-panel-texto">
+        <b><?= stEsc(stT('invitacion.titulo')) ?></b>
+        <?php if ($presidentesEquipo >= ST_MAX_PRESIDENTES_POR_EQUIPO): ?>
+          <span class="ayuda"><?= stEsc(stT('invitacion.completo', ['maximo' => ST_MAX_PRESIDENTES_POR_EQUIPO])) ?></span>
+        <?php else: ?>
+          <span class="ayuda"><?= stEsc(stT('invitacion.explicacion', ['equipo' => $equipo['nombre'] ?? ''])) ?></span>
+          <?php if ($invitacion !== null): ?>
+            <span class="mono" style="font-size:1.25rem;letter-spacing:.12em"><?= stEsc($invitacion['codigo'] ?? '') ?></span>
+            <span class="ayuda"><?= stEsc(stT('invitacion.aviso_regenerar')) ?></span>
+          <?php else: ?>
+            <span class="ayuda"><?= stEsc(stT('invitacion.sin_codigo')) ?></span>
+          <?php endif; ?>
+        <?php endif; ?>
+      </div>
+      <?php if ($presidentesEquipo < ST_MAX_PRESIDENTES_POR_EQUIPO): ?>
+        <form method="post" action="index.php">
+          <input type="hidden" name="csrf" value="<?= stEsc(stTokenCsrf()) ?>">
+          <input type="hidden" name="accion" value="invitar">
+          <button class="btn btn-secondary btn-icon-txt" type="submit">
+            <?= stEsc(stT($invitacion !== null ? 'invitacion.regenerar' : 'invitacion.generar')) ?>
+          </button>
+        </form>
+      <?php endif; ?>
+    </div>
 
     <?php if ($guardado): ?>
       <div class="st-banda st-banda-ok">

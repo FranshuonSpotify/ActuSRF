@@ -20,28 +20,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             $mensaje = 'No se pudo guardar: error al escribir el fichero.';
         }
-    } elseif (isset($_POST['guardar_codigo'])) {
-        $equipoId = (string) $_POST['guardar_codigo'];
-        $codigo = trim((string) ($_POST['codigo'][$equipoId] ?? ''));
-        $pin = trim((string) ($_POST['pin'][$equipoId] ?? ''));
-        if ($equipoId !== '' && $codigo !== '' && $pin !== '') {
-            $codigos = stCargarCodigos();
-            $codigos[$equipoId] = ['codigo' => $codigo, 'pin' => $pin];
-            if (stGuardarCodigos($codigos)) {
-                $mensaje = 'Código actualizado.';
-            } else {
-                $mensaje = 'No se pudo guardar: error al escribir el fichero.';
-            }
+    } elseif (isset($_POST['toggle_usuario'])) {
+        // Desactivar es la vía para deshacer un registro en el equipo
+        // equivocado: la cuenta deja de entrar en el siguiente clic y su plaza
+        // vuelve a quedar libre para el presidente de verdad.
+        $usuarioId = (string) $_POST['toggle_usuario'];
+        $activar = ($_POST['activar'] ?? '') === '1';
+        if (stCambiarActivoUsuario($usuarioId, $activar)) {
+            $mensaje = $activar ? 'Cuenta reactivada.' : 'Cuenta desactivada.';
         } else {
-            $mensaje = 'Código y PIN no pueden estar vacíos.';
+            $mensaje = 'No se pudo guardar: esa cuenta ya no existe o falló la escritura.';
         }
     }
 }
 
 $data = stCargarDatosOficiales();
 $equipos = stEquiposActivos($data);
-$codigos = stCargarCodigos();
 $config = stCargarConfig();
+
+// Cuentas registradas, agrupadas por equipo para ver de un vistazo si alguien
+// se ha metido en un club que no es el suyo — que es el riesgo real de dejar
+// que cada uno elija su equipo.
+$usuarios = stCargarUsuarios()['usuarios'];
+$nombresEquipo = [];
+foreach (($data['equipos'] ?? []) as $e) {
+    $nombresEquipo[(string) ($e['id'] ?? '')] = (string) ($e['nombre'] ?? '');
+}
+usort($usuarios, function ($a, $b) use ($nombresEquipo) {
+    $ea = $nombresEquipo[(string) ($a['equipoId'] ?? '')] ?? '';
+    $eb = $nombresEquipo[(string) ($b['equipoId'] ?? '')] ?? '';
+    return $ea === $eb
+        ? strcasecmp((string) ($a['nombre'] ?? ''), (string) ($b['nombre'] ?? ''))
+        : strcasecmp($ea, $eb);
+});
 ?>
 <!doctype html>
 <html lang="es">
@@ -89,42 +100,62 @@ $config = stCargarConfig();
     </button>
   </form>
 
-  <form method="post">
-    <input type="hidden" name="csrf" value="<?= stEsc(stTokenCsrf()) ?>">
-    <div class="tabla-caja">
-      <div class="tabla-scroll">
-        <table class="tabla">
-          <thead>
-            <tr><th>Equipo</th><th>Ciudad</th><th>Código</th><th>PIN</th><th></th></tr>
-          </thead>
-          <tbody>
-            <?php foreach ($equipos as $equipo): $id = $equipo['id']; $actual = $codigos[$id] ?? stCodigoPorDefecto($equipo); $pendiente = !isset($codigos[$id]); ?>
-              <tr>
-                <td class="col-equipo">
-                  <?= stEsc($equipo['nombre'] ?? '') ?><br>
-                  <?php if ($pendiente): ?>
-                    <span class="pendiente">
-                      <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15.5 14"/></svg>
-                      Pendiente de confirmar
-                    </span>
-                  <?php else: ?>
-                    <span class="confirmado">
-                      <svg class="icon" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                      Confirmado
-                    </span>
-                  <?php endif; ?>
-                </td>
-                <td><?= stEsc($equipo['ciudad'] ?? '') ?></td>
-                <td><input class="inp inp-sm inp-mono" type="text" name="codigo[<?= stEsc($id) ?>]" value="<?= stEsc($actual['codigo']) ?>"></td>
-                <td><input class="inp inp-sm inp-mono" type="text" name="pin[<?= stEsc($id) ?>]" value="<?= stEsc($actual['pin']) ?>"></td>
-                <td class="col-min"><button class="btn btn-secondary btn-sm" type="submit" name="guardar_codigo" value="<?= stEsc($id) ?>">Guardar</button></td>
-              </tr>
-            <?php endforeach; ?>
-          </tbody>
-        </table>
+  <h2 style="margin:2rem 0 .75rem;font-size:1rem">Cuentas registradas (<?= count($usuarios) ?>)</h2>
+  <p class="ayuda" style="margin-bottom:1rem">
+    Cada presidente se registra él mismo en <code>registro.php</code> y elige su equipo.
+    Si alguien se mete en un club que no es el suyo, desactiva su cuenta: deja de
+    entrar en el siguiente clic y su plaza vuelve a quedar libre.
+  </p>
+
+  <?php if (!$usuarios): ?>
+    <p class="ayuda">Todavía no se ha registrado nadie.</p>
+  <?php else: ?>
+    <form method="post">
+      <input type="hidden" name="csrf" value="<?= stEsc(stTokenCsrf()) ?>">
+      <div class="tabla-caja">
+        <div class="tabla-scroll">
+          <table class="tabla">
+            <thead>
+              <tr><th>Equipo</th><th>Nombre</th><th>Correo</th><th>Registro</th><th>Estado</th><th></th></tr>
+            </thead>
+            <tbody>
+              <?php foreach ($usuarios as $u):
+                $uid = (string) ($u['id'] ?? '');
+                $activo = !empty($u['activo']);
+                $eq = (string) ($u['equipoId'] ?? '');
+              ?>
+                <tr>
+                  <td class="col-equipo"><?= stEsc($nombresEquipo[$eq] ?? $eq) ?></td>
+                  <td><?= stEsc($u['nombre'] ?? '') ?></td>
+                  <td class="mono"><?= stEsc($u['email'] ?? '') ?></td>
+                  <td><?= stEsc(substr((string) ($u['registrado'] ?? ''), 0, 10)) ?></td>
+                  <td>
+                    <?php if ($activo): ?>
+                      <span class="confirmado">
+                        <svg class="icon" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                        Activa
+                      </span>
+                    <?php else: ?>
+                      <span class="pendiente">
+                        <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="13"/><line x1="12" y1="16.5" x2="12.01" y2="16.5"/></svg>
+                        Desactivada
+                      </span>
+                    <?php endif; ?>
+                  </td>
+                  <td class="col-min">
+                    <input type="hidden" name="activar" value="<?= $activo ? '0' : '1' ?>">
+                    <button class="btn btn-secondary btn-sm" type="submit" name="toggle_usuario" value="<?= stEsc($uid) ?>">
+                      <?= $activo ? 'Desactivar' : 'Reactivar' ?>
+                    </button>
+                  </td>
+                </tr>
+              <?php endforeach; ?>
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
-  </form>
+    </form>
+  <?php endif; ?>
 </main>
 </body>
 </html>

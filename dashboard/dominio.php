@@ -19,6 +19,11 @@ const PL_POSICIONES = ['POR', 'DEF', 'MED', 'ATA'];
 const PL_FASES      = ['ROSTER', 'CLAUSULAS', 'MERCADO', 'CERRADA'];
 const PL_ESTADOS    = ['DISPONIBLE', 'CLAUSULADO'];
 
+// Dos personas pueden llevar el mismo club (copresidentes); la tercera no
+// entra. Con el auto-registro este cupo es lo único que impide que un equipo
+// acabe con cinco cuentas "suyas" sin que nadie se entere.
+const PL_MAX_PRESIDENTES_POR_EQUIPO = 2;
+
 // ---------------------------------------------------------------- salarios
 
 // Busca el salario de un tier en la tabla CONGELADA de la temporada

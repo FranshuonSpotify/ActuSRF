@@ -17,3 +17,6 @@ Thumbs.db
 /dashboard/data/temporadas.json
 /dashboard/data/temporada-*.json
 /dashboard/data/registro.json
+/supertecnicas/data/usuarios.json
+/dashboard/data/invitaciones.json
+/supertecnicas/data/invitaciones.json

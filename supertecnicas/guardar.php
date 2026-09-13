@@ -7,11 +7,15 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit('Método no permitido.');
 }
 
-$equipoId = $_SESSION['st_equipo_id'] ?? null;
-if ($equipoId === null) {
+// El equipo sale de la CUENTA y se resuelve en cada petición, no de un valor
+// guardado en la sesión: así una cuenta desactivada deja de poder guardar en su
+// siguiente clic, sin esperar a que caduque nada.
+$usuario = stUsuarioActual();
+if ($usuario === null) {
     header('Location: index.php');
     exit;
 }
+$equipoId = (string) ($usuario['equipoId'] ?? '');
 
 if (!stCsrfValido()) {
     http_response_code(403);
@@ -27,7 +31,6 @@ if (empty($config['ventana_abierta'])) {
 $data = stCargarDatosOficiales();
 $idx = stBuscarEquipoPorId($data, $equipoId);
 if ($idx === null || !empty($data['equipos'][$idx]['archivado'])) {
-    unset($_SESSION['st_equipo_id']);
     header('Location: index.php');
     exit;
 }

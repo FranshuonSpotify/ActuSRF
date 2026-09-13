@@ -726,6 +726,204 @@ function plCrearPresidente(string $nombre, string $email, string $clave, ?string
     return ['ok' => $ok, 'id' => $id, 'mensaje' => $ok ? '' : 'No se pudo guardar el presidente.'];
 }
 
+// ------------------------------------------------------------ invitaciones
+
+// Una invitación por equipo. El primero que se registra en un club lo bloquea;
+// a partir de ahí, la segunda plaza solo se abre con un código que genera el
+// presidente que ya está dentro y le pasa a su copresidente. Es lo que impide
+// que alguien se cuele en un club ajeno aprovechando que estaba libre.
+function plCargarInvitaciones(): array
+{
+    return plCargarJson(plRutaDatos('invitaciones.json'), ['invitaciones' => []]);
+}
+
+// Seis caracteres hex en mayúsculas: se dicta por Discord y se teclea a mano,
+// así que corto y sin caracteres que se confundan al leerlos en voz alta.
+function plNuevoCodigoInvitacion(): string
+{
+    return strtoupper(bin2hex(random_bytes(3)));
+}
+
+function plInvitacionDe(string $equipoId): ?array
+{
+    foreach (plCargarInvitaciones()['invitaciones'] as $i) {
+        if ((string) ($i['equipoId'] ?? '') === $equipoId) {
+            return $i;
+        }
+    }
+    return null;
+}
+
+// Genera la invitación del equipo, reemplazando la que hubiera. Reemplazar es
+// deliberado: generar otro código invalida el anterior, y es la única forma que
+// tiene el presidente de retirar uno que ya ha compartido de más.
+function plCrearInvitacion(string $equipoId, string $actorId, string $actorNombre): array
+{
+    $codigo = plNuevoCodigoInvitacion();
+    $ok = plActualizarJson(plRutaDatos('invitaciones.json'), ['invitaciones' => []],
+        static function (array $d) use ($equipoId, $codigo, $actorId, $actorNombre): array {
+            $d['invitaciones'] = array_values(array_filter(
+                $d['invitaciones'],
+                static fn(array $i): bool => (string) ($i['equipoId'] ?? '') !== $equipoId
+            ));
+            $d['invitaciones'][] = ['equipoId' => $equipoId, 'codigo' => $codigo,
+                                    'creadaPor' => $actorId, 'creadaPorNombre' => $actorNombre,
+                                    'creada' => plAhora()];
+            return $d;
+        });
+
+    return ['ok' => $ok, 'codigo' => $ok ? $codigo : null];
+}
+
+// Consume la invitación: la borra y devuelve true SOLO al primero que llegue
+// con el código correcto. Va en su propia operación bajo lock, así que dos
+// personas con el mismo código no pueden entrar las dos.
+//
+// hash_equals y no ===: el código es un secreto compartido, y compararlo en
+// tiempo constante cuesta lo mismo que no hacerlo.
+function plConsumirInvitacion(string $equipoId, string $codigo): bool
+{
+    $codigo = strtoupper(trim($codigo));
+    if ($codigo === '') {
+        return false;
+    }
+    $consumida = false;
+    plActualizarJson(plRutaDatos('invitaciones.json'), ['invitaciones' => []],
+        static function (array $d) use ($equipoId, $codigo, &$consumida): ?array {
+            foreach ($d['invitaciones'] as $n => $i) {
+                if ((string) ($i['equipoId'] ?? '') === $equipoId
+                    && hash_equals((string) ($i['codigo'] ?? ''), $codigo)) {
+                    unset($d['invitaciones'][$n]);
+                    $d['invitaciones'] = array_values($d['invitaciones']);
+                    $consumida = true;
+                    return $d;
+                }
+            }
+            return null;   // no existe o no coincide: no se toca el fichero
+        });
+    return $consumida;
+}
+
+// Auto-registro: el presidente se da de alta él mismo, elige su equipo y su
+// contraseña, y el admin no tiene que crear ni repartir credenciales una a una.
+//
+// Devuelve CLAVES de i18n, no frases: a diferencia de plCrearPresidente(), que
+// es el alta del admin y habla en español, esta la llama una pantalla traducida
+// a diez idiomas.
+//
+// El correo duplicado y el cupo del equipo se comprueban DENTRO del lock, en la
+// misma operación que el alta: mirarlos antes dejaría pasar dos registros
+// simultáneos sobre la última plaza del mismo equipo.
+function plRegistrarPresidente(string $nombre, string $email, string $clave, string $claveRepetida, string $equipoId, string $codigoInvitacion = ''): array
+{
+    $nombre = trim($nombre);
+    $email  = mb_strtolower(trim($email), 'UTF-8');
+
+    $mal = static fn(string $clave, array $datos = []): array
+        => ['ok' => false, 'id' => null, 'error' => $clave, 'datos' => $datos];
+
+    if ($nombre === '') {
+        return $mal('error.nombre_vacio');
+    }
+    // Formato, no existencia: un correo inventado vale mientras tenga forma de
+    // correo. Es deliberado —la liga no manda ningún email— y la pantalla lo
+    // dice con todas las letras.
+    if (filter_var($email, FILTER_VALIDATE_EMAIL) === false) {
+        return $mal('registro.error_email');
+    }
+    if (mb_strlen($clave, 'UTF-8') < PL_CLAVE_MINIMA) {
+        return $mal('registro.error_clave_corta', ['minimo' => PL_CLAVE_MINIMA]);
+    }
+    if ($clave !== $claveRepetida) {
+        return $mal('registro.error_claves_distintas');
+    }
+    $equipo = plBuscarEquipo($equipoId);
+    if ($equipo === null || empty($equipo['activo'])) {
+        return $mal('registro.error_equipo');
+    }
+
+    // Si el equipo ya tiene presidente hace falta invitación, y se consume
+    // ANTES de crear la cuenta: consumirla es lo que garantiza que solo uno de
+    // dos que lleguen a la vez con el mismo código entre. El precio es que si
+    // el alta fallara después, el código se queda gastado y el presidente tiene
+    // que generar otro — barato, y falla del lado seguro: nunca deja entrar a
+    // dos, solo obliga a repetir.
+    //
+    // El recuento de aquí es orientativo: la comprobación que manda es la de
+    // dentro del lock, más abajo.
+    $yaDentro = plPresidentesPorEquipo()[$equipoId] ?? 0;
+    // El cupo se mira ANTES de consumir: si el equipo ya está completo, gastar
+    // un código válido para luego rechazar el alta sería tirar la invitación
+    // del presidente sin que nadie entre.
+    if ($yaDentro >= PL_MAX_PRESIDENTES_POR_EQUIPO) {
+        return $mal('registro.error_equipo_lleno', ['maximo' => PL_MAX_PRESIDENTES_POR_EQUIPO]);
+    }
+    $invitacionConsumida = false;
+    if ($yaDentro > 0) {
+        $invitacionConsumida = plConsumirInvitacion($equipoId, $codigoInvitacion);
+        if (!$invitacionConsumida) {
+            return $mal('registro.error_codigo');
+        }
+    }
+
+    $id = 'u_' . bin2hex(random_bytes(4));
+    // Se hashea ANTES de tomar el lock: password_hash es lento a propósito, y
+    // no hay motivo para que los demás registros esperen a que termine.
+    $hash = password_hash($clave, PASSWORD_DEFAULT);
+
+    $duplicado = false;
+    $lleno     = false;
+    $sinCodigo = false;
+    $ok = plActualizarJson(plRutaDatos('usuarios.json'), ['usuarios' => []],
+        static function (array $d) use ($id, $nombre, $email, $hash, $equipoId, $invitacionConsumida, &$duplicado, &$lleno, &$sinCodigo): ?array {
+            $enEsteEquipo = 0;
+            foreach ($d['usuarios'] as $u) {
+                if (mb_strtolower((string) ($u['email'] ?? ''), 'UTF-8') === $email) {
+                    $duplicado = true;
+                    return null;
+                }
+                if ((string) ($u['equipoId'] ?? '') === $equipoId && !empty($u['activo'])) {
+                    $enEsteEquipo++;
+                }
+            }
+            if ($enEsteEquipo >= PL_MAX_PRESIDENTES_POR_EQUIPO) {
+                $lleno = true;
+                return null;
+            }
+            // La regla, comprobada donde no puede colarse nadie entre medias:
+            // un equipo ocupado solo admite a quien traiga invitación. Si el
+            // equipo se ocupó entre el recuento de arriba y este lock, aquí se
+            // rechaza sin haber gastado ningún código.
+            if ($enEsteEquipo > 0 && !$invitacionConsumida) {
+                $sinCodigo = true;
+                return null;
+            }
+            $d['usuarios'][] = ['id' => $id, 'nombre' => $nombre, 'email' => $email, 'hash' => $hash,
+                                'equipoId' => $equipoId, 'activo' => true];
+            return $d;
+        });
+
+    if ($duplicado) {
+        return $mal('registro.error_email_duplicado');
+    }
+    if ($lleno) {
+        return $mal('registro.error_equipo_lleno', ['maximo' => PL_MAX_PRESIDENTES_POR_EQUIPO]);
+    }
+    if ($sinCodigo) {
+        return $mal('registro.error_codigo');
+    }
+    if (!$ok) {
+        return $mal('error.escritura');
+    }
+
+    // Queda constancia de quién se registró, cuándo y en qué equipo. Es lo
+    // único que convierte "elijo yo mi club" en algo auditable: sin esto, un
+    // registro en el equipo de otro no deja rastro ninguno.
+    plRegistrarEvento('REGISTRO', $id, $nombre, ['equipo' => $equipoId, 'email' => $email]);
+
+    return ['ok' => true, 'id' => $id, 'error' => null, 'datos' => []];
+}
+
 // Edición. $claveNueva vacía significa "no cambiarla" y conserva el hash: el
 // error clásico aquí es rehashear la cadena vacía del campo sin rellenar y
 // dejar al presidente sin poder entrar, con el síntoma apareciendo días después.
