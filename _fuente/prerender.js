@@ -70,10 +70,13 @@ async function prerender(html, datosPath, lang){
   if (document.readyState === 'loading'){
     await new Promise(function(resolve){ document.addEventListener('DOMContentLoaded', resolve); });
   }
-  // Dos vueltas de microtasks/macrotasks para que la cadena
-  // fetch().then().then(renderAll) —y cualquier .then() encadenado— termine.
-  await new Promise(function(r){ setTimeout(r, 0); });
-  await new Promise(function(r){ setTimeout(r, 0); });
+  // renderAll() pinta por grupos en tareas separadas (ver app.js) y marca
+  // window.__renderListo al acabar: se espera a esa marca, con un tope de 10 s
+  // para que un fallo de datos no cuelgue el build.
+  for (let i = 0; i < 1000 && !dom.window.__renderListo; i++) {
+    await new Promise(function(r){ setTimeout(r, 10); });
+  }
+  if (!dom.window.__renderListo) console.warn('[prerender] renderAll no terminó en 10 s; el HTML puede salir incompleto' + (lang ? ' ('+lang+')' : ''));
 
   sincronizarFaqSchema(dom.window.document);
   actualizarDateModified(dom.window.document);

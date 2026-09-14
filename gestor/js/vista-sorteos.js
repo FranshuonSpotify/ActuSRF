@@ -1,6 +1,7 @@
 /* ==========================================================================
    GESTOR SUPERLIGA FRONTIER — vista-sorteos.js
-   Generadores de calendario, sorteo de Copa y ayudas de jornada.
+   Generadores de calendario, Fútbol Frontier, Torneo Frontier, Play-off y
+   ayudas de jornada.
 
    Regla de la pantalla: NADA se escribe hasta pulsar «Aplicar». Los
    generadores de core devuelven la lista de partidos y aquí se enseña antes;
@@ -14,8 +15,8 @@ var SFG = window.SFG, C = SFG.core, U = SFG.ui;
 var esc = C.esc;
 
 var cal = {div:'SUPERLIGA', vueltas:2, desde:1, semilla:semillaNueva(), previa:null};
-var copa = {tipo:'directa', grupos:4, idaVuelta:false, evitarRiv:true, siembra:true,
-            semilla:semillaNueva(), previa:null, sel:{}};
+var ff = {sel:null, semilla:semillaNueva(), previa:null};   // sel: {nombre:true} de la preliminar
+var tf = {semilla:semillaNueva(), previa:null};
 
 function d(){ return SFG.d(); }
 function semillaNueva(){ return Math.floor(Math.random()*1e9)+1; }
@@ -31,8 +32,10 @@ function pintar(el){
   el.innerHTML =
     U.cabecera('Sorteos y generadores', 'Nada se escribe en el archivo hasta que pulses Aplicar.')+
     bloqueCalendario()+
-    '<div class="g-hueco"></div>'+bloqueCopa()+
-    '<div class="g-hueco"></div>'+bloquePlayoff()+
+    '<div class="g-hueco"></div>'+bloqueFF()+
+    '<div class="g-hueco"></div>'+bloqueTorneo()+
+    '<div class="g-hueco"></div>'+bloquePlayoff('SUPERLIGA')+
+    '<div class="g-hueco"></div>'+bloquePlayoff('ASCENSO')+
     '<div class="g-hueco"></div><div class="rejilla" style="--min:320px;align-items:start">'+
       bloqueJornada()+bloqueDerbis()+
     '</div>';
@@ -95,94 +98,142 @@ function previaCalendario(existentes){
   '</div>';
 }
 
-/* --- Sorteo de Copa --------------------------------------------------- */
-function bloqueCopa(){
-  var todos = activos();
-  var elegidos = todos.filter(function(n){ return copa.sel[n]!==false; });
-  return '<div class="card" style="padding:var(--g5)">'+
-    '<h3 style="font-size:.9375rem;margin-bottom:.35rem">Sorteo de Copa</h3>'+
-    '<p class="ayuda" style="margin-bottom:var(--g4)">En eliminatoria directa, los cruces quedan encadenados por '+
-      '<span class="mono">origen_local</span> y <span class="mono">origen_visitante</span>: el ganador de cada ronda pasa solo a la siguiente.</p>'+
-
-    '<div class="rejilla rejilla-4" style="margin-bottom:var(--g4)">'+
-      U.campo('Formato', '<select class="inp" data-c="sorteos:copaTipo">'+
-        [['directa','Eliminatoria directa'],['grupos','Fase de grupos']].map(function(t){
-          return '<option value="'+t[0]+'"'+(copa.tipo===t[0]?' selected':'')+'>'+t[1]+'</option>'; }).join('')+'</select>')+
-      (copa.tipo==='grupos'
-        ? U.campo('Grupos', '<input class="inp inp-mono" type="number" min="1" max="12" value="'+copa.grupos+'" data-c="sorteos:copaGrupos">')+
-          U.campo('Ida y vuelta', '<label class="sw"><input type="checkbox"'+(copa.idaVuelta?' checked':'')+' data-c="sorteos:copaIV"><span class="pista"></span> Doble</label>')
-        : U.campo('Siembra', '<label class="sw"><input type="checkbox"'+(copa.siembra?' checked':'')+' data-c="sorteos:copaSiembra"><span class="pista"></span> Por clasificación</label>',
-            'Los mejores entran más tarde y se cruzan con los peores')+
-          U.campo('Rivalidades', '<label class="sw"><input type="checkbox"'+(copa.evitarRiv?' checked':'')+' data-c="sorteos:copaRiv"><span class="pista"></span> Evitar en la previa</label>',
-            'Alpino – Academia Plenilunio'))+
-      U.campo('Inscritos', '<div class="inp" style="display:flex;align-items:center;color:var(--ink-3)">'+elegidos.length+' de '+todos.length+'</div>')+
-    '</div>'+
-
-    '<details style="margin-bottom:var(--g4)"><summary style="cursor:pointer;font-size:.8125rem;color:var(--ink-2)">Elegir quién participa</summary>'+
-      '<div class="rejilla" style="--min:190px;margin-top:var(--g3)">'+
-        todos.map(function(n){
-          return '<label class="sw"><input type="checkbox"'+(copa.sel[n]!==false?' checked':'')+
-            ' data-c="sorteos:copaEq" data-n="'+esc(n)+'"><span class="pista"></span> '+esc(n)+'</label>';
-        }).join('')+
-      '</div></details>'+
-
-    (elegidos.length<2 ? '<p class="mal">Hacen falta al menos dos equipos inscritos.</p>' :
-      '<div style="display:flex;gap:.4rem;flex-wrap:wrap">'+
-        '<button class="btn btn-secondary btn-sm" data-a="sorteos:copaSortear"><i class="ph ph-shuffle"></i> '+
-          (copa.previa?'Repetir sorteo':'Sortear')+'</button>'+
-        (copa.previa ? '<button class="btn btn-primary btn-sm" data-a="sorteos:copaAplicar">Aplicar '+copa.previa.partidos.length+' cruces</button>'+
-          '<button class="btn btn-secondary btn-sm" data-a="sorteos:copaDescartar">Descartar</button>' : '')+
-      '</div>'+
-      (copa.previa ? previaCopa() : ''));
+/* --- Fútbol Frontier ------------------------------------------------- */
+/* Los 6 de la preliminar son los peores de Segunda de la temporada ANTERIOR:
+   se proponen desde la última temporada archivada, contando sólo a los que
+   siguen hoy en Ascenso, y se completa con la tabla actual si faltan (clubes
+   nuevos). Es una propuesta: se marcan y desmarcan a mano. */
+function propuestaPreliminar(){
+  var hoy = activos('ASCENSO');
+  var hist = d().historial_temporadas || [], t = hist[hist.length-1];
+  var antes = t ? C.orderStandings((t.equipos||[]).filter(function(e){ return e.division==='ASCENSO'; }))
+    .map(function(e){ return e.nombre; }).filter(function(n){ return hoy.indexOf(n)>=0; }) : [];
+  var peores = antes.slice(-6);
+  C.clasificacion('ASCENSO').map(function(e){ return e.nombre; }).reverse().forEach(function(n){
+    if(peores.length<6 && peores.indexOf(n)<0) peores.push(n);
+  });
+  var sel = {};
+  peores.forEach(function(n){ sel[n] = true; });
+  return sel;
 }
-function previaCopa(){
-  var r = copa.previa;
-  var porFase = {};
-  r.partidos.forEach(function(p, i){ (porFase[p.fase] = porFase[p.fase]||[]).push({p:p, i:i}); });
-  var orden = C.FASES_TODAS.filter(function(f){ return porFase[f]; });
-  return '<div style="margin-top:var(--g4)">'+
-    (r.avisos||[]).map(function(a){
-      return '<p class="mal" style="margin-bottom:var(--g2)"><i class="ph-bold ph-warning"></i> '+esc(a)+'</p>'; }).join('')+
-    (d().partidos_copa.length
-      ? '<p class="mal" style="margin-bottom:var(--g3)"><i class="ph-bold ph-warning"></i> '+
-        'La Copa ya tiene '+d().partidos_copa.length+' cruces. Aplicar los reemplaza por completo, con sus resultados.</p>'
-      : '')+
-    '<div style="display:flex;gap:var(--g5);overflow-x:auto;padding-bottom:var(--g2)">'+
-      orden.map(function(f){
-        return '<div style="min-width:200px;flex-shrink:0">'+
-          '<div style="font-family:var(--f-mono);font-size:.625rem;letter-spacing:.12em;color:var(--ink-3);margin-bottom:var(--g2)">'+esc(f)+'</div>'+
-          porFase[f].map(function(o){
-            function lado(k, ok){
-              if(o.p[ok]!=null) return '<span style="color:var(--ink-4)"><i class="ph ph-arrow-elbow-down-right"></i> ganador #'+o.p[ok]+'</span>';
-              return esc(o.p[k]||'—');
-            }
-            return '<div class="dnd-ficha" style="cursor:default;flex-direction:column;align-items:flex-start;gap:.15rem">'+
-              '<span class="mono" style="font-size:.5625rem;color:var(--ink-4)">#'+o.i+(o.p.grupo?' · grupo '+esc(o.p.grupo):'')+'</span>'+
-              '<span class="nm">'+lado('local','origen_local')+'</span>'+
-              '<span class="nm">'+lado('visitante','origen_visitante')+'</span></div>';
-          }).join('')+'</div>';
+function preliminarElegida(){
+  return activos('ASCENSO').filter(function(n){ return ff.sel[n]; });
+}
+function etiqueta(txt){
+  return '<div style="font-family:var(--f-mono);font-size:.625rem;letter-spacing:.12em;color:var(--ink-3);margin-bottom:var(--g2)">'+txt+'</div>';
+}
+function bloqueFF(){
+  if(!ff.sel) ff.sel = propuestaPreliminar();
+  var asc = activos('ASCENSO'), prelim = preliminarElegida();
+  var directos = activos().filter(function(n){ return prelim.indexOf(n)<0; });
+  var gc = d().config.grupos_copa || {};
+  var errores = C.erroresGruposFF(gc, prelim, directos);
+  if(prelim.length!==6) errores.unshift('Marca exactamente 6 equipos para la preliminar (hay '+prelim.length+').');
+  return '<div class="card" style="padding:var(--g5)">'+
+    '<h3 style="font-size:.9375rem;margin-bottom:.35rem">Fútbol Frontier</h3>'+
+    '<p class="ayuda" style="margin-bottom:var(--g4)">El único sorteo del torneo es la preliminar entre los 6 peores de Segunda de la temporada anterior. '+
+      'Los grupos no se sortean: se leen del reparto hecho a mano en <a href="#copa">Copa</a>. '+
+      'Al aplicar se crean los 50 partidos, con cuartos, semifinales y final ya encadenados.</p>'+
+    etiqueta('PRELIMINAR · '+prelim.length+' DE 6')+
+    '<div class="rejilla" style="--min:190px;margin-bottom:var(--g4)">'+
+      asc.map(function(n){
+        return '<label class="sw"><input type="checkbox"'+(ff.sel[n]?' checked':'')+
+          ' data-c="sorteos:ffEq" data-n="'+esc(n)+'"><span class="pista"></span> '+esc(n)+'</label>';
       }).join('')+
-    '</div></div>';
+    '</div>'+
+    etiqueta('GRUPOS · '+directos.length+' DIRECTOS + 3 PLAZAS DE LA PRELIMINAR')+
+    '<div class="rejilla rejilla-4" style="margin-bottom:var(--g4)">'+
+      C.LETRAS_FF.map(function(g){
+        return '<div class="tabla-caja"><div class="problema" style="color:var(--ink-3)">Grupo '+g+'</div>'+
+          ((gc[g]||[]).length ? (gc[g]||[]).map(function(n,i){
+            return '<div class="problema"><span class="mono" style="color:var(--ink-4);min-width:14px">'+(i+1)+'</span>'+esc(n)+'</div>';
+          }).join('') : '<div class="problema" style="color:var(--ink-4)">Vacío</div>')+'</div>';
+      }).join('')+
+    '</div>'+
+    (errores.length
+      ? errores.slice(0,6).map(function(e){
+          return '<p class="mal" style="margin-bottom:var(--g2)"><i class="ph-bold ph-warning"></i> '+esc(e)+'</p>';
+        }).join('')+
+        (errores.length>6 ? '<p class="ayuda">Y '+(errores.length-6)+' avisos más.</p>' : '')
+      : '<div style="display:flex;gap:.4rem;flex-wrap:wrap">'+
+          '<button class="btn btn-secondary btn-sm" data-a="sorteos:ffSortear"><i class="ph ph-shuffle"></i> '+
+            (ff.previa?'Repetir sorteo':'Sortear preliminar')+'</button>'+
+          (ff.previa ? '<button class="btn btn-primary btn-sm" data-a="sorteos:ffAplicar">Aplicar '+ff.previa.length+' partidos</button>'+
+            '<button class="btn btn-secondary btn-sm" data-a="sorteos:ffDescartar">Descartar</button>' : '')+
+        '</div>'+
+        (ff.previa ? previaFF() : ''));
+}
+function previaFF(){
+  var ya = d().partidos_copa.length;
+  return '<div style="margin-top:var(--g4)">'+
+    (ya ? '<p class="mal" style="margin-bottom:var(--g3)"><i class="ph-bold ph-warning"></i> '+
+      'Fútbol Frontier ya tiene '+ya+' partidos. Aplicar los reemplaza por completo, con sus resultados.</p>' : '')+
+    '<div class="tabla-caja">'+
+      ff.previa.filter(function(p){ return p.fase==='PRELIMINAR'; }).map(function(p,i){
+        return '<div class="problema"><span class="mono" style="color:var(--ink-3);min-width:110px">PRELIMINAR '+(i+1)+'</span>'+
+          esc(p.local)+' <span style="color:var(--ink-4)">vs</span> '+esc(p.visitante)+'</div>';
+      }).join('')+
+    '</div>'+
+    '<p class="ayuda" style="margin-top:var(--g3)">El ganador de la preliminar N ocupa la plaza «Ganador preliminar N» de su grupo.</p></div>';
 }
 
-/* --- Play-off desde la clasificación ---------------------------------- */
-function bloquePlayoff(){
-  var ord = C.clasificacion('SUPERLIGA');
-  var z = C.ZONAS_APP.SUPERLIGA;
-  var ya = d().partidos_liga.filter(function(p){ return !C.esRegular(p); });
+/* --- Torneo Frontier -------------------------------------------------- */
+function bloqueTorneo(){
+  var p1 = C.clasificacion('SUPERLIGA'), s2 = C.clasificacion('ASCENSO');
+  var ya = d().partidos_torneo || [];
+  var semis = ya.filter(function(p){ return p.fase==='SEMIFINALES'; });
+  var faltanSemis = semis.length===2 && semis.some(function(p){ return p.origen_visitante==null || p.origen_visitante===''; });
+  function fila(pos, e, ronda){
+    return '<div class="problema"><span class="mono" style="color:var(--ink-3);min-width:64px">'+pos+'</span>'+
+      (e ? U.celdaEquipo(e) : '—')+'<span class="ayuda" style="margin-left:auto">'+ronda+'</span></div>';
+  }
   return '<div class="card" style="padding:var(--g5)">'+
-    '<h3 style="font-size:.9375rem;margin-bottom:.35rem">Play-off de la Superliga</h3>'+
-    '<p class="ayuda" style="margin-bottom:var(--g4)">Genera los cruces con la estructura que ya dibuja la web: '+
-      '5.º–6.º, el ganador contra el 4.º, y las semifinales del 1.º y del 2.º–3.º.</p>'+
-    (ord.length<6
-      ? '<p class="mal">Hacen falta al menos 6 equipos clasificados.</p>'
+    '<h3 style="font-size:.9375rem;margin-bottom:.35rem">Torneo Frontier</h3>'+
+    '<p class="ayuda" style="margin-bottom:var(--g4)">Del 6.º al 10.º de Primera y el 1.º de Segunda, a eliminación directa y con la clasificación final. '+
+      'Dos sorteos: los cuartos entre 8.º, 9.º, 10.º y 1.º de Segunda; y, jugados los cuartos, qué ganador se cruza con el 6.º y cuál con el 7.º.</p>'+
+    (p1.length<10 || !s2.length
+      ? '<p class="mal">Hacen falta 10 clasificados en Primera y 1 en Segunda.</p>'
       : '<div class="tabla-caja" style="margin-bottom:var(--g4)">'+
-          ord.slice(0,6).map(function(e,i){
-            return '<div class="problema"><span class="mono" style="color:var(--ink-3);min-width:20px">'+(i+1)+'º</span>'+
+          fila('6.º', p1[5], 'semifinal')+fila('7.º', p1[6], 'semifinal')+
+          fila('8.º', p1[7], 'cuartos')+fila('9.º', p1[8], 'cuartos')+fila('10.º', p1[9], 'cuartos')+
+          fila('1.º Seg.', s2[0], 'cuartos')+
+        '</div>'+
+        '<div style="display:flex;gap:.4rem;flex-wrap:wrap">'+
+          '<button class="btn btn-secondary btn-sm" data-a="sorteos:tfSortear"><i class="ph ph-shuffle"></i> '+
+            (tf.previa?'Repetir sorteo':'Sortear cuartos')+'</button>'+
+          (tf.previa ? '<button class="btn btn-primary btn-sm" data-a="sorteos:tfAplicar">Aplicar 5 partidos</button>'+
+            '<button class="btn btn-secondary btn-sm" data-a="sorteos:tfDescartar">Descartar</button>' : '')+
+          (faltanSemis && !tf.previa ? '<button class="btn btn-primary btn-sm" data-a="sorteos:tfSemis"><i class="ph ph-shuffle"></i> Sortear semifinales</button>' : '')+
+        '</div>'+
+        (tf.previa
+          ? '<div class="tabla-caja" style="margin-top:var(--g4)">'+
+              tf.previa.filter(function(p){ return p.fase==='CUARTOS DE FINAL'; }).map(function(p,i){
+                return '<div class="problema"><span class="mono" style="color:var(--ink-3);min-width:90px">CUARTOS '+(i+1)+'</span>'+
+                  esc(p.local)+' <span style="color:var(--ink-4)">vs</span> '+esc(p.visitante)+'</div>';
+              }).join('')+'</div>'+
+            (ya.length ? '<p class="mal" style="margin-top:var(--g3)"><i class="ph-bold ph-warning"></i> El Torneo ya tiene '+ya.length+' partidos; aplicar los reemplaza.</p>' : '')
+          : ''));
+}
+
+/* --- Play-off desde la clasificación --------------------------------- */
+function bloquePlayoff(div){
+  var asc = div==='ASCENSO', ord = C.clasificacion(div), desde = asc ? 1 : 0;
+  var ya = (asc ? d().partidos_ascenso : d().partidos_liga).filter(function(p){ return !C.esRegular(p); });
+  return '<div class="card" style="padding:var(--g5)">'+
+    '<h3 style="font-size:.9375rem;margin-bottom:.35rem">'+(asc ? 'Play-off de ascenso' : 'Play-off de la Superliga')+'</h3>'+
+    '<p class="ayuda" style="margin-bottom:var(--g4)">'+(asc
+      ? 'El 1.º asciende directo y no juega. Semifinales 2.º–5.º y 3.º–4.º, en casa del mejor clasificado, y final: quien la gana asciende.'
+      : 'Play-in 4.º–5.º; su ganador juega contra el 1.º y el 2.º contra el 3.º en semifinales, y final.')+
+      ' Las rondas quedan encadenadas: el ganador de cada cruce se escribe solo en el siguiente.</p>'+
+    (ord.length<5
+      ? '<p class="mal">Hacen falta al menos 5 equipos clasificados.</p>'
+      : '<div class="tabla-caja" style="margin-bottom:var(--g4)">'+
+          ord.slice(desde,5).map(function(e,i){
+            return '<div class="problema"><span class="mono" style="color:var(--ink-3);min-width:20px">'+(desde+i+1)+'º</span>'+
               U.celdaEquipo(e)+'<span class="mono" style="margin-left:auto">'+(e.pts||0)+' pts</span></div>';
           }).join('')+'</div>'+
         (ya.length ? '<p class="mal" style="margin-bottom:var(--g3)"><i class="ph-bold ph-warning"></i> Ya hay '+ya.length+' partidos de eliminatoria; se reemplazarán.</p>' : '')+
-        '<button class="btn btn-primary btn-sm" data-a="sorteos:playoff">Generar 4 eliminatorias</button>'+
+        '<button class="btn btn-primary btn-sm" data-a="sorteos:playoff" data-div="'+div+'">Generar '+(asc?3:4)+' eliminatorias</button>'+
         '<p class="ayuda" style="margin-top:var(--g3)">Se crean a partir de la jornada siguiente a la última del calendario, porque sin jornada la web no los mostraría en Resultados.</p>');
 }
 
@@ -315,88 +366,106 @@ var A = {
     });
   },
 
-  copaTipo:    function(el){ copa.tipo = el.value; copa.previa = null; U.refrescar(); },
-  copaGrupos:  function(el){ copa.grupos = Math.max(1, Math.min(12, Number(el.value)||4)); copa.previa = null; U.refrescar(); },
-  copaIV:      function(el){ copa.idaVuelta = el.checked; copa.previa = null; U.refrescar(); },
-  copaSiembra: function(el){ copa.siembra = el.checked; copa.previa = null; U.refrescar(); },
-  copaRiv:     function(el){ copa.evitarRiv = el.checked; copa.previa = null; U.refrescar(); },
-  copaEq:      function(el){ copa.sel[el.dataset.n] = el.checked; copa.previa = null; U.refrescar(); },
-  copaDescartar: function(){ copa.previa = null; U.refrescar(); },
-  copaSortear: function(){
-    var inscritos = activos().filter(function(n){ return copa.sel[n]!==false; });
-    /* Con siembra, el orden de entrada es el de la clasificación de las dos
-       divisiones: es la referencia de fuerza que hay en el archivo. */
-    if(copa.siembra){
-      var orden = C.clasificacion('SUPERLIGA').concat(C.clasificacion('ASCENSO')).map(function(e){ return e.nombre; });
-      inscritos.sort(function(a,b){
-        var ia = orden.indexOf(a), ib = orden.indexOf(b);
-        return (ia<0?999:ia) - (ib<0?999:ib);
-      });
-    }
-    copa.semilla = semillaNueva();
-    copa.previa = C.generarCopa(inscritos, {
-      tipo: copa.tipo, grupos: copa.grupos, ida_vuelta: copa.idaVuelta,
-      siembra: copa.siembra, semilla: copa.semilla,
-      /* La única rivalidad que la web reconoce está escrita en su código. */
-      rivalidades: copa.evitarRiv ? [['Alpino','Academia Plenilunio']] : []
+  ffEq:        function(el){ ff.sel[el.dataset.n] = el.checked; ff.previa = null; U.refrescar(); },
+  ffDescartar: function(){ ff.previa = null; U.refrescar(); },
+  ffSortear: function(){
+    var prelim = preliminarElegida();
+    ff.semilla = semillaNueva();
+    var r = C.generarFutbolFrontier(prelim, d().config.grupos_copa, {
+      semilla: ff.semilla,
+      obligados: activos().filter(function(n){ return prelim.indexOf(n)<0; })
     });
+    if(r.avisos.length) return U.aviso(r.avisos[0], 'ojo', 8000);
+    ff.previa = r.partidos;
     U.refrescar();
   },
-  copaAplicar: function(){
+  ffAplicar: function(){
     var previos = d().partidos_copa.length;
     var seguir = function(){
-      var D = d();
-      D.partidos_copa = copa.previa.partidos;
-      /* En fase de grupos, el reparto también se guarda en config para que la
-         pestaña de Copa lo enseñe y se pueda retocar arrastrando. */
-      if(copa.previa.reparto) D.config.grupos_copa = copa.previa.reparto;
-      copa.previa = null;
+      d().partidos_copa = ff.previa;
+      ff.previa = null;
       U.cambio();
-      U.aviso('Sorteo aplicado. Revísalo en Copa antes de guardar.', 'ok', 7000);
+      U.aviso('Fútbol Frontier generado. Revísalo en Copa antes de guardar.', 'ok', 7000);
     };
     if(!previos) return seguir();
     U.confirmar({
-      titulo:'Reemplazar el cuadro de Copa',
-      html:'Se borran los <b>'+previos+' cruces</b> actuales y sus resultados. '+
-        'Las vinculaciones entre rondas se rehacen desde cero.',
+      titulo:'Reemplazar Fútbol Frontier',
+      html:'Se borran los <b>'+previos+' partidos</b> actuales y sus resultados.',
       ok:'Reemplazar', peligro:true
     }).then(function(si){ if(si) seguir(); });
   },
 
-  playoff: function(){
-    var ord = C.clasificacion('SUPERLIGA');
-    if(ord.length<6) return;
-    var D = d();
-    var maxJ = D.partidos_liga.reduce(function(m,p){ return Math.max(m, parseInt(p.jornada)||0); }, 0);
-    var j = maxJ+1;
-    /* La misma estructura que renderPlayoff() de app.js dibuja a partir de la
-       clasificación. Los cruces posteriores quedan sin equipos porque dependen
-       de resultados que aún no existen; se rellenan al jugarse. */
-    var nuevos = [
-      cruce('PARTIDO POR EL PLAY IN', ord[4].nombre, ord[5].nombre, j),
-      cruce('PLAY IN', ord[3].nombre, '', j+1),
-      cruce('SEMIFINALES', ord[1].nombre, ord[2].nombre, j+2),
-      cruce('SEMIFINALES', ord[0].nombre, '', j+2),
-      cruce('FINAL', '', '', j+3)
-    ];
+  tfDescartar: function(){ tf.previa = null; U.refrescar(); },
+  tfSortear: function(){
+    var nombres = function(e){ return e.nombre; };
+    tf.semilla = semillaNueva();
+    var r = C.generarTorneoFrontier(C.clasificacion('SUPERLIGA').map(nombres), C.clasificacion('ASCENSO').map(nombres), {semilla:tf.semilla});
+    if(r.avisos.length) return U.aviso(r.avisos[0], 'ojo');
+    tf.previa = r.partidos;
+    U.refrescar();
+  },
+  tfAplicar: function(){
+    var previos = (d().partidos_torneo||[]).length;
+    var seguir = function(){
+      d().partidos_torneo = tf.previa;
+      tf.previa = null;
+      U.cambio();
+      U.aviso('Torneo Frontier generado. Cuando se jueguen los cuartos, vuelve aquí para sortear las semifinales.', 'ok', 8000);
+    };
+    if(!previos) return seguir();
     U.confirmar({
-      titulo:'Generar el play-off',
-      html:'Se crean <b>'+nuevos.length+' eliminatorias</b> en las jornadas '+j+' a '+(j+3)+'.<br><br>'+
-        'Los cruces que dependen de un resultado anterior nacen sin equipos: los rellenas al jugarse.<br><br>'+
-        '<span style="color:var(--gold)">Aviso:</span> la web muestra la etiqueta de fase en Resultados, pero su cuadro de play-off '+
-        'lo dibuja desde la clasificación, no desde estos partidos.',
+      titulo:'Reemplazar el Torneo Frontier',
+      html:'Se borran los <b>'+previos+' partidos</b> actuales y sus resultados.',
+      ok:'Reemplazar', peligro:true
+    }).then(function(si){ if(si) seguir(); });
+  },
+  tfSemis: function(){
+    U.confirmar({
+      titulo:'Sorteo de semifinales del Torneo Frontier',
+      html:'Se sortea qué ganador de cuartos juega contra el 6.º y cuál contra el 7.º. El resultado queda fijado en el cuadro.',
+      ok:'Sortear'
+    }).then(function(si){
+      if(!si) return;
+      if(!C.sortearSemisTorneo(d().partidos_torneo||[], semillaNueva()))
+        return U.aviso('El Torneo no tiene 2 cuartos y 2 semifinales.', 'ojo');
+      U.cambio();
+      U.aviso('Semifinales del Torneo Frontier sorteadas.', 'ok');
+    });
+  },
+
+  playoff: function(el){
+    var div = el.dataset.div, asc = div==='ASCENSO', ord = C.clasificacion(div);
+    if(ord.length<5) return;
+    var D = d(), clave = asc ? 'partidos_ascenso' : 'partidos_liga';
+    var regulares = D[clave].filter(C.esRegular), b = regulares.length;
+    var j = regulares.reduce(function(m,p){ return Math.max(m, parseInt(p.jornada)||0); }, 0)+1;
+    var n = function(i){ return ord[i].nombre; };
+    /* origen_* apunta por índice dentro de la lista final, y los nuevos van
+       detrás de los regulares: b es donde empiezan. */
+    var nuevos = asc
+      ? [cruce('SEMIFINALES', n(1), n(4), j), cruce('SEMIFINALES', n(2), n(3), j),
+         cruce('FINAL', '', '', j+1, b, b+1)]
+      : [cruce('PLAY IN', n(3), n(4), j), cruce('SEMIFINALES', n(0), '', j+1, null, b),
+         cruce('SEMIFINALES', n(1), n(2), j+1), cruce('FINAL', '', '', j+2, b+1, b+2)];
+    U.confirmar({
+      titulo: asc ? 'Generar el Play-off de ascenso' : 'Generar el Play-off de la Superliga',
+      html:'Se crean <b>'+nuevos.length+' eliminatorias</b> a partir de la jornada '+j+'.<br><br>'+
+        'Los cruces que dependen de otro nacen sin equipo y se rellenan solos en cuanto hay ganador, tanto desde el gestor como desde el bot.',
       ok:'Generar'
     }).then(function(si){
       if(!si) return;
-      D.partidos_liga = D.partidos_liga.filter(C.esRegular).concat(nuevos);
+      D[clave] = regulares.concat(nuevos);
       U.cambio();
-      U.aviso('Play-off generado en las jornadas '+j+'–'+(j+3)+'.', 'ok', 7000);
+      U.aviso('Play-off generado desde la jornada '+j+'.', 'ok', 7000);
     });
   }
 };
-function cruce(fase, local, visitante, jornada){
-  return {jornada:String(jornada), fase:fase, fecha:'', estado:'PENDIENTE',
-          local:local, visitante:visitante, goles_l:0, goles_v:0, detalles:' / '};
+function cruce(fase, local, visitante, jornada, origenLocal, origenVisitante){
+  var p = {jornada:String(jornada), fase:fase, fecha:'', estado:'PENDIENTE',
+           local:local, visitante:visitante, goles_l:0, goles_v:0, detalles:' / '};
+  if(origenLocal!=null) p.origen_local = origenLocal;
+  if(origenVisitante!=null) p.origen_visitante = origenVisitante;
+  return p;
 }
 
 U.registrar('sorteos', {acciones:A, render:pintar});

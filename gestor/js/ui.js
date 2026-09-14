@@ -60,6 +60,9 @@ function refrescar(){
 /* Un cambio en los datos: marca sucio y repinta. Todo lo que edite algo pasa
    por aquí, para que el estado del archivo nunca mienta. */
 function cambio(soloMarcar){
+  /* El bot de Discord busca los partidos por nombre: un cruce ya decidido
+     tiene que llevar su equipo escrito en cuanto cambia un resultado. */
+  if(SFG.d()) SFG.core.materializarCruces(SFG.d());
   IO.marcarSucio();
   if(soloMarcar) contadores(); else refrescar();
 }
@@ -74,6 +77,7 @@ function contadores(){
   $('n-equipos').textContent = d.equipos.filter(function(e){ return !e.archivado; }).length;
   $('n-partidos').textContent = d.partidos_liga.length + d.partidos_ascenso.length;
   $('n-copa').textContent = d.partidos_copa.length;
+  $('n-torneo').textContent = (d.partidos_torneo||[]).length || '';
   $('n-noticias').textContent = d.noticias.length;
   $('n-resenas').textContent = (d.config.resenas||[]).length || '';
   $('n-temporadas').textContent = d.historial_temporadas.length || '';
@@ -362,12 +366,12 @@ $('q').addEventListener('input', function(){
   if(jug.length) grupos.push(['Jugadores', jug]);
 
   var par = [];
-  [['liga','partidos_liga'],['ascenso','partidos_ascenso'],['copa','partidos_copa']].forEach(function(c){
-    d[c[1]].forEach(function(p,i){
+  [['liga','partidos_liga'],['ascenso','partidos_ascenso'],['copa','partidos_copa'],['torneo','partidos_torneo']].forEach(function(c){
+    (d[c[1]]||[]).forEach(function(p,i){
       if(par.length>=8) return;
       if(C.norm(p.local+' '+p.visitante).indexOf(n)>=0)
         par.push({t:(p.local||'?')+' – '+(p.visitante||'?'), s:(p.fase||('Jornada '+p.jornada))+' · '+p.estado,
-                  v:c[0]==='copa'?'copa':'partidos', p:{comp:c[0], idx:i}});
+                  v:(c[0]==='copa'||c[0]==='torneo')?c[0]:'partidos', p:{comp:c[0], idx:i}});
     });
   });
   if(par.length) grupos.push(['Partidos', par]);

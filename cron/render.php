@@ -11,7 +11,7 @@ declare(strict_types=1);
    para quien retome esto): no traduce etiquetas ni traslitera nombres de
    equipo/jugador a otros alfabetos (ja/ko/bg/sr) — esos idiomas mostrarán el
    nombre en su forma original hasta el próximo "npm run build" en local. No
-   toca el cuadro de Play Off ni la sección de noticias/equipos/plantillas.
+   toca el cuadro de Play-off ni la sección de noticias/equipos/plantillas.
    El fichero HTML de entrada ya tiene TODA la maquetación y las etiquetas
    traducidas de la última vez que build.js corrió en local: aquí solo se
    reemplaza el contenido de las tablas de datos, con DOMDocument, sin tocar
@@ -114,8 +114,9 @@ function sf_renderClasBody(array $equipos, array $partidosLiga, string $div): st
         $dg = (int)($e['gf'] ?? 0) - (int)($e['gc'] ?? 0);
         $z = '';
         if ($div === 'SUPERLIGA') {
-            if ($pos <= 3) $z = 'z-po'; elseif ($pos === 4) $z = 'z-pi'; elseif ($pos <= 6) $z = 'z-pp'; elseif ($pos > $total - 3) $z = 'z-desc';
-        } elseif ($pos <= 3) $z = 'z-asc';
+            // Temporada 4, igual que renderClas() de app.js.
+            if ($pos > 5 && $pos > $total - 2) $z = 'z-desc'; elseif ($pos <= 3) $z = 'z-po'; elseif ($pos <= 5) $z = 'z-pi';
+        } elseif ($pos === 1) $z = 'z-asc'; elseif ($pos <= 5) $z = 'z-pa';
         $form = sf_formOf($matches, $div, (string)($e['nombre'] ?? ''), 5);
         $formHtml = implode('', array_map(fn($r) => '<i class="f-'.$r.'"></i>', $form));
         $h .= '<tr data-team="'.sf_esc($e['id'] ?? '').'">'
@@ -186,7 +187,11 @@ function sf_winnerOf(array $p): ?string {
 function sf_resolveSide(array $p, string $side, array $partidosCopa): array {
     $ok = $side === 'local' ? 'origen_local' : 'origen_visitante';
     $idx = $p[$ok] ?? null;
-    if ($idx !== null && isset($partidosCopa[$idx])) {
+    // origen_grupo_* ("1A"): puesto de grupo de Fútbol Frontier aún sin decidir.
+    if (empty($p[$side]) && preg_match('/^(\d+)([A-Z])$/', strtoupper((string)($p['origen_grupo_'.$side] ?? '')), $g)) {
+        return ['n' => $g[1].'.º Grupo '.$g[2], 'pend' => true];
+    }
+    if ($idx !== null && $idx !== '' && isset($partidosCopa[$idx])) {
         $f = $partidosCopa[$idx];
         $w = sf_winnerOf($f);
         if ($w) return ['n' => $w, 'pend' => false];
@@ -195,13 +200,14 @@ function sf_resolveSide(array $p, string $side, array $partidosCopa): array {
     return ['n' => $p[$side] ?? '', 'pend' => false];
 }
 
-const SF_FASES = ['RONDA 1 (PREVIA)', 'RONDA 2', 'CUARTOS DE FINAL', 'SEMIFINALES', 'FINAL'];
+const SF_FASES = ['PRELIMINAR', 'RONDA 1 (PREVIA)', 'RONDA 2', 'CUARTOS DE FINAL', 'SEMIFINALES', 'FINAL'];
 const SF_FASE_LABEL = [
-    'RONDA 1 (PREVIA)' => 'Ronda 1 (previa)', 'RONDA 2' => 'Ronda 2', 'CUARTOS DE FINAL' => 'Cuartos de final',
+    'PRELIMINAR' => 'Preliminar', 'RONDA 1 (PREVIA)' => 'Ronda 1 (previa)', 'RONDA 2' => 'Ronda 2', 'CUARTOS DE FINAL' => 'Cuartos de final',
     'SEMIFINALES' => 'Semifinales', 'FINAL' => 'Final',
 ];
 
-function sf_renderCopa(array $partidosCopa, array $equiposPorNombre): string {
+// También pinta el Torneo Frontier: misma forma de cuadro, otra lista.
+function sf_renderCopa(array $partidosCopa, array $equiposPorNombre, string $comp = 'copa', string $vacio = 'La Copa todavía no tiene cruces publicados.'): string {
     $h = '';
     foreach (SF_FASES as $f) {
         $ms = array_values(array_filter($partidosCopa, fn($p) => ($p['fase'] ?? '') === $f));
@@ -219,11 +225,11 @@ function sf_renderCopa(array $partidosCopa, array $equiposPorNombre): string {
                 $win = $fin && $w === $name;
                 return '<div class="br-side '.($fin ? ($win ? 'br-win' : 'br-lose') : '').'">'.sf_divIcon($t).sf_crest($t).'<span class="nm">'.sf_esc($info['n']).'</span>'.($fin ? '<span class="sc">'.$score.'</span>' : '').'</div>';
             };
-            $h .= '<div class="br-match" data-comp="copa" data-idx="'.$i.'">'.$side($L, sf_gl($p), $p['local'] ?? null).$side($V, sf_gv($p), $p['visitante'] ?? null).'</div>';
+            $h .= '<div class="br-match" data-comp="'.$comp.'" data-idx="'.$i.'">'.$side($L, sf_gl($p), $p['local'] ?? null).$side($V, sf_gv($p), $p['visitante'] ?? null).'</div>';
         }
         $h .= '</div>';
     }
-    return $h !== '' ? $h : '<p class="muted">La Copa todavía no tiene cruces publicados.</p>';
+    return $h !== '' ? $h : '<p class="muted">'.sf_esc($vacio).'</p>';
 }
 
 function sf_renderGruposCopa(array $partidosCopa, array $equiposPorNombre): string {
@@ -236,16 +242,20 @@ function sf_renderGruposCopa(array $partidosCopa, array $equiposPorNombre): stri
     foreach ($by as $k => $ms) {
         $t = [];
         foreach ($ms as $p) {
-            foreach ([$p['local'] ?? '', $p['visitante'] ?? ''] as $n) if (!isset($t[$n])) $t[$n] = ['n' => $n, 'pts' => 0, 'gf' => 0, 'gc' => 0];
+            // La plaza de un ganador de la preliminar sin decidir es una fila más.
+            $l = (string)sf_resolveSide($p, 'local', $partidosCopa)['n'];
+            $v = (string)sf_resolveSide($p, 'visitante', $partidosCopa)['n'];
+            foreach ([$l, $v] as $n) if (!isset($t[$n])) $t[$n] = ['n' => $n, 'pts' => 0, 'gf' => 0, 'gc' => 0];
             if (!sf_isFin($p)) continue;
             $a = sf_gl($p); $b = sf_gv($p);
-            $t[$p['local']]['gf'] += $a; $t[$p['local']]['gc'] += $b;
-            $t[$p['visitante']]['gf'] += $b; $t[$p['visitante']]['gc'] += $a;
-            if ($a > $b) $t[$p['local']]['pts'] += 3; elseif ($b > $a) $t[$p['visitante']]['pts'] += 3;
-            else { $t[$p['local']]['pts']++; $t[$p['visitante']]['pts']++; }
+            $t[$l]['gf'] += $a; $t[$l]['gc'] += $b;
+            $t[$v]['gf'] += $b; $t[$v]['gc'] += $a;
+            if ($a > $b) $t[$l]['pts'] += 3; elseif ($b > $a) $t[$v]['pts'] += 3;
+            else { $t[$l]['pts']++; $t[$v]['pts']++; }
         }
         $rows = array_values($t);
-        usort($rows, fn($a, $b) => $b['pts'] !== $a['pts'] ? $b['pts'] <=> $a['pts'] : ($b['gf'] - $b['gc']) <=> ($a['gf'] - $a['gc']));
+        // Mismo orden que app.js y api/discord_update.php: puntos, diferencia, GF y nombre.
+        usort($rows, fn($a, $b) => ([$b['pts'], $b['gf'] - $b['gc'], $b['gf']] <=> [$a['pts'], $a['gf'] - $a['gc'], $a['gf']]) ?: strcmp((string)$a['n'], (string)$b['n']));
         $out .= '<div class="card group"><h4>Grupo '.sf_esc((string)$k).'</h4>'.implode('', array_map(function ($r, $i) use ($equiposPorNombre) {
             $t = $equiposPorNombre[$r['n']] ?? null;
             return '<div class="group-row '.($i < 2 ? 'group-q' : '').'">'.sf_crest($t).'<span class="nm">'.sf_esc($r['n']).'</span><span class="p">'.$r['pts'].'</span></div>';
@@ -415,6 +425,7 @@ function sf_actualizarTablas(string $path, array $datos): bool {
     $cambiado = sf_setInnerHtmlById($html, 'matches', $matchesHtml) || $cambiado;
     $cambiado = sf_setInnerHtmlById($html, 'scorers', sf_renderScorers($equipos, $partidosLiga)) || $cambiado;
     $cambiado = sf_setInnerHtmlById($html, 'bracket-copa', sf_renderCopa($partidosCopa, $equiposPorNombre)) || $cambiado;
+    $cambiado = sf_setInnerHtmlById($html, 'bracket-torneo', sf_renderCopa($datos['partidos_torneo'] ?? [], $equiposPorNombre, 'torneo', 'El Torneo Frontier todavía no tiene cruces publicados.')) || $cambiado;
     sf_setInnerHtmlById($html, 'groups-copa', sf_renderGruposCopa($partidosCopa, $equiposPorNombre));
     if ($cambiado) sf_actualizarDateModified($html);
 

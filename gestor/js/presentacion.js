@@ -86,9 +86,9 @@ function tabla(div){
       var pos = i+1, dg = (e.gf||0)-(e.gc||0), marca = '';
       /* Los mismos cortes que pinta la web, que los tiene fijos en su código. */
       if(div==='SUPERLIGA'){
-        if(pos<=z.playoff) marca='po'; else if(pos===z.playin) marca='pi';
-        else if(pos<=z.partido_playin) marca='pp'; else if(pos>ord.length-z.descenso) marca='desc';
-      } else if(pos<=z.ascenso) marca='asc';
+        if(pos>z.playin&&pos>ord.length-z.descenso) marca='desc'; else if(pos<=z.playoff) marca='po';
+        else if(pos<=z.playin) marca='pi';
+      } else if(pos<=z.ascenso) marca='asc'; else if(pos<=z.playoff) marca='pa';
       return '<tr class="'+(marca?'z-'+marca:'')+'">'+
         '<td class="tv-pos">'+pos+'</td>'+
         '<td class="tv-eq">'+U.escudo(e)+'<span>'+esc(e.nombre)+'</span></td>'+

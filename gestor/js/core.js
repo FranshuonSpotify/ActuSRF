@@ -62,13 +62,13 @@ function afinidadLimpia(a){ return AF_LABEL[afKey(a)]===a; }
 var POS=['POR','DEF','MED','DEL'];
 var POS_ORDER={POR:0,DEF:1,MED:2,DEL:3};
 var DIVISIONES=['SUPERLIGA','ASCENSO'];
-var FASES=['RONDA 1 (PREVIA)','RONDA 2','CUARTOS DE FINAL','SEMIFINALES','FINAL'];
+var FASES=['PRELIMINAR','RONDA 1 (PREVIA)','RONDA 2','CUARTOS DE FINAL','SEMIFINALES','FINAL'];
 var FASES_TODAS=['FASE DE GRUPOS'].concat(FASES);
 var AFINIDADES=['Fuego','Montaña','Bosque','Aire','Neutro'];
 
 /* FASES DE LIGA Y ASCENSO
    Un partido de liga sin `fase` es jornada regular. Con `fase`, es una
-   eliminatoria posterior: play-in, play-off, final.
+   eliminatoria posterior: Play-in, Play-off, final.
 
    Por qué se reutiliza `fase` en vez de inventar un campo nuevo: app.js ya lo
    lee para el pie de la tarjeta de partido y para la insignia de su ficha
@@ -81,13 +81,13 @@ var AFINIDADES=['Fuego','Montaña','Bosque','Aire','Neutro'];
 var FASES_LIGA=['PARTIDO POR EL PLAY IN','PLAY IN','SEMIFINALES','FINAL','DESEMPATE'];
 
 /* Un partido cuenta para la clasificación sólo si es de jornada regular. Una
-   eliminatoria no reparte puntos: si los sumara, el campeón del play-off
+   eliminatoria no reparte puntos: si los sumara, el campeón del Play-off
    adelantaría en la tabla al primero de la fase regular. */
 function esRegular(p){ return !p.fase; }
 
 function equipo(nombre){ return D&&D.equipos.find(function(e){ return e.nombre===nombre; }); }
 function equipoPorId(id){ return D&&D.equipos.find(function(e){ return e.id===id; }); }
-function pool(comp){ return comp==='ascenso'?D.partidos_ascenso:comp==='copa'?D.partidos_copa:D.partidos_liga; }
+function pool(comp){ return comp==='ascenso'?D.partidos_ascenso:comp==='copa'?D.partidos_copa:comp==='torneo'?D.partidos_torneo:D.partidos_liga; }
 
 /* --------------------------------------------------------------------------
    2. CLASIFICACIÓN — orderStandings() de app.js, criterio por criterio
@@ -131,15 +131,72 @@ function winnerOf(p){
    anterior manda el ganador de aquélla; si aún no se conoce, se devuelven los
    dos candidatos. NO escribe nada en los datos: el prototipo anterior volcaba
    el ganador dentro de p.local y eso duplica la verdad en dos sitios. */
-function resolveSide(p,side){
+function resolveSide(p,side,lista){
+  lista=lista||D.partidos_copa;
   var k=side==='local'?'origen_local':'origen_visitante';
   var oi=p[k];
-  if(oi!=null&&oi!==''&&D.partidos_copa[Number(oi)]){
-    var f=D.partidos_copa[Number(oi)], w=winnerOf(f);
+  if(oi!=null&&oi!==''&&lista[Number(oi)]){
+    var f=lista[Number(oi)], w=winnerOf(f);
     if(w) return {n:w,pend:false,origen:Number(oi)};
     return {n:abbr3(f.local)+' / '+abbr3(f.visitante),pend:true,origen:Number(oi)};
   }
-  return {n:p[side],pend:false,origen:null};
+  /* Fútbol Frontier: puesto de un grupo ("1A"). Tiene nombre en cuanto el
+     grupo termina, lo escribe materializarCruces(). */
+  var g=/^(\d+)([A-Z])$/.exec(String(p['origen_grupo_'+side]||'').toUpperCase());
+  if(g&&!p[side]) return {n:g[1]+'.º grupo '+g[2],pend:true,origen:null,grupo:g[0]};
+  return {n:p[side],pend:false,origen:null,grupo:g?g[0]:null};
+}
+
+/* ESCRIBIR EL EQUIPO DE LOS CRUCES YA DECIDIDOS
+   resolveSide() sigue siendo la verdad y no escribe. Pero el bot de Discord
+   (api/discord_update.php, que no se puede cambiar desde aquí) localiza los
+   partidos por NOMBRE de equipo: un semifinalista que sólo existe como
+   «ganador del #45» es un partido que el bot no encuentra. Así que, igual que
+   hace el endpoint, en cuanto se sabe quién juega se escribe en local/
+   visitante, y se borra si deja de saberse (un resultado corregido). */
+function ordenGrupo(filas){
+  return filas.sort(function(a,b){
+    return (b.pts-a.pts)||((b.gf-b.gc)-(a.gf-a.gc))||(b.gf-a.gf)||(a.n<b.n?-1:a.n>b.n?1:0);
+  });
+}
+/* Nombres del grupo en orden final, o null si queda algún partido suyo. */
+function tablaGrupoCerrada(lista,g){
+  var t={}, hay=false, abierto=false;
+  lista.forEach(function(p){
+    if(p.fase!=='FASE DE GRUPOS'||String(p.grupo||'').toUpperCase()!==g) return;
+    hay=true;
+    if(!p.local||!p.visitante||!isFin(p)){ abierto=true; return; }
+    var a=Number(gl(p))||0, b=Number(gv(p))||0;
+    [[p.local,a,b],[p.visitante,b,a]].forEach(function(x){
+      var r=t[x[0]]=t[x[0]]||{n:x[0],pts:0,gf:0,gc:0};
+      r.gf+=x[1]; r.gc+=x[2]; r.pts+=x[1]>x[2]?3:(x[1]===x[2]?1:0);
+    });
+  });
+  if(!hay||abierto) return null;
+  return ordenGrupo(Object.keys(t).map(function(k){ return t[k]; })).map(function(r){ return r.n; });
+}
+function materializarCruces(d){
+  ['partidos_liga','partidos_ascenso','partidos_copa','partidos_torneo'].forEach(function(clave){
+    var lista=d[clave]; if(!Array.isArray(lista)) return;
+    /* Una pasada por nivel del cuadro: grupos → cuartos → semis → final. */
+    for(var pasada=0; pasada<8; pasada++){
+      var cambio=false, grupos={};
+      lista.forEach(function(p){
+        ['local','visitante'].forEach(function(lado){
+          var o=p['origen_'+lado], m=/^(\d+)([A-Z])$/.exec(String(p['origen_grupo_'+lado]||'').toUpperCase()), n;
+          if(o!=null&&o!==''&&lista[Number(o)]) n=winnerOf(lista[Number(o)])||'';
+          else if(m){
+            if(!(m[2] in grupos)) grupos[m[2]]=tablaGrupoCerrada(lista,m[2]);
+            n=(grupos[m[2]]||[])[Number(m[1])-1]||'';
+          }
+          else return;
+          if((p[lado]||'')!==n){ p[lado]=n; cambio=true; }
+        });
+      });
+      if(!cambio) break;
+    }
+  });
+  return d;
 }
 
 /* --------------------------------------------------------------------------
@@ -271,7 +328,7 @@ function tablaCalculada(){
   D.equipos.forEach(function(e){ t[e.nombre]={pj:0,g:0,e:0,p:0,gf:0,gc:0,pts:0}; });
   [D.partidos_liga,D.partidos_ascenso].forEach(function(lista){
     (lista||[]).forEach(function(p){
-      /* Las eliminatorias (play-in, play-off, final) no reparten puntos. */
+      /* Las eliminatorias (Play-in, Play-off, final) no reparten puntos. */
       if(!isFin(p) || !esRegular(p)) return;
       var a=parseInt(gl(p),10), b=parseInt(gv(p),10);
       if(isNaN(a)||isNaN(b)) return;
@@ -355,6 +412,12 @@ function cerrarTemporada(d, opciones){
 
   d.equipos.forEach(function(e){
     CAMPOS_TABLA.forEach(function(k){ if(e[k]) resumen.equipos++; e[k]=0; });
+    /* Un club archivado no compite: si se le siguiera cerrando la temporada
+       a sus jugadores, la etapa abierta se les alargaría cada cierre aunque
+       nadie haya vuelto a jugar ahí, y acabarían pareciendo activos hasta
+       hoy. El corte real de su etapa ya lo hace archivarEquipo() en el
+       momento de archivar; desde ahí queda congelada. */
+    if(e.archivado) return;
     (e.jugadores||[]).forEach(function(j){
       var tuvo=STATS_TEMP.some(function(par){ return (j[par[0]]||0)>0; });
       if(!j.historial) j.historial=[];
@@ -387,8 +450,8 @@ function cerrarTemporada(d, opciones){
   });
 
   if(opciones.vaciarCalendario){
-    ['partidos_liga','partidos_ascenso','partidos_copa'].forEach(function(k){
-      resumen.partidos+=d[k].length;
+    ['partidos_liga','partidos_ascenso','partidos_copa','partidos_torneo'].forEach(function(k){
+      resumen.partidos+=(d[k]||[]).length;
       d[k]=[];
     });
     d.config.grupos_copa={};
@@ -822,6 +885,120 @@ function generarGrupos(eq, opciones, rnd){
 }
 
 /* --------------------------------------------------------------------------
+   FÚTBOL FRONTIER (desde la Temporada 4)
+   Preliminar de 6 por sorteo puro → 4 grupos de 5 a una vuelta con calendario
+   fijo → cuartos, semifinales y final fijos, sin más sorteos.
+
+   Orden en partidos_copa, que importa porque origen_* apunta por posición:
+     0-2   PRELIMINAR
+     3-42  FASE DE GRUPOS (A, B, C, D; 10 por grupo, jornadas 1-5)
+     43-46 CUARTOS DE FINAL, por puesto de grupo (origen_grupo_*)
+     47-48 SEMIFINALES (ganador C1-C2 y ganador C3-C4)
+     49    FINAL
+   Los grupos NO se sortean: salen de config.grupos_copa tal y como se han
+   repartido a mano. Los ganadores de la preliminar ocupan allí las plazas
+   «Ganador preliminar 1..3» (1 = primer partido de la preliminar).
+   -------------------------------------------------------------------------- */
+var PLAZA_PRELIMINAR='Ganador preliminar ';
+var LETRAS_FF=['A','B','C','D'];
+/* Jornada a jornada, qué números del grupo se enfrentan; descansa el que falta.
+   El primero de cada pareja juega en casa. */
+var CALENDARIO_GRUPO_FF=[[[1,2],[3,4]],[[1,3],[2,5]],[[1,4],[3,5]],[[1,5],[2,4]],[[2,3],[4,5]]];
+var CUARTOS_FF=[['1A','2C'],['1B','2D'],['1C','2A'],['1D','2B']];
+function plazaPreliminar(nombre){ var m=/^Ganador preliminar (\d+)$/.exec(nombre||''); return m?Number(m[1]):0; }
+
+/* Qué impide generar la fase de grupos con este reparto. `preliminar`: los
+   que la juegan, que no pueden estar en un grupo; `obligados`, si se pasa:
+   los clubes que tienen que estar (los que entran directos). */
+function erroresGruposFF(gc, preliminar, obligados){
+  gc=gc||{}; preliminar=preliminar||[];
+  var err=[], visto={};
+  LETRAS_FF.forEach(function(g){
+    var l=gc[g]||[];
+    if(l.length!==5) err.push('El grupo '+g+' tiene '+l.length+' plazas y necesita 5.');
+    l.forEach(function(n){
+      if(visto[n]) err.push('"'+n+'" está en el grupo '+visto[n]+' y en el '+g+'.');
+      visto[n]=g;
+      if(preliminar.indexOf(n)>=0) err.push('"'+n+'" juega la preliminar: en su grupo va una plaza «'+PLAZA_PRELIMINAR+'N», no el club.');
+    });
+  });
+  Object.keys(gc).forEach(function(g){
+    if(LETRAS_FF.indexOf(g)<0&&(gc[g]||[]).length) err.push('Sobra el grupo '+g+': Fútbol Frontier juega con los grupos A a D.');
+  });
+  [1,2,3].forEach(function(k){ if(!visto[PLAZA_PRELIMINAR+k]) err.push('Falta colocar «'+PLAZA_PRELIMINAR+k+'» en un grupo.'); });
+  (obligados||[]).forEach(function(n){ if(!visto[n]) err.push('"'+n+'" no está en ningún grupo.'); });
+  return err;
+}
+/* Los 10 partidos de un grupo. `eqs`: sus 5 plazas en orden (1..5).
+   `origenPrelim(k)`: índice en partidos_copa del partido k de la preliminar. */
+function partidosGrupoFF(letra, eqs, origenPrelim){
+  var out=[];
+  CALENDARIO_GRUPO_FF.forEach(function(jornada,j){
+    jornada.forEach(function(par){
+      var p=nuevoCruce('FASE DE GRUPOS','','');
+      p.grupo=letra; p.jornada=String(j+1);
+      [['local',eqs[par[0]-1]],['visitante',eqs[par[1]-1]]].forEach(function(x){
+        var k=plazaPreliminar(x[1]);
+        if(k) p['origen_'+x[0]]=origenPrelim(k); else p[x[0]]=x[1];
+      });
+      out.push(p);
+    });
+  });
+  return out;
+}
+function generarFutbolFrontier(preliminar, gc, opciones){
+  opciones=opciones||{};
+  var avisos=erroresGruposFF(gc, preliminar, opciones.obligados);
+  if(preliminar.length!==6) avisos.unshift('La preliminar necesita 6 equipos y hay '+preliminar.length+'.');
+  if(avisos.length) return {partidos:[], avisos:avisos};
+  var bombo=barajar(preliminar, azar(opciones.semilla)), partidos=[];
+  for(var i=0;i<6;i+=2) partidos.push(nuevoCruce('PRELIMINAR',bombo[i],bombo[i+1]));
+  LETRAS_FF.forEach(function(g){
+    partidos=partidos.concat(partidosGrupoFF(g, gc[g], function(k){ return k-1; }));
+  });
+  var c0=partidos.length;
+  CUARTOS_FF.forEach(function(c){
+    var p=nuevoCruce('CUARTOS DE FINAL','','');
+    p.origen_grupo_local=c[0]; p.origen_grupo_visitante=c[1];
+    partidos.push(p);
+  });
+  var s0=partidos.length;
+  [[c0,c0+1],[c0+2,c0+3]].forEach(function(o){
+    var p=nuevoCruce('SEMIFINALES','',''); p.origen_local=o[0]; p.origen_visitante=o[1]; partidos.push(p);
+  });
+  var f=nuevoCruce('FINAL','',''); f.origen_local=s0; f.origen_visitante=s0+1; partidos.push(f);
+  return {partidos:partidos, avisos:[]};
+}
+
+/* --------------------------------------------------------------------------
+   TORNEO FRONTIER (desde la Temporada 4)
+   `primera` y `segunda`: nombres en orden de clasificación.
+     0-1 CUARTOS: sorteo puro entre 8.º, 9.º y 10.º de Primera y 1.º de Segunda
+     2-3 SEMIFINALES: 6.º y 7.º de local; su rival sale de un SEGUNDO sorteo
+         (sortearSemisTorneo), por eso nacen con el visitante vacío
+     4   FINAL
+   -------------------------------------------------------------------------- */
+function generarTorneoFrontier(primera, segunda, opciones){
+  if(primera.length<10||!segunda.length) return {partidos:[], avisos:['Hacen falta 10 clasificados en Primera y 1 en Segunda.']};
+  var b=barajar([primera[7],primera[8],primera[9],segunda[0]], azar((opciones||{}).semilla));
+  var f=nuevoCruce('FINAL','','');
+  f.origen_local=2; f.origen_visitante=3;
+  return {partidos:[
+    nuevoCruce('CUARTOS DE FINAL',b[0],b[1]), nuevoCruce('CUARTOS DE FINAL',b[2],b[3]),
+    nuevoCruce('SEMIFINALES',primera[5],''), nuevoCruce('SEMIFINALES',primera[6],''), f
+  ], avisos:[]};
+}
+/* Segundo sorteo: qué ganador de cuartos se cruza con el 6.º y cuál con el 7.º. */
+function sortearSemisTorneo(lista, semilla){
+  var q=[], s=[];
+  lista.forEach(function(p,i){ if(p.fase==='CUARTOS DE FINAL') q.push(i); else if(p.fase==='SEMIFINALES') s.push(i); });
+  if(q.length!==2||s.length!==2) return false;
+  var b=barajar(q, azar(semilla));
+  s.forEach(function(si,n){ lista[si].origen_visitante=b[n]; lista[si].visitante=''; });
+  return true;
+}
+
+/* --------------------------------------------------------------------------
    MOVER UN EQUIPO DENTRO DEL CUADRO DE COPA
    Vive aquí y no en la vista porque tiene dos efectos que no se ven: si el
    hueco de destino estaba ocupado hay intercambio, y colocar a mano tiene que
@@ -831,8 +1008,9 @@ function generarGrupos(eq, opciones, rnd){
    Devuelve null si el movimiento no procede, para que la vista no tenga que
    repetir las comprobaciones.
    -------------------------------------------------------------------------- */
-function moverEnCuadro(d, origen, destino){
-  var po=d.partidos_copa[origen.idx], pd=d.partidos_copa[destino.idx];
+function moverEnCuadro(d, origen, destino, clave){
+  var lista=d[clave||'partidos_copa'];
+  var po=lista[origen.idx], pd=lista[destino.idx];
   if(!po||!pd) return null;
   if(po===pd && origen.lado===destino.lado) return null;
   var ko=origen.lado==='local'?'origen_local':'origen_visitante';
@@ -841,6 +1019,7 @@ function moverEnCuadro(d, origen, destino){
      de él ni se suelta encima. */
   if(po[ko]!=null&&po[ko]!=='') return null;
   if(pd[kd]!=null&&pd[kd]!=='') return null;
+  if(po['origen_grupo_'+origen.lado]||pd['origen_grupo_'+destino.lado]) return null;
 
   var movido=po[origen.lado]||'';
   if(!movido) return null;
@@ -886,26 +1065,42 @@ function traspasar(d, jugador, origen, destino, opciones){
 
   /* 1-3. Cerrar la etapa de origen. */
   if(origen){
-    var et = null;
-    for(var i=jugador.historial.length-1;i>=0;i--){
-      var h = jugador.historial[i];
-      if(h.abierto && (h.equipo_id===origen.id || h.equipo===origen.nombre)){ et = h; break; }
+    /* Si el origen está archivado, ese club ya no compite: su etapa se
+       cerró (o debió cerrarse) el día que se archivó, no hoy. Tocarla aquí
+       —o peor, crear una nueva si no hay ninguna abierta— es lo que hacía
+       que un jugador olvidado en un club muerto pareciera haber jugado ahí
+       hasta la temporada en la que por fin alguien lo mueve. Si quedó una
+       etapa abierta de antes de este arreglo, la Papelera trae una
+       herramienta para cerrarla con la fecha real (ver
+       corregirEtapasArchivadas). Aquí sólo se marca esa etapa como cerrada
+       —sin tocar sus fechas ni sus cifras— y se le saca de la plantilla. */
+    if(origen.archivado){
+      for(var iArch=jugador.historial.length-1;iArch>=0;iArch--){
+        var hArch = jugador.historial[iArch];
+        if(hArch.abierto && (hArch.equipo_id===origen.id || hArch.equipo===origen.nombre)){ hArch.abierto=false; break; }
+      }
+    } else {
+      var et = null;
+      for(var i=jugador.historial.length-1;i>=0;i--){
+        var h = jugador.historial[i];
+        if(h.abierto && (h.equipo_id===origen.id || h.equipo===origen.nombre)){ et = h; break; }
+      }
+      if(!et){
+        et = {equipo:origen.nombre, equipo_id:origen.id, division:origen.division,
+              temporada:etiqueta, temporada_inicio:etiqueta, temporada_fin:etiqueta, fecha:hoy,
+              goles:0, asistencias:0, amarillas:0, rojas:0, pj:0, abierto:true};
+        jugador.historial.push(et);
+      }
+      STATS_TEMP.forEach(function(par){
+        var v = jugador[par[0]]||0;
+        if(!v) return;
+        et[par[0]] = (et[par[0]]||0)+v;
+        jugador[par[1]] = (jugador[par[1]]||0)+v;
+        jugador[par[0]] = 0;
+      });
+      et.temporada_fin = etiqueta;
+      et.abierto = false;
     }
-    if(!et){
-      et = {equipo:origen.nombre, equipo_id:origen.id, division:origen.division,
-            temporada:etiqueta, temporada_inicio:etiqueta, temporada_fin:etiqueta, fecha:hoy,
-            goles:0, asistencias:0, amarillas:0, rojas:0, pj:0, abierto:true};
-      jugador.historial.push(et);
-    }
-    STATS_TEMP.forEach(function(par){
-      var v = jugador[par[0]]||0;
-      if(!v) return;
-      et[par[0]] = (et[par[0]]||0)+v;
-      jugador[par[1]] = (jugador[par[1]]||0)+v;
-      jugador[par[0]] = 0;
-    });
-    et.temporada_fin = etiqueta;
-    et.abierto = false;
     /* Fuera de la plantilla de origen. */
     origen.jugadores = (origen.jugadores||[]).filter(function(x){ return x!==jugador; });
   } else {
@@ -933,6 +1128,145 @@ function traspasar(d, jugador, origen, destino, opciones){
     d.agentes_libres.push(jugador);
   }
   return jugador;
+}
+
+/* Se llama en el instante en que un club pasa a archivado (ver
+   vista-equipos.js:archivar). Es lo que de verdad evita el problema de raíz:
+   si la etapa se cierra AQUÍ, con la fecha real del archivado, cerrarTemporada()
+   y traspasar() no tienen ninguna etapa abierta que alargar más adelante. */
+function archivarEquipo(d, e, opciones){
+  opciones = opciones||{};
+  var etiqueta = opciones.temporada || ('Temporada '+(d.config.temporada||'?'));
+  (e.jugadores||[]).forEach(function(j){
+    if(!j.historial) return;
+    for(var i=j.historial.length-1;i>=0;i--){
+      var h = j.historial[i];
+      if(h.abierto && (h.equipo_id===e.id || h.equipo===e.nombre)){
+        STATS_TEMP.forEach(function(par){
+          var v = j[par[0]]||0;
+          if(!v) return;
+          h[par[0]] = (h[par[0]]||0)+v;
+          j[par[1]] = (j[par[1]]||0)+v;
+          j[par[0]] = 0;
+        });
+        h.temporada_fin = etiqueta;
+        h.abierto = false;
+        break;
+      }
+    }
+  });
+}
+
+/* Manda a agentes libres a TODOS los jugadores de TODOS los equipos
+   archivados de una vez. Es el mismo traspasar() de siempre, uno por uno; lo
+   único que aporta esta función es no tener que arrastrar 200 fichas a mano
+   cuando lo que se quiere es vaciar los clubes muertos tras cerrar temporada. */
+function liberarArchivados(d){
+  var n = 0;
+  d.equipos.filter(function(e){ return e.archivado; }).forEach(function(e){
+    (e.jugadores||[]).slice().forEach(function(j){ traspasar(d, j, e, null); n++; });
+  });
+  return n;
+}
+
+/* --------------------------------------------------------------------------
+   TEMPORADAS FANTASMA
+   El archivo sólo guarda copia real (`historial_temporadas`) desde la primera
+   temporada que se cerró con instantaneaTemporada(). Si esa colección empieza
+   en la Temporada 2, no existen datos de una Temporada 1 real para NADIE, y
+   cualquier etapa de jugador que diga "Temporada 1" como inicio es un rótulo
+   heredado de una migración o de una etiqueta puesta a mano, no un hecho.
+
+   Sólo se toca la PRIMERA etapa de cada jugador (la más vieja): si ya jugó
+   varias etapas después, esas ya tienen temporada real y no hay nada que
+   corregir en ellas.
+   -------------------------------------------------------------------------- */
+function numeroTemporada(txt){
+  var m = /(\d+)/.exec(String(txt||''));
+  return m ? parseInt(m[1],10) : null;
+}
+function primeraTemporadaReal(d){
+  var nums = (d.historial_temporadas||[]).map(function(h){ return numeroTemporada(h.nombre); }).filter(function(n){ return n!=null; });
+  return nums.length ? Math.min.apply(null, nums) : null;
+}
+function temporadasFantasma(d){
+  var real = primeraTemporadaReal(d);
+  if(real==null) return {real:real, filas:[]};
+  var filas = [];
+  function mirar(j, club){
+    var h = j.historial||[];
+    if(!h.length) return;
+    var primera = h[0];
+    var n = numeroTemporada(primera.temporada_inicio);
+    if(n!=null && n<real) filas.push({jugador:j, etapa:primera, club:club, numero:n});
+  }
+  d.equipos.forEach(function(e){ (e.jugadores||[]).forEach(function(j){ mirar(j,e); }); });
+  (d.agentes_libres||[]).forEach(function(j){ mirar(j,null); });
+  return {real:real, filas:filas};
+}
+/* Aplica la corrección: la primera etapa de cada fila encontrada pasa a
+   empezar en la primera temporada real. No toca `temporada_fin` ni nada
+   posterior — sólo el rótulo de inicio que no puede ser cierto. */
+function corregirTemporadasFantasma(d){
+  var f = temporadasFantasma(d);
+  var etiqueta = 'Temporada '+f.real;
+  f.filas.forEach(function(fila){
+    fila.etapa.temporada_inicio = etiqueta;
+    if(!fila.etapa.temporada || numeroTemporada(fila.etapa.temporada)===fila.numero) fila.etapa.temporada = etiqueta;
+  });
+  return f.filas.length;
+}
+
+/* --------------------------------------------------------------------------
+   ETAPAS DE ARCHIVADOS SIN CERRAR (daño ya hecho antes de este arreglo)
+   Antes de archivarEquipo(), un club archivado seguía dejando su etapa
+   `abierto:true`, y cada cierre de temporada o traspaso posterior la alargaba
+   sin que el jugador hubiese vuelto a pisar ese club. Esto busca esas etapas
+   y las cierra con la ÚLTIMA temporada real en la que `historial_temporadas`
+   demuestra que el jugador seguía en ese club — no con la fecha de hoy. Si
+   ese club nunca llegó a tener una instantánea (se archivó antes de la
+   primera), no hay forma de saber la fecha real y sólo se congela tal cual
+   está, sin inventar un dato que no existe.
+   -------------------------------------------------------------------------- */
+function ultimaTemporadaRealDe(d, equipoId, nombreJugador){
+  var max = null;
+  (d.historial_temporadas||[]).forEach(function(snap){
+    var num = numeroTemporada(snap.nombre);
+    if(num==null) return;
+    var eq = (snap.equipos||[]).find(function(x){ return x.id===equipoId; });
+    if(!eq) return;
+    var tiene = (eq.jugadores||[]).some(function(x){ return x.nombre===nombreJugador; });
+    if(tiene && (max==null || num>max)) max = num;
+  });
+  return max;
+}
+function etapasArchivadasAbiertas(d){
+  var filas = [];
+  d.equipos.forEach(function(e){
+    if(!e.archivado) return;
+    (e.jugadores||[]).forEach(function(j){
+      (j.historial||[]).forEach(function(h){
+        if(h.abierto && (h.equipo_id===e.id || h.equipo===e.nombre)) filas.push({jugador:j, etapa:h, club:e});
+      });
+    });
+  });
+  return filas;
+}
+function corregirEtapasArchivadas(d){
+  var filas = etapasArchivadasAbiertas(d);
+  filas.forEach(function(fila){
+    var real = ultimaTemporadaRealDe(d, fila.club.id, fila.jugador.nombre);
+    STATS_TEMP.forEach(function(par){
+      var v = fila.jugador[par[0]]||0;
+      if(!v) return;
+      fila.etapa[par[0]] = (fila.etapa[par[0]]||0)+v;
+      fila.jugador[par[1]] = (fila.jugador[par[1]]||0)+v;
+      fila.jugador[par[0]] = 0;
+    });
+    if(real!=null) fila.etapa.temporada_fin = 'Temporada '+real;
+    fila.etapa.abierto = false;
+  });
+  return filas.length;
 }
 
 /* --------------------------------------------------------------------------
@@ -1031,11 +1365,12 @@ function normalizarPartido(p,reg,etiqueta){
 }
 function normalizar(d){
   var reg=[];
+  materializarCruces(d);
   (d.equipos||[]).forEach(function(e){
     (e.jugadores||[]).forEach(function(j){ normalizarJugador(j,reg); });
   });
   (d.agentes_libres||[]).forEach(function(j){ normalizarJugador(j,reg); });
-  [['partidos_liga','Liga'],['partidos_ascenso','Ascenso'],['partidos_copa','Copa']].forEach(function(par){
+  [['partidos_liga','Liga'],['partidos_ascenso','Ascenso'],['partidos_copa','Copa'],['partidos_torneo','Torneo']].forEach(function(par){
     (d[par[0]]||[]).forEach(function(p,i){
       normalizarPartido(p,reg,par[1]+' #'+(i+1)+' '+(p.local||'?')+'-'+(p.visitante||'?'));
     });
@@ -1077,7 +1412,7 @@ function limpiarCamposSinUso(d){
 /* Las diez claves de primer nivel del archivo real. historial_temporadas lo
    consume la web (Palmarés); agentes_libres, historial y clasificacion_copa
    sólo los usa el gestor, pero son parte del esquema y se preservan. */
-var CLAVES=['config','equipos','partidos_liga','partidos_ascenso','partidos_copa',
+var CLAVES=['config','equipos','partidos_liga','partidos_ascenso','partidos_copa','partidos_torneo',
             'historial','noticias','historial_temporadas','agentes_libres','clasificacion_copa',
             'presidentes','trofeos'];
 /* clasificacion_copa queda fuera de CLAVES_ARRAY: el gestor no la lee ni la
@@ -1107,18 +1442,22 @@ function validarEsquema(d){
    montada cada competición.
 
    Honestidad sobre su alcance: app.js NO los lee. Las zonas de la tabla
-   (play-off, play-in, descenso, ascenso) están escritas a mano en renderClas()
+   (Play-off, Play-in, descenso, ascenso) están escritas a mano en renderClas()
    —tres primeros, cuarto, quinto y sexto, últimos tres— y cambiarlas aquí no
    cambia la web. Lo que sí hacen es alimentar las comprobaciones del gestor
    (¿está el calendario completo?, ¿sobran o faltan equipos?) y, en la Fase 3,
    los generadores de calendario y de sorteo. Cuando el formato no coincide con
    lo que la web da por hecho, el gestor lo dice en vez de callárselo. */
-var ZONAS_APP={SUPERLIGA:{playoff:3,playin:4,partido_playin:6,descenso:3},ASCENSO:{ascenso:3}};
+/* Temporada 4. Superliga: semifinal directa hasta el 3.º, Play-in hasta el
+   5.º, Torneo Frontier hasta el 10.º y 2 descensos. Ascenso: 1 ascenso
+   directo y Play-off de ascenso hasta el 5.º. */
+var ZONAS_APP={SUPERLIGA:{playoff:3,playin:5,torneo:10,descenso:2},ASCENSO:{ascenso:1,playoff:5}};
 function formatoDefecto(){
   return {
-    SUPERLIGA:{vueltas:2, equipos:12, playoff:3, playin:4, partido_playin:6, descenso:3},
-    ASCENSO:  {vueltas:2, equipos:10, ascenso:3},
-    COPA:     {tipo:'grupos', equipos:16, grupos:4, clasifican_por_grupo:2, ida_vuelta:false}
+    SUPERLIGA:{vueltas:1, equipos:10, playoff:3, playin:5, torneo:10, descenso:2},
+    ASCENSO:  {vueltas:1, equipos:13, ascenso:1, playoff:5},
+    COPA:     {tipo:'futbol_frontier', equipos:23, preliminar:6, grupos:4, equipos_por_grupo:5, clasifican_por_grupo:2, ida_vuelta:false},
+    TORNEO:   {equipos:6}
   };
 }
 
@@ -1176,6 +1515,7 @@ function instantaneaTemporada(d, nombre){
     partidos_liga: JSON.parse(JSON.stringify(d.partidos_liga)),
     partidos_ascenso: JSON.parse(JSON.stringify(d.partidos_ascenso)),
     partidos_copa: JSON.parse(JSON.stringify(d.partidos_copa)),
+    partidos_torneo: JSON.parse(JSON.stringify(d.partidos_torneo||[])),
     config: JSON.parse(JSON.stringify(d.config))
   };
 }
@@ -1187,7 +1527,7 @@ function instantaneaTemporada(d, nombre){
      hoy, y por tanto lo que la web enseña.
    - GUARDADO: el campeón apuntado a mano en `t.campeones`.
 
-   En una liga con play-off el campeón NO es el primero de la fase regular,
+   En una liga con Play-off el campeón NO es el primero de la fase regular,
    es quien gana la final. El derivado se equivoca en cuanto haya
    eliminatorias, y por eso hace falta poder apuntarlo.
 
@@ -1196,11 +1536,12 @@ function instantaneaTemporada(d, nombre){
 var COMPETICIONES=[
   {clave:'SUPERLIGA', nombre:'Superliga Frontier'},
   {clave:'ASCENSO',   nombre:'Ascenso Frontier'},
-  {clave:'COPA',      nombre:'Copa Fútbol Frontier'}
+  {clave:'COPA',      nombre:'Fútbol Frontier'},
+  {clave:'TORNEO',    nombre:'Torneo Frontier'}
 ];
 function campeonDerivado(t, clave){
-  if(clave==='COPA'){
-    var fin=(t.partidos_copa||[]).filter(function(p){ return p.fase==='FINAL'&&isFin(p); })[0];
+  if(clave==='COPA'||clave==='TORNEO'){
+    var fin=((clave==='COPA'?t.partidos_copa:t.partidos_torneo)||[]).filter(function(p){ return p.fase==='FINAL'&&isFin(p); })[0];
     if(!fin) return null;
     var wn=gl(fin)>gv(fin)?fin.local:(gv(fin)>gl(fin)?fin.visitante:winnerOf(fin));
     var ce=(t.equipos||[]).find(function(e){ return e.nombre===wn; });
@@ -1213,7 +1554,7 @@ function campeonDerivado(t, clave){
 /* ¿Hay eliminatorias jugadas en esa división? Entonces el campeón por puntos
    es sospechoso y hay que decirlo en vez de darlo por bueno. */
 function tieneEliminatorias(t, clave){
-  if(clave==='COPA') return false;
+  if(clave==='COPA'||clave==='TORNEO') return false;
   var ms=(clave==='ASCENSO'?t.partidos_ascenso:t.partidos_liga)||[];
   return ms.some(function(p){ return p.fase && isFin(p); });
 }
@@ -1266,13 +1607,14 @@ function validarIntegridad(d){
     if(DIVISIONES.indexOf(e.division)<0) err.push({m:'Equipo "'+(e.nombre||'#'+(i+1))+'" tiene división "'+e.division+'", que no es SUPERLIGA ni ASCENSO.',ir:ir});
   });
 
-  [['partidos_liga','Liga','liga'],['partidos_ascenso','Ascenso','ascenso'],['partidos_copa','Copa','copa']].forEach(function(par){
+  [['partidos_liga','Liga','liga'],['partidos_ascenso','Ascenso','ascenso'],['partidos_copa','Copa','copa'],['partidos_torneo','Torneo','torneo']].forEach(function(par){
     (d[par[0]]||[]).forEach(function(p,i){
       var et=par[1]+' #'+(i+1);
-      var ir={v:'partidos',comp:par[2],idx:i};
-      /* En Copa un lado vacío es normal si está vinculado a la ronda previa. */
-      var lVinc=par[2]==='copa'&&p.origen_local!=null&&p.origen_local!=='';
-      var vVinc=par[2]==='copa'&&p.origen_visitante!=null&&p.origen_visitante!=='';
+      var ir={v:par[2]==='torneo'?'torneo':'partidos',comp:par[2],idx:i};
+      /* Un lado vacío es normal si espera a otro cruce (ganador de una ronda
+         previa o puesto de un grupo): se escribe solo al decidirse aquél. */
+      var lVinc=(p.origen_local!=null&&p.origen_local!=='')||!!p.origen_grupo_local;
+      var vVinc=(p.origen_visitante!=null&&p.origen_visitante!=='')||!!p.origen_grupo_visitante;
       if(p.local&&!nombres[p.local]) err.push({m:et+': el equipo local "'+p.local+'" no existe.',ir:ir});
       else if(!p.local&&!lVinc) avi.push({m:et+': sin equipo local.',ir:ir});
       if(p.visitante&&!nombres[p.visitante]) err.push({m:et+': el equipo visitante "'+p.visitante+'" no existe.',ir:ir});
@@ -1284,33 +1626,37 @@ function validarIntegridad(d){
     });
   });
 
-  (d.partidos_copa||[]).forEach(function(p,i){
-    var ir={v:'partidos',comp:'copa',idx:i};
+  /* Fútbol Frontier y Torneo Frontier: mismos cuadros encadenados por índice. */
+  [['partidos_copa','Copa','copa'],['partidos_torneo','Torneo','torneo']].forEach(function(cp){
+  var L=d[cp[0]]||[];
+  L.forEach(function(p,i){
+    var ir={v:cp[2]==='torneo'?'torneo':'partidos',comp:cp[2],idx:i};
     ['origen_local','origen_visitante'].forEach(function(k){
       var o=p[k];
       if(o==null||o==='') return;
       var n=Number(o);
-      if(isNaN(n)||!d.partidos_copa[n]) err.push({m:'Copa #'+(i+1)+': '+k+' apunta a "'+o+'", que no es un cruce válido.',ir:ir});
-      else if(n===i) err.push({m:'Copa #'+(i+1)+': '+k+' se apunta a sí mismo.',ir:ir});
+      if(isNaN(n)||!L[n]) err.push({m:cp[1]+' #'+(i+1)+': '+k+' apunta a "'+o+'", que no es un cruce válido.',ir:ir});
+      else if(n===i) err.push({m:cp[1]+' #'+(i+1)+': '+k+' se apunta a sí mismo.',ir:ir});
     });
-    if(p.fase&&FASES_TODAS.indexOf(p.fase)<0) avi.push({m:'Copa #'+(i+1)+': fase "'+p.fase+'" no es una de las conocidas.',ir:ir});
-    if(p.fase==='FASE DE GRUPOS'&&!p.grupo) avi.push({m:'Copa #'+(i+1)+': está en fase de grupos pero no tiene grupo asignado.',ir:ir});
+    if(p.fase&&FASES_TODAS.indexOf(p.fase)<0) avi.push({m:cp[1]+' #'+(i+1)+': fase "'+p.fase+'" no es una de las conocidas.',ir:ir});
+    if(p.fase==='FASE DE GRUPOS'&&!p.grupo) avi.push({m:cp[1]+' #'+(i+1)+': está en fase de grupos pero no tiene grupo asignado.',ir:ir});
   });
   /* Ciclos en el cuadro: un origen que acabe volviendo sobre sí mismo colgaría
      la resolución en cascada de la web. */
-  (d.partidos_copa||[]).forEach(function(p,i){
+  L.forEach(function(p,i){
     ['origen_local','origen_visitante'].forEach(function(k){
       var visto={}, cur=i, lado=k;
-      for(var n=0;n<=d.partidos_copa.length;n++){
-        var q=d.partidos_copa[cur]; if(!q) break;
+      for(var n=0;n<=L.length;n++){
+        var q=L[cur]; if(!q) break;
         var o=q[lado];
         if(o==null||o==='') break;
         o=Number(o);
-        if(isNaN(o)||!d.partidos_copa[o]) break;   // ya lo reporta el bloque anterior
-        if(visto[o]){ err.push({m:'Copa #'+(i+1)+': la cadena de '+k+' forma un ciclo.',ir:{v:'partidos',comp:'copa',idx:i}}); break; }
+        if(isNaN(o)||!L[o]) break;   // ya lo reporta el bloque anterior
+        if(visto[o]){ err.push({m:cp[1]+' #'+(i+1)+': la cadena de '+k+' forma un ciclo.',ir:{v:cp[2]==='torneo'?'torneo':'partidos',comp:cp[2],idx:i}}); break; }
         visto[o]=1; cur=o; lado='origen_local';
       }
     });
+  });
   });
 
   var todos=(d.equipos||[]).reduce(function(a,e){ return a.concat(e.jugadores||[]); },[]).concat(d.agentes_libres||[]);
@@ -1321,6 +1667,15 @@ function validarIntegridad(d){
     if(j.posicion&&POS.indexOf(j.posicion)<0) avi.push({m:'Jugador "'+j.nombre+'": posición "'+j.posicion+'" desconocida.',ir:null});
     if(!afinidadLimpia(j.afinidad)) avi.push({m:'Jugador "'+j.nombre+'": afinidad "'+j.afinidad+'" no es oficial; la web la mostrará como '+afName(j.afinidad)+'.',ir:null});
   });
+
+  /* Los dos problemas de historial se agregan en un solo aviso cada uno: con
+     cientos de jugadores afectados, listarlos uno a uno ahogaría el resto de
+     avisos reales. La Papelera trae el detalle y el botón que los corrige. */
+  var irPapelera={v:'papelera'};
+  var nFantasma=temporadasFantasma(d).filas.length;
+  if(nFantasma) avi.push({m:nFantasma+' jugadores tienen su primera etapa etiquetada "Temporada 1" sin que exista ninguna copia archivada de esa temporada. Corregir en Papelera.',ir:irPapelera});
+  var nSinCerrar=etapasArchivadasAbiertas(d).length;
+  if(nSinCerrar) avi.push({m:nSinCerrar+' jugadores tienen una etapa abierta en un club ya archivado: seguirá alargándose en cada cierre de temporada hasta que se cierre en Papelera.',ir:irPapelera});
 
   /* Fases de Liga y Ascenso. Un partido con `fase` es una eliminatoria: no
      suma puntos y la web muestra la etiqueta en vez de "Jornada N". */
@@ -1344,7 +1699,7 @@ function validarIntegridad(d){
   Object.keys(gc).forEach(function(g){
     (gc[g]||[]).forEach(function(nom){
       var ir={v:'copa',grupo:g};
-      if(!nombres[nom]) err.push({m:'Grupo '+g+' de Copa: el equipo "'+nom+'" no existe.',ir:ir});
+      if(!nombres[nom]&&!plazaPreliminar(nom)) err.push({m:'Grupo '+g+' de Copa: el equipo "'+nom+'" no existe.',ir:ir});
       else if(yaEn[nom]) err.push({m:'"'+nom+'" está en el grupo '+yaEn[nom]+' y en el '+g+' a la vez.',ir:ir});
       else yaEn[nom]=g;
     });
@@ -1366,7 +1721,7 @@ function validarIntegridad(d){
         avi.push({m:'El formato de '+div+' pone '+k.replace(/_/g,' ')+' en '+f[k]+', pero la web tiene ese corte fijo en '+z[k]+' y no lo lee del archivo.',ir:{v:'config'}});
     });
   });
-  if(fmt.COPA && fmt.COPA.tipo==='grupos'){
+  if(fmt.COPA && (fmt.COPA.tipo==='grupos'||fmt.COPA.tipo==='futbol_frontier')){
     var conGrupo=(d.partidos_copa||[]).filter(function(p){ return p.fase==='FASE DE GRUPOS'; });
     var gruposUsados=Array.from(new Set(conGrupo.map(function(p){ return p.grupo; }).filter(Boolean)));
     if(conGrupo.length && fmt.COPA.grupos && gruposUsados.length!==fmt.COPA.grupos)
@@ -1409,8 +1764,14 @@ SFG.core={
   esNoJugado:esNoJugado, contarCamposSinUso:contarCamposSinUso, limpiarCamposSinUso:limpiarCamposSinUso, CAMPOS_TABLA:CAMPOS_TABLA, CLAVES:CLAVES,
   instantaneaTemporada:instantaneaTemporada, campeones:campeones, cerrarTemporada:cerrarTemporada,
   COMPETICIONES:COMPETICIONES, campeonDerivado:campeonDerivado, fijarCampeon:fijarCampeon,
-  traspasar:traspasar, moverEnCuadro:moverEnCuadro,
+  traspasar:traspasar, moverEnCuadro:moverEnCuadro, liberarArchivados:liberarArchivados,
+  archivarEquipo:archivarEquipo,
+  temporadasFantasma:temporadasFantasma, corregirTemporadasFantasma:corregirTemporadasFantasma,
+  etapasArchivadasAbiertas:etapasArchivadasAbiertas, corregirEtapasArchivadas:corregirEtapasArchivadas,
   generarCalendario:generarCalendario, generarCopa:generarCopa, azar:azar, barajar:barajar,
+  materializarCruces:materializarCruces, generarFutbolFrontier:generarFutbolFrontier, erroresGruposFF:erroresGruposFF,
+  partidosGrupoFF:partidosGrupoFF, plazaPreliminar:plazaPreliminar, PLAZA_PRELIMINAR:PLAZA_PRELIMINAR, LETRAS_FF:LETRAS_FF,
+  generarTorneoFrontier:generarTorneoFrontier, sortearSemisTorneo:sortearSemisTorneo,
   equipo:equipo, equipoPorId:equipoPorId, pool:pool,
   orderStandings:orderStandings, clasificacion:clasificacion,
   winnerOf:winnerOf, resolveSide:resolveSide,

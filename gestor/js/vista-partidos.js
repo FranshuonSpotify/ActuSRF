@@ -21,7 +21,12 @@ var edit = null;                       // {comp, idx, ev} mientras el editor est
 var TODAS = '*';                       // valor del selector para «todas las jornadas»
 
 function d(){ return SFG.d(); }
-function lista(comp){ return comp==='ascenso'?d().partidos_ascenso:comp==='copa'?d().partidos_copa:d().partidos_liga; }
+function lista(comp){ return comp==='ascenso'?d().partidos_ascenso:comp==='copa'?d().partidos_copa:comp==='torneo'?d().partidos_torneo:d().partidos_liga; }
+/* La vista de cuadro sirve a Fútbol Frontier ('copa') y al Torneo Frontier
+   ('torneo'): misma tabla y mismo cuadro, cada una con su lista. */
+var copaComp = 'copa';
+function cl(){ return lista(copaComp); }
+function esCopa(comp){ return comp==='copa' || comp==='torneo'; }
 
 /* Jornadas presentes en una competición, en orden numérico. */
 function jornadas(comp){
@@ -378,13 +383,13 @@ function refrescarBarra(){
    COPA
    -------------------------------------------------------------------------- */
 function pintarCopa(el){
-  var ms = d().partidos_copa;
+  var ms = cl(), esTorneo = copaComp==='torneo';
   var fases = C.FASES_TODAS.filter(function(f){ return ms.some(function(p){ return p.fase===f; }); });
   var otras = Array.from(new Set(ms.map(function(p){ return p.fase; })
     .filter(function(f){ return f && C.FASES_TODAS.indexOf(f)<0; })));
 
   el.innerHTML =
-    U.cabecera('Copa Fútbol Frontier', ms.length+' cruces · las rondas se encadenan solas por el ganador de la anterior',
+    U.cabecera(esTorneo?'Torneo Frontier':'Fútbol Frontier',ms.length+' cruces · las rondas se encadenan solas por el ganador de la anterior',
       '<button class="btn btn-primary btn-sm" data-a="copa:nuevo"><i class="ph-bold ph-plus"></i> Añadir cruce</button>')+
     '<div class="g-filtros">'+
       '<select class="inp inp-sm" style="width:auto" data-c="copa:fase">'+
@@ -393,13 +398,12 @@ function pintarCopa(el){
       '</select>'+
       '<span class="ayuda" style="margin-left:auto">'+ms.filter(C.isFin).length+' de '+ms.length+' jugados</span>'+
     '</div>'+
-    (ms.length ? tablaCopa(ms) : '<div class="vacio">La Copa todavía no tiene cruces.</div>')+
-    '<div class="g-hueco"></div>'+
-    bloqueGrupos()+
+    (ms.length ? tablaCopa(ms) : '<div class="vacio">Todavía no hay cruces. Se generan desde Sorteos.</div>')+
+    (esTorneo ? '' : '<div class="g-hueco"></div>'+bloqueGrupos())+
     '<div class="g-hueco"></div>'+
     cuadroPrevio(ms, fases);
 
-  montarGrupos();
+  if(!esTorneo) montarGrupos();
   montarCuadro();
 }
 
@@ -415,7 +419,10 @@ function bloqueGrupos(){
   var D = d(), letras = C.letrasGrupo(D), gc = D.config.grupos_copa || {};
   var asignados = {};
   Object.keys(gc).forEach(function(g){ (gc[g]||[]).forEach(function(n){ asignados[n] = g; }); });
-  var sinAsignar = D.equipos.filter(function(e){ return !e.archivado && !asignados[e.nombre]; });
+  /* Las plazas de los ganadores de la preliminar se colocan igual que un club. */
+  var sinAsignar = D.equipos.filter(function(e){ return !e.archivado && !asignados[e.nombre]; }).map(function(e){ return e.nombre; })
+    .concat([1,2,3].map(function(k){ return C.PLAZA_PRELIMINAR+k; }).filter(function(n){ return !asignados[n]; }));
+  var porGrupoEq = (D.config.formatos.COPA||{}).equipos_por_grupo || 5;
   var porGrupo = (D.config.formatos.COPA||{}).clasifican_por_grupo || 2;
 
   /* Cuántos partidos de grupo hay ya por letra: sirve para avisar antes de
@@ -429,11 +436,12 @@ function bloqueGrupos(){
     '<div style="display:flex;align-items:center;gap:var(--g3);margin-bottom:.35rem;flex-wrap:wrap">'+
       '<h3 style="font-size:.9375rem">Fase de grupos</h3>'+
       '<span class="pastilla">'+letras.length+' grupos · pasan '+porGrupo+'</span>'+
-      '<button class="btn btn-secondary btn-sm" style="margin-left:auto" data-a="copa:repartirGrupos"><i class="ph ph-shuffle"></i> Repartir</button>'+
-      '<button class="btn btn-secondary btn-sm" data-a="copa:vaciarGrupos">Vaciar</button>'+
+      '<button class="btn btn-secondary btn-sm" style="margin-left:auto" data-a="copa:vaciarGrupos">Vaciar</button>'+
       '<button class="btn btn-primary btn-sm" data-a="copa:aplicarGrupos"><i class="ph-bold ph-arrow-down"></i> Aplicar a los partidos</button>'+
     '</div>'+
-    '<p class="ayuda" style="margin-bottom:var(--g4)">Arrastra clubes entre grupos. Sin ratón: enfoca un club y usa ← → para cambiarlo de grupo, o el selector de cada ficha.</p>'+
+    '<p class="ayuda" style="margin-bottom:var(--g4)">Los grupos se hacen a mano: 5 plazas por grupo con los clubes que no juegan la preliminar y las 3 plazas «Ganador preliminar». '+
+      'El orden en que colocas cada ficha es su número en el grupo (1 a 5), que fija el calendario. Arrastra entre grupos o usa el selector de cada ficha; '+
+      '«Aplicar a los partidos» regenera los 40 partidos con ese reparto.</p>'+
 
     '<div class="rejilla" style="--min:200px">'+
       letras.map(function(g){
@@ -441,7 +449,7 @@ function bloqueGrupos(){
         return '<div>'+
           '<div style="display:flex;align-items:center;gap:.35rem;margin-bottom:var(--g2)">'+
             '<span style="font-family:var(--f-mono);font-size:.625rem;letter-spacing:.12em;color:var(--ink-3)">GRUPO '+g+'</span>'+
-            '<span class="pastilla'+(l.length===4?' pastilla-ok':(l.length>4?' pastilla-mal':''))+'" style="margin-left:auto">'+l.length+'</span>'+
+            '<span class="pastilla'+(l.length===porGrupoEq?' pastilla-ok':(l.length>porGrupoEq?' pastilla-mal':''))+'" style="margin-left:auto">'+l.length+'</span>'+
             (conPartidos[g] ? '<span class="pastilla pastilla-ojo" title="Ya hay partidos con este grupo">'+conPartidos[g]+'P</span>' : '')+
           '</div>'+
           '<div class="dnd-col" data-grupo="'+g+'">'+
@@ -453,7 +461,7 @@ function bloqueGrupos(){
     '<div style="margin-top:var(--g5)">'+
       '<div style="font-family:var(--f-mono);font-size:.625rem;letter-spacing:.12em;color:var(--ink-3);margin-bottom:var(--g2)">SIN ASIGNAR · '+sinAsignar.length+'</div>'+
       '<div class="dnd-col" data-grupo="" style="flex-direction:row;flex-wrap:wrap">'+
-        (sinAsignar.length ? sinAsignar.map(function(e){ return fichaClub(e.nombre, '', letras); }).join('')
+        (sinAsignar.length ? sinAsignar.map(function(n){ return fichaClub(n, '', letras); }).join('')
                            : '<div class="vacio">Todos los clubes activos están repartidos.</div>')+
       '</div></div>'+
   '</div>';
@@ -463,7 +471,7 @@ function fichaClub(nombre, grupo, letras){
   return '<div class="dnd-ficha grp-c" data-nombre="'+esc(nombre)+'" role="button" '+
       'aria-label="'+esc(nombre+(grupo?', grupo '+grupo:', sin asignar'))+'">'+
     '<i class="ph ph-dots-six-vertical dnd-asa" aria-hidden="true"></i>'+
-    U.escudo(e)+
+    (e ? U.escudo(e) : '<i class="ph ph-arrow-elbow-down-right" aria-hidden="true"></i>')+
     '<span class="nm">'+esc(nombre)+'</span>'+
     '<span class="tras">'+
       /* Selector: la misma acción sin arrastrar, para teclado y para quien
@@ -528,7 +536,7 @@ function tablaCopa(ms){
           ['PENDIENTE','FINALIZADO'].map(function(e){ return '<option'+(p.estado===e?' selected':'')+'>'+e+'</option>'; }).join('')+'</select>'+
           (pen?'<div class="pastilla" style="margin-top:.25rem">PEN '+pen.l+'-'+pen.v+'</div>':'')+
         '</td>'+
-        '<td><button class="btn btn-secondary btn-sm" data-a="partidos:eventos" data-comp="copa" data-i="'+i+'"><i class="ph-bold ph-list-bullets"></i></button></td>'+
+        '<td><button class="btn btn-secondary btn-sm" data-a="partidos:eventos" data-comp="'+copaComp+'" data-i="'+i+'"><i class="ph-bold ph-list-bullets"></i></button></td>'+
         '<td class="acc"><button class="btn btn-secondary btn-sm" data-a="copa:borrar" data-i="'+i+'">×</button></td>'+
       '</tr>';
     }).join('')+'</tbody></table></div></div>';
@@ -541,16 +549,18 @@ function ladoCopa(p, i, lado){
   var vinculado = p[k]!=null && p[k]!=='';
   var sel = '<select class="inp inp-sm" style="margin-top:.25rem;font-size:.6875rem" data-c="copa:origen" data-i="'+i+'" data-k="'+lado+'">'+
     '<option value="">Equipo fijo</option>'+
-    d().partidos_copa.map(function(q,qi){
+    cl().map(function(q,qi){
       if(qi===i) return '';
       return '<option value="'+qi+'"'+(String(p[k])===String(qi)?' selected':'')+'>Ganador de #'+qi+': '+esc(etiquetaCruce(q))+'</option>';
     }).join('')+'</select>';
 
-  if(vinculado){
-    var r = C.resolveSide(p, lado);
+  if(vinculado || p['origen_grupo_'+lado]){
+    var r = C.resolveSide(p, lado, cl());
     return '<div style="font-size:.75rem;'+(r.pend?'color:var(--ink-4)':'color:var(--ink);font-weight:500')+'">'+
       (r.pend ? '<i class="ph ph-hourglass"></i> ' : '<i class="ph-bold ph-arrow-elbow-down-right" style="color:var(--accent)"></i> ')+
-      esc(r.n||'—')+'</div>'+sel;
+      esc(r.n||'—')+'</div>'+
+      /* Un puesto de grupo es una regla fija del formato, no se revincula. */
+      (p['origen_grupo_'+lado] ? '<div class="ayuda mono">'+esc(p['origen_grupo_'+lado])+'</div>' : sel);
   }
   return U.selectEquipos(p[lado], 'class="inp inp-sm" data-c="copa:campo" data-i="'+i+'" data-k="'+lado+'"')+sel;
 }
@@ -589,8 +599,8 @@ function cuadroPrevio(ms, fases){
     }).join('')+'</div></div>';
 }
 function hueco(o, lado, gol, w, fin){
-  var r = C.resolveSide(o.p, lado);
-  var vinculado = r.origen!=null;
+  var r = C.resolveSide(o.p, lado, cl());
+  var vinculado = r.origen!=null || !!r.grupo;
   var gana = fin && w===o.p[lado];
   return '<div class="br-slot'+(vinculado?' fijo':'')+'" data-slot="'+o.i+'" data-lado="'+lado+'"'+
       (vinculado?' title="Viene del ganador del cruce #'+r.origen+'. Quita la vinculación para poner un equipo a mano."':'')+'>'+
@@ -620,7 +630,8 @@ function montarCuadro(){
          La vista solo informa del resultado. */
       var r = C.moverEnCuadro(d(),
         {idx:Number(dd.desde.dataset.slot), lado:dd.desde.dataset.lado},
-        {idx:Number(dd.hasta.dataset.slot), lado:dd.hasta.dataset.lado});
+        {idx:Number(dd.hasta.dataset.slot), lado:dd.hasta.dataset.lado},
+        copaComp==='torneo' ? 'partidos_torneo' : 'partidos_copa');
       if(!r){
         U.aviso('Ese movimiento dejaria el cruce invalido.', 'ojo');
         return U.refrescar();
@@ -659,7 +670,8 @@ function cuerpoEditor(){
     '</div>'+
     (mal ? '<p class="mal" style="margin-top:var(--g4);font-size:.8125rem"><i class="ph-bold ph-warning"></i> '+
       'El marcador dice '+gl+'–'+gv+' y hay '+nl+'–'+nv+' goleadores. La web muestra el marcador, pero la cronología quedará incompleta.</p>' : '')+
-    (edit.comp==='copa' ? bloquePenaltis() : '')+
+    /* Toda eliminatoria puede ir a penaltis: copa, torneo y Play-off de liga. */
+    (esCopa(edit.comp) || !C.esRegular(lista(edit.comp)[edit.idx]) ? bloquePenaltis() : '')+
     '<p class="ayuda" style="margin-top:var(--g4)">Se guardará como <span class="mono">'+esc(C.serializarDetalles(edit.ev)||' / ')+'</span></p>';
 }
 function columna(lado, nombreEq, goles, cuenta){
@@ -752,11 +764,11 @@ function nuevoPartido(comp){
     fecha:'', estado:'PENDIENTE', local:'', visitante:'',
     goles_l:0, goles_v:0, detalles:' / '
   };
-  if(comp==='copa'){ p.fase='RONDA 1 (PREVIA)'; p.grupo=''; p.origen_local=null; p.origen_visitante=null; delete p.jornada; }
+  if(esCopa(comp)){ p.fase=comp==='torneo'?'CUARTOS DE FINAL':'PRELIMINAR'; p.grupo=''; p.origen_local=null; p.origen_visitante=null; delete p.jornada; }
   lista(comp).push(p);
   U.cambio();
 }
-/* Antes, crear un play-off/play-in exigía dos pasos: crear una jornada
+/* Antes, crear un Play-off/Play-in exigía dos pasos: crear una jornada
    regular y luego cambiarle la fase a mano en su fila. Y ni siquiera eso
    funcionaba a la primera, porque la pestaña «Eliminatorias» sólo aparece
    cuando YA existe una: con cero, no había dónde ir a crear la primera.
@@ -783,25 +795,26 @@ function borrarPartido(comp, i){
   var p = lista(comp)[i];
   /* En Copa, borrar un cruce mueve los índices de todos los siguientes y
      rompería las vinculaciones, que se guardan por posición en el array. */
-  var dependientes = comp!=='copa' ? [] : d().partidos_copa.map(function(q,qi){ return {q:q,qi:qi}; })
+  var dependientes = lista(comp).map(function(q,qi){ return {q:q,qi:qi}; })
     .filter(function(o){ return String(o.q.origen_local)===String(i) || String(o.q.origen_visitante)===String(i); });
   U.confirmar({
     titulo:'Eliminar partido',
     html:esc((p.local||'?')+' – '+(p.visitante||'?'))+
       (dependientes.length ? '<br><br><b style="color:var(--gold)">'+dependientes.length+' cruce(s) se alimentan de éste</b> y quedarán sin origen.' : '')+
-      (comp==='copa' ? '<br><br>Los cruces de Copa se vinculan por su posición en la lista: al borrar uno, las vinculaciones posteriores se reajustan solas.' : ''),
+      (esCopa(comp) ? '<br><br>Los cruces de Copa se vinculan por su posición en la lista: al borrar uno, las vinculaciones posteriores se reajustan solas.' : ''),
     ok:'Eliminar', peligro:true
   }).then(function(si){
     if(!si) return;
     lista(comp).splice(i,1);
-    if(comp==='copa') reajustarOrigenes(i);
+    /* Los Play-off de liga también se encadenan por índice desde la T4. */
+    reajustarOrigenes(i, comp);
     trasResultado();
   });
 }
 /* Tras borrar el cruce `k`, todo origen que apuntara a un índice mayor pasa a
    valer uno menos; el que apuntaba al borrado se queda sin vincular. */
-function reajustarOrigenes(k){
-  d().partidos_copa.forEach(function(p){
+function reajustarOrigenes(k, comp){
+  lista(comp||'copa').forEach(function(p){
     ['origen_local','origen_visitante'].forEach(function(campo){
       var o = p[campo];
       if(o==null || o==='') return;
@@ -1150,14 +1163,14 @@ function mueveJornada(paso){
    -------------------------------------------------------------------------- */
 var AC = {
   fase:   function(el){ copaFase = el.value; U.refrescar(); },
-  nuevo:  function(){ nuevoPartido('copa'); },
-  borrar: function(el){ borrarPartido('copa', Number(el.dataset.i)); },
+  nuevo:  function(){ nuevoPartido(copaComp); },
+  borrar: function(el){ borrarPartido(copaComp, Number(el.dataset.i)); },
   campo:  function(el){
-    d().partidos_copa[Number(el.dataset.i)][el.dataset.k] = el.value;
+    cl()[Number(el.dataset.i)][el.dataset.k] = el.value;
     U.cambio();
   },
   gol: function(el){
-    var p = d().partidos_copa[Number(el.dataset.i)];
+    var p = cl()[Number(el.dataset.i)];
     var k = el.dataset.k, v = Number(el.value)||0;
     p[k] = v;
     var alias = k==='goles_l' ? 'golesl' : 'golesv';
@@ -1167,7 +1180,7 @@ var AC = {
     U.cambio();
   },
   estado: function(el){
-    d().partidos_copa[Number(el.dataset.i)].estado = el.value;
+    cl()[Number(el.dataset.i)].estado = el.value;
     U.cambio();
   },
   grupoDe: function(el){ ponerEnGrupo(el.dataset.nombre, el.value); },
@@ -1177,81 +1190,41 @@ var AC = {
       .then(function(si){ if(si){ d().config.grupos_copa = {}; U.cambio(); U.aviso('Reparto deshecho.','ok'); } });
   },
 
-  repartirGrupos: function(){
-    var D = d(), letras = C.letrasGrupo(D);
-    var ya = Object.keys(D.config.grupos_copa||{}).reduce(function(a,g){ return a+(D.config.grupos_copa[g]||[]).length; }, 0);
-    U.confirmar({
-      titulo:'Repartir en '+letras.length+' grupos',
-      html: (ya ? 'Se rehará el reparto actual de '+ya+' clubes.<br><br>' : '')+
-        'Se reparten los clubes activos por serpiente según su posición en la clasificación: el 1.º al grupo A, el 2.º al B… y al llegar al final se vuelve hacia atrás. '+
-        'Así no se juntan los mejores de cada división en el mismo grupo.<br><br>'+
-        'Nada se escribe en los partidos hasta que pulses «Aplicar a los partidos».',
-      ok:'Repartir'
-    }).then(function(si){
-      if(!si) return;
-      /* Serpiente sobre la clasificación de las dos divisiones: es el reparto
-         por siembra habitual y evita que el bombo junte a los tres primeros
-         de Superliga en el mismo grupo. */
-      var orden = C.clasificacion('SUPERLIGA').concat(C.clasificacion('ASCENSO'));
-      var gc = {};
-      letras.forEach(function(g){ gc[g] = []; });
-      orden.forEach(function(e, i){
-        var vuelta = Math.floor(i/letras.length);
-        var pos = i % letras.length;
-        var g = letras[vuelta%2 ? letras.length-1-pos : pos];
-        gc[g].push(e.nombre);
-      });
-      D.config.grupos_copa = gc;
-      U.cambio();
-      U.aviso(orden.length+' clubes repartidos en '+letras.length+' grupos.', 'ok');
-    });
-  },
-
+  /* Fútbol Frontier: 4 grupos de 5 con el calendario fijo del formato. Las
+     plazas «Ganador preliminar N» se enlazan al N-ésimo partido de la
+     preliminar, que tiene que existir ya (lo crea el sorteo de Sorteos). */
   aplicarGrupos: function(){
     var D = d(), gc = D.config.grupos_copa||{};
-    var letras = Object.keys(gc).filter(function(g){ return (gc[g]||[]).length>=2; });
-    if(!letras.length) return U.aviso('No hay grupos con al menos dos clubes.', 'ojo');
+    var prelim = D.partidos_copa.filter(function(p){ return p.fase==='PRELIMINAR'; });
+    var enPrelim = prelim.reduce(function(a,p){ return a.concat([p.local, p.visitante]); }, []);
+    var errores = C.erroresGruposFF(gc, enPrelim);
+    if(prelim.length!==3) errores.unshift('Faltan los 3 partidos de la preliminar (se generan en Sorteos): sin ellos las plazas «Ganador preliminar» no apuntan a nada.');
+    if(errores.length) return U.aviso(errores[0], 'ojo', 9000);
     var existentes = D.partidos_copa.filter(function(p){ return p.fase==='FASE DE GRUPOS'; });
-    /* Todos contra todos dentro de cada grupo, una vuelta (o dos, según el
-       formato). Se cuenta antes para poder decir cuántos van a salir. */
-    var vueltas = (D.config.formatos.COPA||{}).ida_vuelta ? 2 : 1;
-    var n = letras.reduce(function(a,g){ var k=gc[g].length; return a + k*(k-1)/2*vueltas; }, 0);
     U.confirmar({
       titulo:'Generar los partidos de la fase de grupos',
-      html:'Se crearán <b>'+n+' cruces</b> ('+(vueltas===2?'ida y vuelta':'una vuelta')+') en '+letras.length+' grupos.'+
+      html:'Se crearán <b>40 partidos</b>: 4 grupos de 5, una vuelta, calendario fijo de 5 jornadas.'+
         (existentes.length ? '<br><br><b style="color:var(--gold)">Ya hay '+existentes.length+' partidos de fase de grupos</b>, y se reemplazarán. Los resultados que tengan se perderán.' : ''),
       ok:'Generar', peligro:!!existentes.length
     }).then(function(si){
       if(!si) return;
-      /* Se conservan los índices de los cruces que NO son de grupos, porque
-         origen_local/origen_visitante apuntan por posición: reordenar el
-         array rompería el cuadro. Los de grupos se quitan y se añaden al
-         final, que es donde no estorban a nadie. */
-      var quitados = [];
+      /* Los de grupos se quitan y se añaden al final: origen_* apunta por
+         posición, y así los cruces que no son de grupos conservan la suya. */
       for(var i=D.partidos_copa.length-1;i>=0;i--){
-        if(D.partidos_copa[i].fase==='FASE DE GRUPOS'){ D.partidos_copa.splice(i,1); quitados.push(i); }
+        if(D.partidos_copa[i].fase==='FASE DE GRUPOS'){ D.partidos_copa.splice(i,1); reajustarOrigenes(i, 'copa'); }
       }
-      quitados.forEach(function(k){ reajustarOrigenes(k); });
-      letras.forEach(function(g){
-        var eqs = gc[g];
-        for(var v=0; v<vueltas; v++){
-          for(var a=0; a<eqs.length; a++) for(var b=a+1; b<eqs.length; b++){
-            D.partidos_copa.push({
-              fase:'FASE DE GRUPOS', grupo:g, fecha:'', estado:'PENDIENTE',
-              local: v===0?eqs[a]:eqs[b], visitante: v===0?eqs[b]:eqs[a],
-              goles_l:0, goles_v:0, detalles:' / ', origen_local:null, origen_visitante:null
-            });
-          }
-        }
+      var idxPrelim = D.partidos_copa.map(function(p,k){ return p.fase==='PRELIMINAR'?k:-1; }).filter(function(k){ return k>=0; });
+      C.LETRAS_FF.forEach(function(g){
+        C.partidosGrupoFF(g, gc[g], function(k){ return idxPrelim[k-1]; }).forEach(function(p){ D.partidos_copa.push(p); });
       });
       copaFase = 'FASE DE GRUPOS';
       U.cambio();
-      U.aviso(n+' partidos de fase de grupos generados.', 'ok');
+      U.aviso('40 partidos de fase de grupos generados.', 'ok');
     });
   },
 
   origen: function(el){
-    var p = d().partidos_copa[Number(el.dataset.i)], lado = el.dataset.k;
+    var p = cl()[Number(el.dataset.i)], lado = el.dataset.k;
     var k = lado==='local' ? 'origen_local' : 'origen_visitante';
     if(el.value===''){ p[k] = null; }
     else {
@@ -1267,7 +1240,7 @@ var AC = {
 U.registrar('partidos', {
   acciones: A,
   render: function(el, param){
-    if(param && param.comp && param.comp!=='copa') st.comp = param.comp;
+    if(param && param.comp && !esCopa(param.comp)) st.comp = param.comp;
     if(param && param.jornada) st.j = param.jornada;
     if(param && param.idx!=null){
       var p = lista(st.comp)[param.idx];
@@ -1279,6 +1252,18 @@ U.registrar('partidos', {
 U.registrar('copa', {
   acciones: AC,
   render: function(el, param){
+    if(copaComp!=='copa') copaFase = '';
+    copaComp = 'copa';
+    if(param && param.fase) copaFase = param.fase;
+    pintarCopa(el);
+  }
+});
+/* Sin acciones propias: los botones siguen siendo «copa:…», sólo se pulsan
+   desde la vista visible y copaComp dice sobre qué lista actúan. */
+U.registrar('torneo', {
+  render: function(el, param){
+    if(copaComp!=='torneo') copaFase = '';
+    copaComp = 'torneo';
     if(param && param.fase) copaFase = param.fase;
     pintarCopa(el);
   }

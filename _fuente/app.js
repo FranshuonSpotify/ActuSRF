@@ -16,7 +16,7 @@
 
 if (window.gsap && window.ScrollTrigger) gsap.registerPlugin(ScrollTrigger);
 
-var bd = { equipos:[], partidos_liga:[], partidos_ascenso:[], partidos_copa:[], noticias:[], config:{} };
+var bd = { equipos:[], partidos_liga:[], partidos_ascenso:[], partidos_copa:[], partidos_torneo:[], noticias:[], config:{} };
 window.bd = bd;
 
 var RIVALIDADES = [['Alpino','Academia Plenilunio']];
@@ -162,9 +162,13 @@ function divIcon(e){
 /* Nombre oficial de cada competición, no un badge corto: son los nombres
    confirmados por el cliente (p.ej. inglés "Frontier Superleague", no una
    traducción literal de "Superliga"). */
+/* Fútbol Frontier y Torneo Frontier cruzan las dos divisiones: donde se pinta
+   un partido suyo va el icono de división en vez de la posición en la tabla. */
+function esCopa(comp){ return comp==='copa'||comp==='torneo'; }
 function compBadge(comp){
   if(comp==='ascenso') return '<span class="badge badge-ascenso">'+esc(T('comp.ascenso','Ascenso Frontier'))+'</span>';
-  if(comp==='copa') return '<span class="badge badge-copa">'+esc(T('sec.copa','Copa Fútbol Frontier'))+'</span>';
+  if(comp==='copa') return '<span class="badge badge-copa">'+esc(T('sec.copa','Fútbol Frontier'))+'</span>';
+  if(comp==='torneo') return '<span class="badge badge-torneo">'+esc(T('sec.torneo','Torneo Frontier'))+'</span>';
   return '<span class="badge badge-superliga">'+esc(T('comp.superliga','Superliga Frontier'))+'</span>';
 }
 
@@ -219,21 +223,28 @@ function pasoRender(fn, args){
   try{ fn.apply(null, args||[]); }
   catch(e){ console.error('[renderAll] '+fn.name+'()', e); }
 }
+/* Un grupo de pasos por tarea (setTimeout 0) en vez de todos seguidos: pintar
+   todas las secciones de golpe eran varios cientos de milisegundos de hilo
+   bloqueado justo cuando arrancan las animaciones de entrada, que se veían a
+   saltos o directamente no se veían. Entre grupo y grupo el navegador pinta,
+   dispara los reveals y atiende el scroll. El orden no cambia.
+   window.__renderListo avisa al pre-renderizador (prerender.js) de que ya
+   puede sacar la foto del HTML. */
 function renderAll(){
   _posCache=null;
-  pasoRender(renderMetrics);
-  pasoRender(renderClas,[curDiv]);
-  pasoRender(renderPlayoff);
-  pasoRender(initJornadas);
-  pasoRender(renderMatches);
-  pasoRender(renderCopa);
-  pasoRender(renderTeams,[curTeamDiv]);
-  pasoRender(renderScorers,[curGol]);
-  pasoRender(renderNews);
-  pasoRender(renderStaffClubs);
-  pasoRender(renderAntiguedad);
-  pasoRender(observeReveals);
-  pasoRender(vigilarDesbordeMovil);
+  window.__renderListo=false;
+  var pasos=[
+    function(){ pasoRender(renderMetrics); pasoRender(renderClas,[curDiv]); },
+    function(){ pasoRender(initJornadas); pasoRender(renderMatches); },
+    function(){ pasoRender(renderCopa); pasoRender(renderTorneo); },
+    function(){ pasoRender(renderTeams,[curTeamDiv]); },
+    function(){ pasoRender(renderScorers,[curGol]); },
+    function(){ pasoRender(renderNews); },
+    function(){ pasoRender(renderStaffClubs); pasoRender(renderAntiguedad); },
+    function(){ pasoRender(observeReveals); pasoRender(vigilarDesbordeMovil); window.__renderListo=true; }
+  ];
+  var i=0;
+  (function siguiente(){ pasos[i++](); if(i<pasos.length) setTimeout(siguiente,0); })();
 }
 
 /* ==========================================================================
@@ -378,9 +389,13 @@ function renderClas(div){
   var h='';
   ord.forEach(function(e,i){
     var pos=i+1, dg=(e.gf||0)-(e.gc||0), z='';
+    /* Temporada 4: Play-off 1.º-3.º, Play-in 4.º-5.º y bajan los dos últimos.
+       El Torneo Frontier (6.º-10.º) no se marca en la tabla. En Ascenso sube
+       directo el 1.º y del 2.º al 5.º juegan el Play-off por la otra plaza, en
+       un azul más claro que el del ascenso directo. */
     if(div==='SUPERLIGA'){
-      if(pos<=3) z='z-po'; else if(pos===4) z='z-pi'; else if(pos<=6) z='z-pp'; else if(pos>total-3) z='z-desc';
-    } else if(pos<=3) z='z-asc';
+      if(pos>5&&pos>total-2) z='z-desc'; else if(pos<=3) z='z-po'; else if(pos<=5) z='z-pi';
+    } else if(pos===1) z='z-asc'; else if(pos<=5) z='z-pa';
     var pp=prev.indexOf(e.nombre)+1, tr='<span class="tr-s">·</span>';
     if(pp&&pp!==pos) tr=pp>pos?'<span class="tr-u">▲</span>':'<span class="tr-d">▼</span>';
     h+='<tr data-team="'+esc(e.id)+'">'+
@@ -397,58 +412,72 @@ function renderClas(div){
   $('tbody-clas').innerHTML = h || '<tr><td colspan="11" style="padding:3rem;text-align:center;color:var(--ink-4)">'+T('empty.equipos','Sin equipos.')+'</td></tr>';
 
   $('legend-clas').innerHTML = div==='SUPERLIGA'
-    ? '<span><i class="z-po"></i>'+T('zone.playoffs','Play Off')+'</span><span><i class="z-pi"></i>'+T('zone.playin','Play In')+'</span><span><i class="z-pp"></i>'+T('zone.playin.part','Partido por el Play In')+'</span><span><i class="z-desc"></i>'+T('zone.descenso','Descenso')+'</span>'
-    : '<span><i class="z-asc"></i>'+T('zone.ascenso','Ascenso')+'</span>';
-  var pw=$('playoff-wrap'); if(pw) pw.style.display = div==='SUPERLIGA' ? '' : 'none';
+    ? '<span><i class="z-po"></i>'+T('zone.playoffs','Play-off')+'</span><span><i class="z-pi"></i>'+T('zone.playin','Play-in')+'</span><span><i class="z-desc"></i>'+T('zone.descenso','Descenso')+'</span>'
+    : '<span><i class="z-asc"></i>'+T('zone.ascenso.directo','Ascenso directo')+'</span><span><i class="z-pa"></i>'+T('zone.playoff.ascenso','Play-off de ascenso')+'</span>';
+  var pt=$('playoff-title');
+  if(pt) pt.textContent = div==='SUPERLIGA' ? T('bracket.playoff.title','Cuadro de Play-off / Play-in') : T('bracket.playoff.ascenso','Cuadro del Play-off de ascenso');
+  renderPlayoff();
 }
 
-/* Fases del play-off de Superliga, en el orden en que se juegan. Son las mismas
-   etiquetas que ya usan las rondas calculadas de aquí abajo. */
+/* Fases de eliminatoria de liga, en el orden en que se juegan. PARTIDO POR EL
+   PLAY IN ya no existe desde la Temporada 4, pero se sigue pintando si viene
+   en datos antiguos. */
 var FASES_PO=['DESEMPATE','PARTIDO POR EL PLAY IN','PLAY IN','SEMIFINALES','FINAL'];
 
+/* Cuadro de la división que se está mirando. Superliga: Play-in 4.º-5.º, su
+   ganador contra el 1.º y 2.º contra 3.º en semifinales. Ascenso: 2.º-5.º y
+   3.º-4.º en semifinales; el 1.º ya ha subido y no juega. */
 function renderPlayoff(){
-  var el=$('bracket-playoff'); if(!el) return;
+  var el=$('bracket-playoff'), w=$('playoff-wrap'); if(!el) return;
+  var asc=curDiv==='ASCENSO';
 
-  /* Si hay partidos de play-off cargados mandan ellos: son lo que ha pasado de
+  /* Si hay partidos de Play-off cargados mandan ellos: son lo que ha pasado de
      verdad, frente a un cuadro deducido de la clasificación en el que la final
      sale siempre en blanco. Sin ellos se dibuja el previsto, como siempre. */
-  var reales=bd.partidos_liga.filter(function(p){ return FASES_PO.indexOf(p.fase)>=0; });
-  if(reales.length) return renderPlayoffReal(el,reales);
+  var reales=matchesOf(curDiv).filter(function(p){ return FASES_PO.indexOf(p.fase)>=0; });
+  if(w) w.style.display='';
+  if(reales.length) return renderPlayoffReal(el,reales,asc?'ascenso':'liga');
 
-  var ord=orderStandings(bd.equipos.filter(function(e){ return e.division==='SUPERLIGA'&&!e.archivado; }));
-  if(ord.length<6){ var w=$('playoff-wrap'); if(w) w.style.display='none'; return; }
+  var ord=orderStandings(bd.equipos.filter(function(e){ return e.division===curDiv&&!e.archivado; }));
+  if(ord.length<5){ if(w) w.style.display='none'; return; }
   function side(e,sub){
     if(!e) return '<div class="br-side br-tbd"><span class="nm">'+T('br.tbd','Por definir')+'</span></div>';
     return '<div class="br-side">'+crest(e,18)+'<span class="nm">'+esc(X(e.nombre))+'</span><span class="sc" style="color:var(--ink-5);font-size:.6875rem">'+sub+'</span></div>';
   }
+  function ronda(label,cruces){
+    return '<div class="br-round"><div class="br-label">'+label+'</div>'+
+      cruces.map(function(c){ return '<div class="br-match">'+c[0]+c[1]+'</div>'; }).join('')+'</div>';
+  }
   var tbd='<div class="br-side br-tbd"><span class="nm">'+T('br.tbd','Por definir')+'</span></div>';
-  el.innerHTML=
-    '<div class="br-round"><div class="br-label">'+T('zone.playin.part','Partido por el Play In')+'</div><div class="br-match">'+side(ord[4],'5º')+side(ord[5],'6º')+'</div></div>'+
-    '<div class="br-round"><div class="br-label">'+T('zone.playin','Play In')+'</div><div class="br-match">'+side(ord[3],'4º')+'<div class="br-side br-tbd"><span class="nm">'+T('br.ganador','Ganador')+' 5º-6º</span></div></div></div>'+
-    '<div class="br-round"><div class="br-label">'+T('br.semis','Semifinales')+'</div><div class="br-match">'+side(ord[0],'1º')+'<div class="br-side br-tbd"><span class="nm">'+T('br.ganador','Ganador')+' '+T('zone.playin','Play In')+'</span></div></div><div class="br-match">'+side(ord[1],'2º')+side(ord[2],'3º')+'</div></div>'+
-    '<div class="br-round"><div class="br-label">'+T('br.final','Final')+'</div><div class="br-match">'+tbd+tbd+'</div></div>';
+  el.innerHTML = asc
+    ? ronda(T('br.semis','Semifinales'),[[side(ord[1],'2º'),side(ord[4],'5º')],[side(ord[2],'3º'),side(ord[3],'4º')]])+
+      ronda(T('br.final','Final'),[[tbd,tbd]])
+    : ronda(T('zone.playin','Play-in'),[[side(ord[3],'4º'),side(ord[4],'5º')]])+
+      ronda(T('br.semis','Semifinales'),[[side(ord[0],'1º'),'<div class="br-side br-tbd"><span class="nm">'+T('br.ganador','Ganador')+' '+T('zone.playin','Play-in')+'</span></div>'],[side(ord[1],'2º'),side(ord[2],'3º')]])+
+      ronda(T('br.final','Final'),[[tbd,tbd]]);
 }
 
 /* Cuadro dibujado desde los partidos cargados. Reutiliza las clases del cuadro
-   de Copa, así que no hace falta CSS nuevo, y quien decide si #playoff-wrap se
-   ve sigue siendo renderClas(), según la división que se esté mirando. */
-function renderPlayoffReal(el,ms){
+   de Copa, así que no hace falta CSS nuevo. Los huecos que esperan a otro
+   cruce los resuelve resolveSide(), igual que en Copa. */
+function renderPlayoffReal(el,ms,comp){
+  var pool=poolOf(comp);
   el.innerHTML=FASES_PO.map(function(f){
     var ronda=ms.filter(function(p){ return p.fase===f; });
     if(!ronda.length) return '';
     return '<div class="br-round"><div class="br-label">'+esc(faseName(f))+'</div>'+
       ronda.map(function(p){
         var fin=isFin(p), a=gl(p), b=gv(p);
-        function lado(nombre,gol,gana){
-          if(!nombre) return '<div class="br-side br-tbd"><span class="nm">'+T('br.tbd','Por definir')+'</span></div>';
+        function lado(nombre,gol,gana,info){
+          if(!nombre) return '<div class="br-side br-tbd"><span class="nm">'+esc(info.pend?info.n:T('br.tbd','Por definir'))+'</span></div>';
           return '<div class="br-side '+(fin?(gana?'br-win':'br-lose'):'')+'">'+
             crest(team(nombre),18)+'<span class="nm">'+esc(X(nombre))+'</span>'+
             (fin?'<span class="sc">'+gol+'</span>':'')+'</div>';
         }
         /* data-comp/data-idx: la ficha del partido ya se abre por delegación con
            esos dos atributos, igual que en Resultados y en Copa. */
-        return '<div class="br-match" data-comp="liga" data-idx="'+bd.partidos_liga.indexOf(p)+'">'+
-          lado(p.local,a,fin&&a>b)+lado(p.visitante,b,fin&&b>a)+'</div>';
+        return '<div class="br-match" data-comp="'+comp+'" data-idx="'+pool.indexOf(p)+'">'+
+          lado(p.local,a,fin&&a>b,resolveSide(p,'local',pool))+lado(p.visitante,b,fin&&b>a,resolveSide(p,'visitante',pool))+'</div>';
       }).join('')+'</div>';
   }).join('');
 }
@@ -457,11 +486,11 @@ function renderPlayoffReal(el,ms){
    RESULTADOS
    ========================================================================== */
 var curComp='liga', jornadas=[], jIdx=0;
-function poolOf(c){ return c==='liga'?bd.partidos_liga:c==='ascenso'?bd.partidos_ascenso:bd.partidos_copa; }
+function poolOf(c){ return c==='liga'?bd.partidos_liga:c==='ascenso'?bd.partidos_ascenso:c==='torneo'?(bd.partidos_torneo||[]):bd.partidos_copa; }
 
 function initJornadas(){
   var jn=$('jnav');
-  if(curComp==='copa'){ jornadas=[]; if(jn) jn.style.display='none'; return; }
+  if(esCopa(curComp)){ jornadas=[]; if(jn) jn.style.display='none'; return; }
   if(jn) jn.style.display='';
   jornadas=Array.from(new Set(poolOf(curComp).map(function(p){ return p.jornada; })))
     .filter(function(x){ return x!=null&&x!==''; })
@@ -470,7 +499,7 @@ function initJornadas(){
 }
 function renderMatches(){
   var pool=poolOf(curComp), list;
-  if(curComp==='copa') list=pool.slice();
+  if(esCopa(curComp)) list=pool.slice();
   else {
     var j=jornadas[jIdx];
     list=pool.filter(function(p){ return p.jornada===j; });
@@ -488,25 +517,29 @@ function renderMatches(){
     var a=gl(p), b=gv(p);
     var d=derbi(p.local,p.visitante);
     var tag = d?'<span class="badge '+d.c+'">'+d.t+'</span>':compBadge(curComp);
+    /* Un hueco que espera a otro cruce (ganador de la preliminar, 1.º de un
+       grupo…) no tiene nombre todavía: se enseña de dónde saldrá. */
+    var nL=p.local||resolveSide(p,'local',pool).n, nV=p.visitante||resolveSide(p,'visitante',pool).n;
     function row(t,name,score,lose){
       /* Franja de color del club + señal de contexto a la derecha del nombre:
          en liga/ascenso, la posición actual en la tabla; en Copa, el icono de
          la división a la que pertenece el equipo (se cruzan las dos). */
       var c1=(t&&t.color1)||'#3A3A3A', c2=(t&&t.color2)||'#141414';
       var mark;
-      if(curComp==='copa') mark=divIcon(t);
+      if(esCopa(curComp)) mark=divIcon(t);
       else { var pp=posOf(name); mark=pp?'<span class="ms-pos" title="'+T('th.pos','Pos')+'">'+pp+'º</span>':''; }
       return '<div class="match-side '+(lose?'match-lose':'')+'">'+
         '<span class="ms-color" style="background:linear-gradient(180deg,'+esc(c1)+','+esc(c2)+')"></span>'+
-        crest(t,26)+
+        /* Sin equipo todavía (espera a otro cruce): sin escudo, no un "???". */
+        (t?crest(t,26):'')+
         '<span class="nm">'+esc(X(name))+'</span>'+mark+
         (pen?'':'<span class="sc">'+score+'</span>')+
       '</div>';
     }
     return '<article class="card spotlight match" data-comp="'+curComp+'" data-idx="'+i+'">'+
       '<div class="match-top">'+tag+(pen?'<span class="match-vs">VS</span>':'')+'</div>'+
-      row(L,p.local,a,!pen&&a<b)+
-      row(V,p.visitante,b,!pen&&b<a)+
+      row(L,nL,a,!pen&&a<b)+
+      row(V,nV,b,!pen&&b<a)+
       /* data-no-tr: "Jornada N" es un texto ya traducido y combinado con un
          número — nunca coincide con un valor exacto del diccionario, así que
          sin protegerlo el recorrido automático lo volvía a traducir por su
@@ -531,33 +564,43 @@ function winnerOf(p){
   if(m) return parseInt(m[1])>parseInt(m[2])?p.local:p.visitante;
   return null;
 }
-function resolveSide(p,side){
+/* Quién juega un lado de un cruce. origen_local/origen_visitante apuntan al
+   ganador de otro partido de la MISMA lista (pool); origen_grupo_* ("1A",
+   "2C") a un puesto de grupo de Fútbol Frontier. El bot y el gestor escriben
+   el nombre en cuanto se conoce; mientras tanto se enseña de dónde vendrá. */
+function resolveSide(p,side,pool){
+  pool=pool||bd.partidos_copa;
   var ok=side==='local'?'origen_local':'origen_visitante';
-  if(p[ok]!=null&&bd.partidos_copa[p[ok]]){
-    var f=bd.partidos_copa[p[ok]], w=winnerOf(f);
+  if(p[ok]!=null&&p[ok]!==''&&pool[p[ok]]){
+    var f=pool[p[ok]], w=winnerOf(f);
     if(w) return {n:w,pend:false};
-    return {n:abbr3(f.local)+' / '+abbr3(f.visitante),pend:true};
+    return {n:(f.local?abbr3(f.local):'?')+' / '+(f.visitante?abbr3(f.visitante):'?'),pend:true};
   }
+  var g=/^(\d+)([A-Z])$/.exec(String(p['origen_grupo_'+side]||'').toUpperCase());
+  /* Solo existen el 1.º y el 2.º de cada grupo; el ordinal va en el
+     diccionario porque "1.º" no se escribe así en ningún otro idioma. */
+  if(g&&!p[side]) return {n:T(g[1]==='2'?'br.grupo2':'br.grupo1',g[1]+'.º Grupo {g}').replace('{g}',g[2]),pend:true};
   return {n:p[side],pend:false};
 }
-var FASES=['RONDA 1 (PREVIA)','RONDA 2','CUARTOS DE FINAL','SEMIFINALES','FINAL'];
+var FASES=['PRELIMINAR','RONDA 1 (PREVIA)','RONDA 2','CUARTOS DE FINAL','SEMIFINALES','FINAL'];
 /* Nombre de ronda de Copa, ya traducido (audit Tarea 2.3: antes salía tal
    cual del JSON, sin curar, a merced de lo que devolviera la API). Semis y
    final reutilizan br.semis/br.final: son la misma palabra que ya existía
-   para el cuadro de Play Off, no hace falta duplicarla. */
-var FASE_KEY={'RONDA 1 (PREVIA)':'fase.ronda1','RONDA 2':'fase.ronda2','CUARTOS DE FINAL':'fase.cuartos','SEMIFINALES':'br.semis','FINAL':'br.final',
+   para el cuadro de Play-off, no hace falta duplicarla. */
+var FASE_KEY={'PRELIMINAR':'fase.preliminar','FASE DE GRUPOS':'fase.grupos','RONDA 1 (PREVIA)':'fase.ronda1','RONDA 2':'fase.ronda2','CUARTOS DE FINAL':'fase.cuartos','SEMIFINALES':'br.semis','FINAL':'br.final',
   'PARTIDO POR EL PLAY IN':'zone.playin.part','PLAY IN':'zone.playin'};
 function faseName(f){ var k=FASE_KEY[f]; return k?T(k,f):(f||''); }
-function renderCopa(){
-  var el=$('bracket-copa'); if(!el) return;
+/* Cuadro de eliminatorias de Fútbol Frontier (comp 'copa') y del Torneo
+   Frontier (comp 'torneo'): misma forma, cada uno con su lista. */
+function cuadro(el,pool,comp,vacio){
   var h='';
   FASES.forEach(function(f){
-    var ms=bd.partidos_copa.filter(function(p){ return p.fase===f; });
+    var ms=pool.filter(function(p){ return p.fase===f; });
     if(!ms.length) return;
     h+='<div class="br-round"><div class="br-label">'+esc(faseName(f))+'</div>';
     ms.forEach(function(p){
-      var i=bd.partidos_copa.indexOf(p);
-      var L=resolveSide(p,'local'), V=resolveSide(p,'visitante');
+      var i=pool.indexOf(p);
+      var L=resolveSide(p,'local',pool), V=resolveSide(p,'visitante',pool);
       var w=winnerOf(p), fin=isFin(p);
       function s(info,score,name){
         if(info.pend) return '<div class="br-side br-tbd"><span class="nm">'+esc(info.n)+'</span></div>';
@@ -566,11 +609,19 @@ function renderCopa(){
            blanco) dice de cuál viene cada equipo sin tener que saberse la liga. */
         return '<div class="br-side '+(fin?(win?'br-win':'br-lose'):'')+'">'+divIcon(t)+crest(t,18)+'<span class="nm">'+esc(X(info.n))+'</span>'+(fin?'<span class="sc">'+score+'</span>':'')+'</div>';
       }
-      h+='<div class="br-match" data-comp="copa" data-idx="'+i+'">'+s(L,gl(p),p.local)+s(V,gv(p),p.visitante)+'</div>';
+      h+='<div class="br-match" data-comp="'+comp+'" data-idx="'+i+'">'+s(L,gl(p),p.local)+s(V,gv(p),p.visitante)+'</div>';
     });
     h+='</div>';
   });
-  el.innerHTML=h||'<p class="muted">'+T('empty.copa','La Copa todavía no tiene cruces publicados.')+'</p>';
+  el.innerHTML=h||'<p class="muted">'+vacio+'</p>';
+}
+function renderTorneo(){
+  var el=$('bracket-torneo'); if(!el) return;
+  cuadro(el,bd.partidos_torneo||[],'torneo',T('empty.torneo','El Torneo Frontier todavía no tiene cruces publicados.'));
+}
+function renderCopa(){
+  var el=$('bracket-copa'); if(!el) return;
+  cuadro(el,bd.partidos_copa,'copa',T('empty.copa','La Copa todavía no tiene cruces publicados.'));
 
   var grupos=bd.partidos_copa.filter(function(p){ return p.fase==='FASE DE GRUPOS'; });
   var g=$('groups-copa'); if(!g) return;
@@ -580,17 +631,25 @@ function renderCopa(){
   g.innerHTML=Object.keys(by).sort().map(function(k){
     var t={};
     by[k].forEach(function(p){
-      [p.local,p.visitante].forEach(function(n){ if(!t[n]) t[n]={n:n,pts:0,gf:0,gc:0}; });
+      /* La plaza de un ganador de la preliminar aún sin decidir cuenta como
+         una fila más ("ABC / DEF"), para que el grupo se vea con sus cinco. */
+      var l=resolveSide(p,'local').n, v=resolveSide(p,'visitante').n;
+      [l,v].forEach(function(n){ if(!t[n]) t[n]={n:n,pts:0,gf:0,gc:0}; });
       if(!isFin(p)) return;
       var a=gl(p), b=gv(p);
-      t[p.local].gf+=a; t[p.local].gc+=b; t[p.visitante].gf+=b; t[p.visitante].gc+=a;
-      if(a>b) t[p.local].pts+=3; else if(b>a) t[p.visitante].pts+=3; else { t[p.local].pts++; t[p.visitante].pts++; }
+      t[l].gf+=a; t[l].gc+=b; t[v].gf+=b; t[v].gc+=a;
+      if(a>b) t[l].pts+=3; else if(b>a) t[v].pts+=3; else { t[l].pts++; t[v].pts++; }
     });
+    /* Puntos, diferencia, goles a favor y nombre: el mismo orden con el que
+       api/discord_update.php y el gestor deciden quién pasa a cuartos. */
     var rows=Object.keys(t).map(function(k2){ return t[k2]; }).sort(function(a,b){
-      if(b.pts!==a.pts) return b.pts-a.pts; return (b.gf-b.gc)-(a.gf-a.gc);
+      if(b.pts!==a.pts) return b.pts-a.pts;
+      if((b.gf-b.gc)!==(a.gf-a.gc)) return (b.gf-b.gc)-(a.gf-a.gc);
+      if(b.gf!==a.gf) return b.gf-a.gf;
+      return a.n<b.n?-1:a.n>b.n?1:0;
     });
-    return '<div class="card group"><h4>Grupo '+esc(k)+'</h4>'+rows.map(function(r,i){
-      return '<div class="group-row '+(i<2?'group-q':'')+'">'+crest(team(r.n),18)+'<span class="nm">'+esc(X(r.n))+'</span><span class="p">'+r.pts+'</span></div>';
+    return '<div class="card group"><h4>'+esc(T('grupo','Grupo'))+' '+esc(k)+'</h4>'+rows.map(function(r,i){
+      return '<div class="group-row '+(i<2?'group-q':'')+'">'+(team(r.n)?crest(team(r.n),18):'')+'<span class="nm">'+esc(X(r.n))+'</span><span class="p">'+r.pts+'</span></div>';
     }).join('')+'</div>';
   }).join('');
 }
@@ -679,6 +738,13 @@ function idxTemporadas(){
   _idxTemporadas={};
   (bd.historial_temporadas||[]).forEach(function(t,i){
     (t.equipos||[]).forEach(function(e){
+      /* Estar en la plantilla del snapshot no basta: si el club tiene pj=0
+         ahí, la foto se tomó antes de que disputara nada esa temporada (le
+         pasa a 21 de los 43 clubes del snapshot de la Temporada 3). Contar
+         esa temporada como "jugada" es el mismo error que se corrigió en el
+         propio historial del jugador: solo cuentan los snapshots donde el
+         club de verdad compitió. */
+      if(!e.pj) return;
       (e.jugadores||[]).forEach(function(j){
         var k=e.id+'|'+norm(j.nombre);
         (_idxTemporadas[k]=_idxTemporadas[k]||[]).push(i);
@@ -768,7 +834,7 @@ function scorerRow(r,i,comp){
       '<span class="sc-name">'+esc(X(r.nombre))+'</span>'+
       (pos?'<span class="sc-pos">'+esc(posAbbr(pos))+'</span>':'')+
       (r.j?'<span class="af-dot" style="--afc:'+AF_HEX[afKey(r.j.afinidad)]+'" title="'+esc(afName(r.j.afinidad))+'"></span>':'')+
-      (r.e?'<span class="sc-team">'+(comp==='copa'?divIcon(r.e):'')+crest(r.e,16)+'<span>'+esc(X(r.e.nombre))+'</span></span>':'')+
+      (r.e?'<span class="sc-team">'+(esCopa(comp)?divIcon(r.e):'')+crest(r.e,16)+'<span>'+esc(X(r.e.nombre))+'</span></span>':'')+
     '</div>'+
     '<span class="sc-goals mono">'+r.goles+'<small>G</small></span>'+
   '</div>';
@@ -1098,7 +1164,7 @@ function openMatch(comp,idx){
             '<span class="ev-name">'+esc(X(j?j.nombre:nm))+'</span>'+
             (j&&j.posicion?'<span class="ev-pos">'+esc(posAbbr(j.posicion))+'</span>':'')+
             (j?'<span class="af-dot" style="--afc:'+AF_HEX[afKey(j.afinidad)]+'" title="'+esc(afName(j.afinidad))+'"></span>':'')+
-            '<span class="ev-club">'+(comp==='copa'?divIcon(ce):'')+crest(ce,18)+'<span>'+esc(X(club))+'</span></span>'+
+            '<span class="ev-club">'+(esCopa(comp)?divIcon(ce):'')+crest(ce,18)+'<span>'+esc(X(club))+'</span></span>'+
           '</div>'});
       }
     });
@@ -1115,7 +1181,7 @@ function openMatch(comp,idx){
       crest(t,86)+
       '<span class="mt-bar" style="background:linear-gradient(90deg,'+esc(c1)+','+esc(c2)+')"></span>'+
       '<b>'+esc(X(name))+'</b>'+
-      (comp==='copa'?'<span class="mt-divi">'+divIcon(t)+(t?(t.division==='ASCENSO'?T('comp.ascenso','Ascenso Frontier'):T('comp.superliga','Superliga Frontier')):'')+'</span>':'')+
+      (esCopa(comp)?'<span class="mt-divi">'+divIcon(t)+(t?(t.division==='ASCENSO'?T('comp.ascenso','Ascenso Frontier'):T('comp.superliga','Superliga Frontier')):'')+'</span>':'')+
     '</div>';
   }
 
@@ -1277,7 +1343,7 @@ function presidenteFotoDe(nombre){
   return (p&&esImagen(p.foto))?p.foto:null;
 }
 function trofeoFotoDe(cls){
-  var clave=cls==='badge-superliga'?'SUPERLIGA':cls==='badge-ascenso'?'ASCENSO':cls==='badge-copa'?'COPA':null;
+  var clave=cls==='badge-superliga'?'SUPERLIGA':cls==='badge-ascenso'?'ASCENSO':cls==='badge-copa'?'COPA':cls==='badge-torneo'?'TORNEO':null;
   var t=clave&&bd.trofeos&&bd.trofeos[clave];
   return (t&&esImagen(t.foto))?t.foto:null;
 }
@@ -1292,7 +1358,7 @@ function palmares(idx){
   /* Campeones apuntados a mano. Mandan sobre lo deducido COMPETICIÓN A
      COMPETICIÓN, no en bloque: apuntar sólo el de Superliga no debe borrar del
      palmarés al de Ascenso ni al de Copa. Hacen falta porque champ() deduce el
-     campeón como «el que más puntos tiene», y en una liga con play-off campeón
+     campeón como «el que más puntos tiene», y en una liga con Play-off campeón
      es quien gana la final, no el primero de la fase regular. */
   var puestos=(Array.isArray(t.campeones)?t.campeones:[]).filter(function(x){ return x&&x.equipo; });
   function apuntado(clave){
@@ -1315,17 +1381,19 @@ function palmares(idx){
   fila('SUPERLIGA','SUPERLIGA',T('comp.superliga','Superliga Frontier'),'badge-superliga');
   fila('ASCENSO','ASCENSO',T('comp.ascenso','Ascenso Frontier'),'badge-ascenso');
 
-  var apCopa=apuntado('COPA');
-  if(apCopa){
-    out.push({comp:T('sec.copa','Copa Fútbol Frontier'),cls:'badge-copa',e:apCopa.e,marcador:apCopa.marcador});
-  }else{
-    var fin=(t.partidos_copa||[]).filter(function(p){ return p.fase==='FINAL'&&isFin(p); })[0];
-    if(fin){
-      var wn=gl(fin)>gv(fin)?fin.local:(gv(fin)>gl(fin)?fin.visitante:winnerOf(fin));
-      var ce=(t.equipos||[]).find(function(e){ return e.nombre===wn; });
-      if(ce) out.push({comp:T('sec.copa','Copa Fútbol Frontier'),cls:'badge-copa',e:ce,marcador:fin.local+' '+gl(fin)+'-'+gv(fin)+' '+fin.visitante});
-    }
+  /* Fútbol Frontier y Torneo Frontier: el ganador de su FINAL, salvo que se
+     haya apuntado a mano. */
+  function copa(clave,lista,comp,cls){
+    var ap=apuntado(clave);
+    if(ap) return out.push({comp:comp,cls:cls,e:ap.e,marcador:ap.marcador});
+    var fin=(lista||[]).filter(function(p){ return p.fase==='FINAL'&&isFin(p); })[0];
+    if(!fin) return;
+    var wn=winnerOf(fin);
+    var ce=(t.equipos||[]).find(function(e){ return e.nombre===wn; });
+    if(ce) out.push({comp:comp,cls:cls,e:ce,marcador:fin.local+' '+gl(fin)+'-'+gv(fin)+' '+fin.visitante});
   }
+  copa('COPA',t.partidos_copa,T('sec.copa','Fútbol Frontier'),'badge-copa');
+  copa('TORNEO',t.partidos_torneo,T('sec.torneo','Torneo Frontier'),'badge-torneo');
   return out.length?out:null;
 }
 
@@ -1431,7 +1499,7 @@ function agruparPorCompeticion(titulos){
   titulos.forEach(function(x){
     (map[x.cls]=map[x.cls]||{cls:x.cls, comp:x.comp, instancias:[]}).instancias.push(x);
   });
-  return ['badge-superliga','badge-ascenso','badge-copa']
+  return ['badge-superliga','badge-ascenso','badge-copa','badge-torneo']
     .map(function(k){ return map[k]; })
     .filter(Boolean);
 }
@@ -1453,7 +1521,8 @@ function honourNombreCorto(cls){
   return ({
     'badge-superliga':T('honours.superliga','Superliga'),
     'badge-ascenso':T('honours.ascenso','Ascenso'),
-    'badge-copa':T('honours.copa','Copa')
+    'badge-copa':T('honours.copa','Copa'),
+    'badge-torneo':T('honours.torneo','Torneo')
   })[cls]||'';
 }
 function honoursStrip(titulos){
@@ -1624,26 +1693,26 @@ var FAQ=[
   ]},
   {c:'Formato de competición',items:[
     ['¿Cuántas divisiones hay?','Dos: la Superliga Frontier (1ª división) y el Ascenso Frontier (2ª división), con ascenso y descenso entre ambas cada temporada.'],
-    ['¿Cómo se decide el campeón de la Superliga Frontier?','La liga regular fija las posiciones. Los 6 primeros disputan la fase final: 5º contra 6º, el ganador juega el Play In contra el 4º (local por mejor clasificación), y el ganador entra al Play Off junto al 1º, 2º y 3º.'],
-    ['¿Cómo se asciende y se desciende?','Los tres primeros del Ascenso Frontier suben a la Superliga y los tres últimos de la Superliga bajan al Ascenso.'],
-    ['¿Cómo funciona la Copa Fútbol Frontier?','Ronda previa (7º-10º y 8º-9º de Ascenso) → Ronda 2 (los 6 restantes de Ascenso + los 2 clasificados) → Fase de grupos (12 de Superliga + 4 de Ascenso, 4 grupos de 4, pasan los 2 primeros) → Cuartos, semifinales y final.'],
+    ['¿Cómo se decide el campeón de la Superliga Frontier?','La liga regular fija las posiciones. Los 5 primeros disputan la fase final: el 4º y el 5º juegan el Play-in (local el 4º), su ganador se enfrenta al 1º en semifinales y el 2º y el 3º juegan la otra semifinal. Los dos ganadores disputan la final.'],
+    ['¿Cómo se asciende y se desciende?','Bajan los dos últimos de la Superliga. Del Ascenso Frontier sube directo el 1º, y la segunda plaza se decide en un Play-off: 2º contra 5º y 3º contra 4º en semifinales, y los ganadores juegan la final.'],
+    ['¿Cómo funciona Fútbol Frontier?','Es la copa oficial de la liga, con los 23 equipos. Los 6 peores del Ascenso Frontier de la temporada anterior juegan una preliminar por sorteo puro; los 3 ganadores se unen a los otros 17 clubes en una fase de grupos de 4 grupos de 5, a una vuelta y con calendario fijo. Los 2 primeros de cada grupo pasan a cuartos, con cruces fijos (1º A–2º C, 1º B–2º D, 1º C–2º A y 1º D–2º B), y de ahí a semifinales y final, todo a partido único.'],
     ['¿Cómo se desempata en la clasificación?','Por puntos; después diferencia de goles, goles a favor, goles en contra, partidos ganados, empatados, perdidos, partidos jugados y, por último, orden alfabético.'],
     ['¿Y en la tabla de goleadores?','Por goles marcados. Cuando varios jugadores empatan, se ordenan alfabéticamente entre ellos: quién marcó antes en el calendario no es un criterio deportivo.'],
-    ['¿Qué pasa si una eliminatoria acaba en empate?','Se resuelve en penaltis, y el resultado de la tanda queda reflejado en el detalle del partido.'],
+    ['¿Qué pasa si una eliminatoria acaba en empate?','Se juega una prórroga y, si persiste el empate, se resuelve en penaltis. El resultado de la tanda queda reflejado en el detalle del partido.'],
     ['¿Con qué frecuencia se juega?','Tres jornadas semanales, con horarios flexibles para adaptarse a la disponibilidad de los managers.'],
     ['¿Qué pasa si un manager no puede jugar su partido?','Se reprograma dentro de la jornada siempre que sea posible. Si aun así no se juega, el staff decide según el reglamento de incomparecencias.'],
     /* Pasaje largo (GEO): las dos preguntas cortas de arriba sobre campeón y
        ascenso/descenso se mantienen para búsquedas puntuales; ésta las junta
        en un solo bloque autocontenido de ~150 palabras para consultas del
        tipo "cómo funciona todo el formato". No introduce ningún dato nuevo,
-       solo lo reformula junto — ver auditoría GEO de esta sesión. Sin
-       traducción propia en faq-dict.js todavía: cae al español en los otros
-       9 idiomas hasta que se traduzca. */
-    ['¿Cómo funciona el formato completo de la Superliga Frontier, de la liga regular al campeón?','La Superliga Frontier decide su campeón en dos fases. La liga regular fija las posiciones de los 20 equipos. Los 6 primeros disputan la fase final: 5º contra 6º, el ganador juega el Play In contra el 4º (local por mejor clasificación), y ese ganador entra al Play Off junto al 1º, 2º y 3º: de ahí sale el campeón. Al mismo tiempo, el resultado de la liga regular decide el ascenso y el descenso entre divisiones: los tres primeros del Ascenso Frontier suben a la Superliga, y los tres últimos de la Superliga bajan al Ascenso. Ambos mecanismos comparten la misma tabla de clasificación, por lo que jugar por el título y jugar por no descender son, durante buena parte de la temporada, la misma pelea.']
+       solo lo reformula junto — ver auditoría GEO de esta sesión. Traducida
+       en faq-dict.js como faq.q3.9 / faq.a3.9. */
+    ['¿Cómo funciona el formato completo de la Superliga Frontier, de la liga regular al campeón?','La Superliga Frontier decide su campeón en dos fases. La liga regular fija las posiciones de los 10 equipos. Los 5 primeros disputan la fase final: el 4º y el 5º juegan el Play-in, su ganador se mide al 1º en semifinales y el 2º y el 3º juegan la otra; los ganadores disputan la final, y de ahí sale el campeón. Del 6º al 10º juegan el Torneo Frontier. Al mismo tiempo, el resultado de la liga regular decide el ascenso y el descenso entre divisiones: bajan los dos últimos de la Superliga y suben el 1º del Ascenso Frontier y el ganador de su Play-off (2º contra 5º y 3º contra 4º). Ambos mecanismos comparten la misma tabla de clasificación, por lo que jugar por el título y jugar por no descender son, durante buena parte de la temporada, la misma pelea.'],
+    ['¿Qué es el Torneo Frontier?','Un torneo conmemorativo de eliminación directa para el 6º, 7º, 8º, 9º y 10º de la Superliga y el 1º del Ascenso Frontier. Los cuartos se sortean entre el 8º, el 9º, el 10º y el 1º del Ascenso; un segundo sorteo cruza a los dos ganadores con el 6º y el 7º en semifinales, y los vencedores juegan la final. Son 5 partidos a partido único, con prórroga y penaltis si hace falta.']
   ]},
   {c:'La web y los datos',items:[
     ['¿Cada cuánto se actualizan los datos?','Después de cada jornada. Clasificación, resultados, goleadores y fichas salen todos del mismo archivo de datos oficial de la liga.'],
-    ['¿Qué significan los colores de la clasificación?','Marcan las zonas de Play Off, Play In, partido por el Play In y descenso en la Superliga, y la zona de ascenso en el Ascenso Frontier. La leyenda está justo debajo de la tabla.'],
+    ['¿Qué significan los colores de la clasificación?','Marcan las zonas de Play-off, Play-in y descenso en la Superliga, y las de ascenso directo y Play-off de ascenso en el Ascenso Frontier. La leyenda está justo debajo de la tabla.'],
     ['¿Qué son las afinidades elementales?','La afinidad de cada jugador dentro del juego: Fuego, Montaña, Bosque, Aire y Neutro. Aparecen en su ficha, en la tabla de goleadores y en el detalle de cada partido.'],
     ['¿Puedo compartir la ficha de un jugador o un resultado?','Sí. En la ficha de jugador y en el detalle de partido hay un botón para descargar una tarjeta en imagen, lista para publicar.'],
     ['¿En qué idiomas está la web?','En español, inglés, portugués, italiano, francés, japonés, coreano, polaco, búlgaro y serbio, desde el selector de idioma de la cabecera.'],
@@ -1846,8 +1915,8 @@ async function shareMatch(comp,idx){
   ctx.fillStyle=seam; ctx.fillRect(W/2-.5,60,1,H-120);
 
   // Cabecera: competición + fase/jornada
-  var compTxt=(comp==='ascenso'?T('comp.ascenso','Ascenso Frontier'):comp==='copa'?T('sec.copa','Copa Fútbol Frontier'):T('comp.superliga','Superliga Frontier')).toUpperCase();
-  var compCol=comp==='ascenso'?'#3E7BFF':comp==='copa'?'#FF3B3B':'#FF5100';
+  var compTxt=(comp==='ascenso'?T('comp.ascenso','Ascenso Frontier'):comp==='copa'?T('sec.copa','Fútbol Frontier'):comp==='torneo'?T('sec.torneo','Torneo Frontier'):T('comp.superliga','Superliga Frontier')).toUpperCase();
+  var compCol=comp==='ascenso'?'#3E7BFF':comp==='copa'?'#FF3B3B':comp==='torneo'?'#22C57F':'#FF5100';
   var sub=(p.fase?faseName(p.fase):T('jornada.label','JORNADA')+' '+(p.jornada||'')).toUpperCase();
   var HF='600 15px '+F_MONO;
   var w1=pillWidth(ctx,compTxt,HF,20), w2=pillWidth(ctx,sub,HF,20);
@@ -2188,7 +2257,7 @@ document.addEventListener('DOMContentLoaded', function(){
       if(en.isIntersecting) tabLinks.forEach(function(l){ l.classList.toggle('on',l.getAttribute('href')==='#'+en.target.id); });
     });
   },{rootMargin:'-40% 0px -55% 0px'});
-  ['clasificacion','resultados','copa','equipos','goleadores'].forEach(function(id){ var el=$(id); if(el) io.observe(el); });
+  ['clasificacion','resultados','copa','torneo','equipos','goleadores'].forEach(function(id){ var el=$(id); if(el) io.observe(el); });
 
   document.addEventListener('mousemove',function(e){
     var c=e.target.closest ? e.target.closest('.spotlight') : null; if(!c) return;
@@ -2428,8 +2497,8 @@ function observeReveals(){
 window.renderClasificacion=function(){ renderClas(curDiv); };
 window.renderTarjetasEquipos=function(){ renderTeams(curTeamDiv); };
 window.initGoleadores=function(){ renderScorers(curGol); };
-window.renderPartidosCopa=function(){ renderCopa(); renderMatches(); };
+window.renderPartidosCopa=function(){ renderCopa(); renderTorneo(); renderMatches(); };
 window.renderNoticias=function(){ renderNews(); };
-window.renderArbolCopa=function(){ renderCopa(); renderPlayoff(); };
+window.renderArbolCopa=function(){ renderCopa(); renderTorneo(); renderPlayoff(); };
 
 })();

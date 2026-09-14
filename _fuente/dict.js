@@ -37,6 +37,7 @@ window.SF_DICT = {
 'nav.leyendas':    ['Leyendas','Legends','Lendas','Leggende','Légendes','レジェンド','레전드','Legendy','Легенди','Легенде'],
 'nav.faq':         ['FAQ','FAQ','FAQ','FAQ','FAQ','よくある質問','자주 묻는 질문','FAQ','Въпроси','Питања'],
 'nav.copa':        ['Copa','Cup','Taça','Coppa','Coupe','カップ','컵','Puchar','Купа','Куп'],
+'nav.torneo': ['Torneo','Tournament','Torneio','Torneo','Tournoi','トーナメント','토너먼트','Turniej','Турнир','Турнир'],
 'skip.content':    ['Saltar al contenido','Skip to content','Saltar para o conteúdo','Vai al contenuto','Aller au contenu','本文へスキップ','본문으로 건너뛰기','Przejdź do treści','Към съдържанието','Пређи на садржај'],
 'scroll':          ['Scroll','Scroll','Deslizar','Scorri','Défiler','スクロール','스크롤','Przewiń','Скрол','Скрол'],
 
@@ -109,11 +110,13 @@ window.SF_DICT = {
 'sec.clas':         ['Clasificación','Standings','Classificação','Classifica','Classement','順位表','순위표','Tabela','Класиране','Табела'],
 'sec.resultados.kicker': ['Jornada a jornada','Matchday by matchday','Jornada a jornada','Giornata per giornata','Journée après journée','節ごとの結果','라운드별 결과','Kolejka po kolejce','Кръг по кръг','Коло по коло'],
 'sec.resultados':   ['Resultados','Results','Resultados','Risultati','Résultats','試合結果','경기 결과','Wyniki','Резултати','Резултати'],
-'sec.copa.kicker':  ['Grupos + eliminatorias','Groups + knockout','Grupos + eliminatórias','Gironi + eliminazione diretta','Groupes + phase finale','グループ+決勝トーナメント','조별리그 + 토너먼트','Grupy + faza pucharowa','Групи + елиминации','Групе + нокаут фаза'],
+'sec.copa.kicker':  ['Copa oficial de la liga','Official league cup','Taça oficial da liga','Coppa ufficiale della lega','Coupe officielle de la ligue','リーグ公式カップ','리그 공식 컵','Oficjalny puchar ligi','Официалната купа на лигата','Званични куп лиге'],
 /* Nombre oficial confirmado por el cliente (no es la traducción literal que
    había antes). Esta clave se reutiliza en TODA la web para "Copa Fútbol
    Frontier", no sólo en el título de esta sección. */
-'sec.copa':         ['Copa Fútbol Frontier','Frontier Football Cup','Copa de Futebol Frontier','Coppa Calcio Frontier','Coupe de Football Frontier','フロンティア・フットボールカップ','프런티어 풋볼컵','Puchar Futbolu Frontier','Купа Футбол Фронтиър','Фудбалски куп Фронтиер'],
+'sec.copa':         ['Fútbol Frontier','Football Frontier','Futebol Frontier','Football Frontier','Football Frontier','フットボールフロンティア','풋볼 프론티어','Football Frontier','Футбол Фронтиър','Фудбал Фронтиер'],
+'sec.torneo.kicker': ['Torneo conmemorativo','Commemorative tournament','Torneio comemorativo','Torneo commemorativo','Tournoi commémoratif','記念トーナメント','기념 토너먼트','Turniej pamiątkowy','Възпоменателен турнир','Комеморативни турнир'],
+'sec.torneo': ['Torneo Frontier','Frontier Tournament','Torneio Frontier','Torneo Frontier','Tournoi Frontier','フロンティア・トーナメント','프런티어 토너먼트','Turniej Frontier','Турнир Фронтиър','Турнир Фронтиер'],
 'sec.equipos.kicker': ['Los clubes','The clubs','Os clubes','I club','Les clubs','クラブ一覧','클럽','Kluby','Клубовете','Клубови'],
 'sec.equipos':      ['Equipos','Teams','Equipas','Squadre','Équipes','チーム','팀','Drużyny','Отбори','Тимови'],
 'sec.goleadores.kicker': ['El único número que importa','The only number that matters','O único número que importa','L’unico numero che conta','Le seul chiffre qui compte','唯一意味のある数字','유일하게 중요한 숫자','Jedyna liczba, która się liczy','Единственото число, което има значение','Једини број који је важан'],
@@ -154,7 +157,17 @@ window.SF_DICT = {
 'th.pts':   ['Pts','Pts','Pts','Pti','Pts','点','점','Pkt','Т','Б'],
 'th.forma': ['Forma','Form','Forma','Forma','Forme','調子','최근 5경기','Forma','Форма','Форма'],
 'bracket.playoff.kicker': ['Fase final','Final phase','Fase final','Fase finale','Phase finale','決勝ラウンド','파이널 라운드','Faza finałowa','Финална фаза','Завршна фаза'],
-'bracket.playoff.title':  ['Cuadro de Play Off / Play In','Play Off / Play In bracket','Quadro de Play Off / Play In','Tabellone Play Off / Play In','Tableau Play Off / Play In','プレーオフ / プレーイン トーナメント表','플레이오프 / 플레이인 대진표','Drabinka Play Off / Play In','Схема Плейоф / Плей-ин','Жреб плеј-оф / плеј-ин'],
+'bracket.playoff.title':  ['Cuadro de Play-off / Play-in','Play-off / Play-in bracket','Quadro de Play-off / Play-in','Tabellone Play-off / Play-in','Tableau Play-off / Play-in','プレーオフ / プレーイン トーナメント表','플레이오프 / 플레이인 대진표','Drabinka Play-off / Play-in','Схема Плейоф / Плей-ин','Жреб плеј-оф / плеј-ин'],
+'bracket.playoff.ascenso': ['Cuadro del Play-off de ascenso','Promotion Play-off bracket','Quadro do Play-off de subida','Tabellone Play-off promozione','Tableau des barrages de montée','昇格プレーオフ トーナメント表','승격 플레이오프 대진표','Drabinka baraży o awans','Схема на плейофа за промоция','Жреб плеј-офа за пласман'],
+'zone.ascenso.directo': ['Ascenso directo','Automatic promotion','Subida direta','Promozione diretta','Montée directe','自動昇格','자동 승격','Bezpośredni awans','Директна промоция','Директан пласман'],
+'zone.playoff.ascenso': ['Play-off de ascenso','Promotion Play-off','Play-off de subida','Play-off promozione','Barrages de montée','昇格プレーオフ','승격 플레이오프','Baraż o awans','Плейоф за промоция','Плеј-оф за пласман'],
+'fase.preliminar': ['Preliminar','Preliminary round','Pré-eliminatória','Turno preliminare','Tour préliminaire','予備ラウンド','예비 라운드','Runda wstępna','Предварителен кръг','Претколо'],
+'grupo': ['Grupo','Group','Grupo','Girone','Groupe','グループ','조','Grupa','Група','Група'],
+'fase.grupos': ['Fase de grupos','Group stage','Fase de grupos','Fase a gironi','Phase de groupes','グループステージ','조별리그','Faza grupowa','Групова фаза','Групна фаза'],
+'br.grupo1': ['1.º Grupo {g}','Group {g} winner','1.º do Grupo {g}','1ª del Girone {g}','1er du groupe {g}','グループ{g} 1位','{g}조 1위','1. miejsce w grupie {g}','1-ви в група {g}','1. у групи {g}'],
+'br.grupo2': ['2.º Grupo {g}','Group {g} runner-up','2.º do Grupo {g}','2ª del Girone {g}','2e du groupe {g}','グループ{g} 2位','{g}조 2위','2. miejsce w grupie {g}','2-ри в група {g}','2. у групи {g}'],
+'honours.torneo': ['Torneo','Tournament','Torneio','Torneo','Tournoi','トーナメント','토너먼트','Turniej','Турнир','Турнир'],
+'empty.torneo': ['El Torneo Frontier todavía no tiene cruces publicados.','The Frontier Tournament draw has not been published yet.','O Torneio Frontier ainda não tem sorteio publicado.','Il tabellone del Torneo Frontier non è ancora pubblicato.','Le tableau du Tournoi Frontier n’est pas encore publié.','フロンティア・トーナメントの組み合わせはまだ公開されていません。','프런티어 토너먼트 대진은 아직 공개되지 않았습니다.','Drabinka Turnieju Frontier nie została jeszcze opublikowana.','Схемата на Турнир Фронтиър още не е публикувана.','Жреб Турнира Фронтиер још није објављен.'],
 
 /* ─────────────────── PIE, BUSCADOR, FICHAS ─────────────────── */
 'footer.tagline':   ['No sabes lo que te pierdes hasta que lo vives.','You have no idea what you are missing until you live it.','Não sabes o que estás a perder até o viveres.','Non sai cosa ti stai perdendo finché non lo vivi.','Tu ne sais pas ce que tu rates tant que tu ne l’as pas vécu.','体験するまで、この面白さは分かりません。','직접 겪기 전까지는 무엇을 놓치고 있는지 알 수 없습니다.','Nie wiesz, co tracisz, dopóki tego nie przeżyjesz.','Не знаеш какво изпускаш, докато не го изживееш.','Не знаш шта пропушташ док то не доживиш.'],

@@ -225,21 +225,24 @@ function pintarConfig(el){
 
    Qué son y qué no: describen cómo está montada cada competición y alimentan
    las comprobaciones del gestor y, más adelante, los generadores de calendario
-   y de sorteo. NO los lee la web pública: los cortes de la tabla (play-off,
-   play-in, descenso, ascenso) están escritos a mano dentro de renderClas() de
+   y de sorteo. NO los lee la web pública: los cortes de la tabla (Play-off,
+   Play-in, descenso, ascenso) están escritos a mano dentro de renderClas() de
    app.js. Cuando lo que se pone aquí contradice a lo que la web tiene fijo, el
    gestor lo dice en la misma línea en vez de dejar creer que ha cambiado algo.
    -------------------------------------------------------------------------- */
 var CAMPOS_FMT = {
   SUPERLIGA:[['vueltas','Vueltas','Cuántas veces se enfrentan dos clubes en la fase regular'],
              ['equipos','Equipos',''],
-             ['playoff','Plazas de play-off',''],
-             ['playin','Puesto de play-in',''],
-             ['partido_playin','Último puesto que juega el partido por el play-in',''],
+             ['playoff','Plazas directas a semifinales',''],
+             ['playin','Último puesto del Play-in',''],
+             ['torneo','Último puesto del Torneo Frontier',''],
              ['descenso','Plazas de descenso','']],
-  ASCENSO:  [['vueltas','Vueltas',''],['equipos','Equipos',''],['ascenso','Plazas de ascenso directo','']],
-  COPA:     [['equipos','Equipos',''],['grupos','Número de grupos','Define las letras disponibles al repartir'],
-             ['clasifican_por_grupo','Pasan por grupo','']]
+  ASCENSO:  [['vueltas','Vueltas',''],['equipos','Equipos',''],['ascenso','Plazas de ascenso directo',''],
+             ['playoff','Último puesto del Play-off de ascenso','']],
+  COPA:     [['equipos','Equipos',''],['preliminar','Equipos en la preliminar',''],
+             ['grupos','Número de grupos','Define las letras disponibles al repartir'],
+             ['equipos_por_grupo','Equipos por grupo',''],['clasifican_por_grupo','Pasan por grupo','']],
+  TORNEO:   [['equipos','Equipos','']]
 };
 function bloqueFormatos(c){
   var fmt = c.formatos || {};
@@ -268,7 +271,7 @@ function bloqueFormatos(c){
           (comp==='COPA'
             ? '<div class="campo"><label>Formato</label>'+
                 '<select class="inp" data-c="config:formatoTxt" data-comp="COPA" data-k="tipo">'+
-                  [['grupos','Grupos + eliminatoria'],['directa','Eliminatoria directa']].map(function(t){
+                  [['futbol_frontier','Fútbol Frontier (preliminar + grupos + eliminatorias)'],['grupos','Grupos + eliminatoria'],['directa','Eliminatoria directa']].map(function(t){
                     return '<option value="'+t[0]+'"'+(f.tipo===t[0]?' selected':'')+'>'+t[1]+'</option>'; }).join('')+
                 '</select></div>'+
               '<div class="campo"><label>Ida y vuelta en grupos</label>'+
