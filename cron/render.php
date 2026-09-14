@@ -135,14 +135,23 @@ function sf_renderClasBody(array $equipos, array $partidosLiga, string $div): st
 
 /* ---------------------------- Resultados ---------------------------- */
 
-/* HTML de #matches para la última jornada de Liga (vista por defecto de
-   Resultados) y el texto de #j-label a juego. */
+/* HTML de #matches para la jornada de Liga que toca ver por defecto en
+   Resultados (la primera con algún partido sin jugar; si ya está todo
+   jugado, la última — igual que initJornadas() de app.js) y el texto de
+   #j-label a juego. El nombre de la función es historico (antes era
+   siempre la última), no se renombra para no tocar la firma. */
 function sf_renderMatchesLastJornada(array $partidosLiga, array $equiposPorNombre): array {
     $pool = $partidosLiga;
     $jornadas = array_values(array_unique(array_filter(array_map(fn($p) => $p['jornada'] ?? null, $pool), fn($j) => $j !== null && $j !== '')));
     sort($jornadas, SORT_NUMERIC);
     if (!$jornadas) return ['<p class="muted">Sin partidos en esta vista.</p>', 'Jornada ·'];
-    $j = end($jornadas);
+    $j = null;
+    foreach ($jornadas as $cand) {
+        $pendiente = false;
+        foreach ($pool as $p) { if (($p['jornada'] ?? null) === $cand && !sf_isFin($p)) { $pendiente = true; break; } }
+        if ($pendiente) { $j = $cand; break; }
+    }
+    if ($j === null) $j = end($jornadas);
     $list = array_values(array_filter($pool, fn($p) => ($p['jornada'] ?? null) === $j));
     $esElim = count($list) > 0 && count(array_filter($list, fn($p) => !empty($p['fase']))) === count($list);
     $label = $esElim ? ($list[0]['fase'] ?? '') : ('Jornada '.$j);
@@ -165,7 +174,7 @@ function sf_renderMatchesLastJornada(array $partidosLiga, array $equiposPorNombr
             .'<div class="match-top"><span class="badge badge-superliga">Superliga Frontier</span>'.($pen ? '<span class="match-vs">VS</span>' : '').'</div>'
             .$row($tLocal, (string)($p['local'] ?? ''), $a, !$pen && $a < $b)
             .$row($tVisitante, (string)($p['visitante'] ?? ''), $b, !$pen && $b < $a)
-            .'<div class="match-foot"><span data-no-tr>'.($p['fase'] ? sf_esc($p['fase']) : ('Jornada '.sf_esc((string)($p['jornada'] ?? '')))).'</span><span>'.($pen ? 'Pendiente' : 'Finalizado').'</span></div>'
+            .'<div class="match-foot"><span data-no-tr>'.(!empty($p['fase']) ? sf_esc((string)$p['fase']) : ('Jornada '.sf_esc((string)($p['jornada'] ?? '')))).'</span><span>'.($pen ? 'Pendiente' : 'Finalizado').'</span></div>'
             .'</article>';
     }, $list));
     return [$html, $label];

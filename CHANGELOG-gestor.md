@@ -1,5 +1,30 @@
 # Changelog del gestor
 
+## 2026-09-14 (2) — Resultados abre en la primera jornada sin jugar
+
+**Antes**, `initJornadas()` (`_fuente/app.js`) y su equivalente PHP
+(`cron/render.php`, `sf_renderMatchesLastJornada()`) siempre abrían
+Resultados en la **última** jornada que hubiera en el calendario, jugada o
+no. **Ahora** abren en la **primera jornada con algún partido pendiente**:
+empieza en la 1 y, en cuanto se completa (todos sus partidos
+`FINALIZADO`), Resultados salta solo a la 2, y así sucesivamente. Si ya
+está todo jugado (o no queda ninguna pendiente), se queda en la última,
+que es el comportamiento de siempre. Aplica a Superliga y Ascenso, y por
+construcción también a las eliminatorias de liga (Play-off/Play-in), que
+comparten el mismo campo `jornada` como hueco técnico de continuación. La
+navegación manual (flechas ‹ ›) no cambia: solo se toca el punto de
+partida.
+
+De paso, `sf_renderMatchesLastJornada()` tenía un aviso de PHP
+(`Undefined array key "fase"`) en todo partido de jornada regular, porque
+`$p['fase']` se leía sin `?? ''`. Con `display_errors` activo esto se
+cuela dentro del HTML que la función escribe a fichero; se corrige a
+`!empty($p['fase'])`.
+
+Tests nuevos: `_fuente/test-jornada-defecto.js` (jsdom, contra el
+`shell.html`/`app.js` reales) y `cron/test_jornada_defecto.php` — 4
+casos cada uno (jornada 1 sin jugar, completada, a medias, todo jugado).
+
 ## 2026-09-14 — Temporada 4: Fútbol Frontier, Torneo Frontier y play-offs nuevos
 
 Formato de la Temporada 4, ajustado a los equipos activos del archivo

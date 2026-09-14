@@ -492,10 +492,18 @@ function initJornadas(){
   var jn=$('jnav');
   if(esCopa(curComp)){ jornadas=[]; if(jn) jn.style.display='none'; return; }
   if(jn) jn.style.display='';
-  jornadas=Array.from(new Set(poolOf(curComp).map(function(p){ return p.jornada; })))
+  var pool=poolOf(curComp);
+  jornadas=Array.from(new Set(pool.map(function(p){ return p.jornada; })))
     .filter(function(x){ return x!=null&&x!==''; })
     .sort(function(a,b){ return (parseInt(a)||0)-(parseInt(b)||0); });
-  jIdx=Math.max(0,jornadas.length-1);
+  /* Por defecto se abre en la primera jornada que todavía tiene algún
+     partido sin jugar: empieza en la 1 y, en cuanto se completa, salta sola
+     a la siguiente. Cuando ya está todo jugado (o no hay ninguna pendiente),
+     se queda en la última — el comportamiento de siempre. */
+  var idx=jornadas.findIndex(function(j){
+    return pool.some(function(p){ return p.jornada===j&&!isFin(p); });
+  });
+  jIdx=idx>=0?idx:Math.max(0,jornadas.length-1);
 }
 function renderMatches(){
   var pool=poolOf(curComp), list;
