@@ -1,5 +1,114 @@
 # Changelog del gestor
 
+## 2026-09-14 — Temporada 4: Fútbol Frontier, Torneo Frontier y play-offs nuevos
+
+Formato de la Temporada 4, ajustado a los equipos activos del archivo
+(10 en Superliga y 13 en Ascenso, 23 en total).
+
+**Superliga.** Play Off 1.º-3.º, Play In 4.º-5.º (desaparece el partido por
+el Play In), semifinales 1.º-ganador del Play In y 2.º-3.º, y final. Del 6.º
+al 10.º juegan el Torneo Frontier. Descienden 2. En la tabla manda el color de
+descenso sobre el de Torneo: con 10 equipos el 9.º y el 10.º están en las dos.
+
+**Ascenso.** Sube directo el 1.º. Play-off 2.º-5.º y 3.º-4.º, final, y el
+ganador sube. La web pinta ahora el cuadro de play-off también en Ascenso.
+
+**Fútbol Frontier** (antes «Copa Fútbol Frontier»). `partidos_copa` usa las
+fases PRELIMINAR, FASE DE GRUPOS, CUARTOS DE FINAL, SEMIFINALES y FINAL. Los 50
+partidos se generan de una vez desde Sorteos y en un orden fijo, porque
+`origen_*` apunta por índice. El único sorteo es la preliminar; los grupos se
+hacen **a mano** en Copa (se quita el botón «Repartir», decisión de la liga),
+con tres plazas «Ganador preliminar N» que se arrastran como un club más. El
+orden dentro del grupo es su número del 1 al 5 y fija el calendario de 5
+jornadas (`jornada` 1-5 en los partidos de grupo). Campo nuevo
+`origen_grupo_local`/`origen_grupo_visitante` ("1A", "2C") para los cuartos
+fijos. Desempate de grupo: puntos, diferencia, goles a favor y nombre, el mismo
+en `app.js`, `cron/render.php`, `core.js` y el endpoint del bot.
+
+**Torneo Frontier.** Clave nueva `partidos_torneo`, aditiva: la web, el
+renderizador PHP y el endpoint la tratan como vacía si no existe. Cuartos por
+sorteo entre 8.º, 9.º y 10.º de Primera y 1.º de Segunda; el 6.º y el 7.º
+esperan en semifinales, y su rival sale de un segundo sorteo («Sortear
+semifinales» en Sorteos, una vez jugados los cuartos). Tiene su sección en la
+web, en Resultados, en Goleadores, en el palmarés (`badge-torneo`,
+`trofeos.TORNEO`) y su pestaña en el gestor.
+
+**Los cruces encadenados llevan escrito su equipo.** Esto matiza una decisión
+anterior: `resolveSide()` sigue sin escribir y sigue siendo la verdad, pero
+`materializarCruces()` escribe en `local`/`visitante` el equipo en cuanto se
+decide, y lo borra si deja de estarlo (un resultado corregido). Motivo: el bot
+de Discord, que no se puede modificar, localiza los partidos por nombre, y un
+semifinalista que solo existe como «ganador del #45» era un partido imposible
+de reportar. Lo hacen igual el gestor (en cada cambio y al guardar) y
+`api/discord_update.php` (antes de buscar y después de guardar). Los play-offs
+de Superliga y Ascenso también se encadenan ya con `origen_*`.
+
+**Bot (`api/discord_update.php`).**
+- Además de SUPERLIGA/ASCENSO/COPA reconoce TORNEO, «Fútbol Frontier»,
+  Primera y Segunda.
+- Si el partido no casa por jornada, fase o grupo, acepta el único partido
+  pendiente entre esos dos equipos: primero en la competición indicada y
+  después en todas. Así funcionan las fases nuevas y los partidos del Torneo
+  reportados como COPA. Con más de un candidato responde 404 en vez de adivinar.
+- Las eliminatorias de liga ya no suman puntos a la clasificación; antes sí
+  contaban.
+- Los goles del Torneo cuentan en las estadísticas de jugador.
+- `normalizarTexto()` quita las marcas que deja `iconv` ("'a") y recorta los
+  espacios: con el iconv de XAMPP, «Águila» no casaba con «Aguila».
+- Penaltis: el bot no los envía. Un empate en eliminatoria se queda sin
+  ganador hasta anotar la tanda en el gestor; el siguiente reporte (o guardado)
+  ya escribe el cruce siguiente.
+
+**Sin tocar por los permisos del repo.**
+- `_fuente/styles.css`: el CSS nuevo (color del Torneo y logos de competición)
+  va en un `<style>` de `_fuente/shell.html`.
+- `datos_oficiales.json`: su `config.formatos` sigue con el formato viejo, y el
+  gestor avisa en Datos y en Configuración hasta que se cambie ahí.
+
+**Logos.** Las secciones de Fútbol Frontier y Torneo Frontier van sin logo.
+`assets/ff-icono.png`, que la web no usa, se sustituye por el icono nuevo y
+se añade `assets/tf-icono.png`.
+
+**Ajustes tras la primera revisión.**
+- El Torneo Frontier no se marca en la clasificación ni en su leyenda.
+- El Play-off de ascenso lleva un azul más claro (`.z-pa`, `#9DBDFF`) que el
+  del ascenso directo.
+- Grafía única en toda la web y el gestor: «Play-off» y «Play-in».
+- El Torneo sí tiene pestaña en la barra superior.
+- **Web cortada por la derecha en móviles estrechos (arreglo de un fallo que
+  ya existía).** Por debajo de ~370px la página era más ancha que la pantalla:
+  `.matches` pedía `minmax(330px,1fr)` y `.foot-grid` dos columnas `1fr` que no
+  encogen por debajo de su contenido. `body{overflow-x:clip}` lo tapaba en
+  Chrome, pero en navegadores sin `clip` (Safari de iOS anterior a la 16) la web
+  se desplazaba de lado. Se corrige en el `<style>` de `shell.html` con
+  `minmax(min(330px,100%),1fr)` y `repeat(2,minmax(0,1fr))`.
+- **Portada: 4 competiciones.** Contador del hero, ficha de la Temporada 4,
+  descripciones del JSON-LD y `faq.a1`/`a2`/`a5` de `i18n.js` en los 10
+  idiomas. Las temporadas 2 y 3 siguen en 3: eran tres entonces.
+- **Traducciones de lo nuevo.** Los nombres de Fútbol Frontier y Torneo
+  Frontier en avisos y FAQ usan en cada idioma el mismo nombre que el título
+  de su sección (antes: título «Frontier Tournament» y aviso «Torneo
+  Frontier»). Claves nuevas `fase.grupos` (salía «FASE DE GRUPOS» sin
+  traducir), `br.grupo1`/`br.grupo2` (las plazas pendientes salían «2.º Group
+  C» con el ordinal español).
+- **Rendimiento.**
+  - La nav fija y la barra de pestañas pierden el `backdrop-filter:blur`, que
+    se recalculaba en cada fotograma de scroll; sobre fondo negro, un negro
+    casi opaco se ve igual.
+  - `renderAll()` pinta por grupos en tareas separadas en vez de todo
+    seguido, para no bloquear el hilo varios cientos de milisegundos justo
+    cuando arrancan las animaciones de entrada. `prerender.js` espera a
+    `window.__renderListo` en vez de a dos vueltas de `setTimeout`.
+- **FAQ: pregunta larga del formato traducida.** «¿Cómo funciona el formato
+  completo…?» no tenía clave en `faq-dict.js` y en los otros 9 idiomas la
+  pasaba el traductor automático («Frontier Super League»). Ahora son
+  `faq.q3.9`/`faq.a3.9`, escritas a mano con el formato de la Temporada 4.
+
+**Pendiente, ajeno a este cambio.** `gestor/test-core.js` apunta a
+`Gestor/datos_oficiales.json` (una carpeta por encima de `htdocs/`) y, aun
+copiado a su sitio, falla en «esperaba decenas de partidos con textos
+derivados» porque la Temporada 4 todavía no tiene partidos.
+
 ## 2026-09-13 — Escudos de Fandom sin proxy
 
 **Los escudos de `static.wikia.nocookie.net` se cargan directos.** Fandom

@@ -1,0 +1,6 @@
+/dashboard/data/equipos.json
+/dashboard/data/usuarios.json
+/dashboard/data/tiers.json
+/dashboard/data/temporadas.json
+/dashboard/data/temporada-*.json
+/dashboard/data/registro.json
