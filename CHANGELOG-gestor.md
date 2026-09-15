@@ -1,5 +1,28 @@
 # Changelog del gestor
 
+## 2026-09-16 — Penalización de puntos y desempate por partidos jugados
+
+**Penalización.** Campo nuevo opcional `equipos[].penalizacion` (entero ≥ 0,
+puntos quitados por sanción), editable en la ficha del club → Clasificación.
+`pts` sigue siendo lo que lee la web y **ya va descontado**: al cambiar la
+penalización el gestor ajusta `pts` por la diferencia, y `tablaCalculada()`
+parte de `-penalizacion`, así que no aparece como desajuste. Lo mismo hacen
+`recalcularClasificacionDivision()` de `api/discord_update.php` (o el bot
+borraría la sanción al recalcular), la gráfica de evolución y la tendencia
+▲/▼ de `app.js`. Cerrar temporada elimina el campo: la sanción no se arrastra.
+Sin el campo, todo se comporta como antes.
+
+En la tabla pública, junto a los puntos de un equipo sancionado, aparece
+`−N` (en naranja, con el número en texto y el motivo en el `title`, traducido
+con la clave `clas.sancion` de `dict.js`). Mismo marcado en `sancionMarca()`
+de `app.js` y `sf_sancionMarca()` de `cron/render.php`.
+
+**Desempate.** A igualdad de puntos manda ahora tener **menos partidos
+jugados**, antes que la diferencia de goles (antes era el 8.º criterio, justo
+antes del alfabético). Quien ha jugado más ha tenido más ocasiones de marcar.
+Cambiado idéntico en `orderStandings()` de `_fuente/app.js` y `gestor/js/core.js`
+y en `sf_orderStandings()` de `cron/render.php`.
+
 ## 2026-09-14 (2) — Resultados abre en la primera jornada sin jugar
 
 **Antes**, `initJornadas()` (`_fuente/app.js`) y su equivalente PHP

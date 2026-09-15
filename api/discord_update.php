@@ -189,6 +189,14 @@ function recalcularClasificacionDivision(&$data, $division, $clavePartidos) {
             $data['equipos'][$idxVisit]['pts']++;
         }
     }
+
+    // La penalización de puntos que pone el gestor va restada en pts; al
+    // recalcular desde cero hay que volver a descontarla o se perdería.
+    foreach ($data['equipos'] as $i => $equipo) {
+        if (($equipo['division'] ?? '') === $division) {
+            $data['equipos'][$i]['pts'] -= (int)($equipo['penalizacion'] ?? 0);
+        }
+    }
 }
 
 // Recalcula la clasificación de la FASE DE GRUPOS de Copa, agrupando

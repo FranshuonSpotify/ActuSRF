@@ -61,7 +61,7 @@ function tablaHasta(div, jornada){
     .filter(function(p){ return C.isFin(p) && C.esRegular(p) && (parseInt(p.jornada)||0)<=jornada; });
   var t = {};
   d().equipos.filter(function(e){ return e.division===div && !e.archivado; })
-    .forEach(function(e){ t[e.nombre] = {nombre:e.nombre, id:e.id, pj:0,g:0,e:0,p:0,gf:0,gc:0,pts:0}; });
+    .forEach(function(e){ t[e.nombre] = {nombre:e.nombre, id:e.id, pj:0,g:0,e:0,p:0,gf:0,gc:0,pts:0-(e.penalizacion||0)}; });
   ms.forEach(function(p){
     var a = Number(C.gl(p))||0, b = Number(C.gv(p))||0;
     var L = t[p.local], V = t[p.visitante];

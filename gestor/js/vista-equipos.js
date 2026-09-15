@@ -304,6 +304,9 @@ function fichaEstadisticas(e, calc, desc){
           '<input class="inp inp-mono" type="number" value="'+(e[k]||0)+'" data-c="equipos:num" data-k="'+k+'"'+(dif?' style="border-color:var(--accent)"':'')+'>',
           dif ? 'los partidos dicen '+(calc[k]||0) : '');
       }).join('')+
+      U.campo('Penalización',
+        '<input class="inp inp-mono" type="number" min="0" step="1" value="'+(e.penalizacion||0)+'" data-c="equipos:penalizacion">',
+        'puntos que se restan a PTS')+
     '</div>'+
     '<p class="ayuda" style="margin-top:var(--g4)">Estos campos son los que la web lee para pintar la tabla. El valor calculado sale de los partidos con estado FINALIZADO de Liga y Ascenso.</p>'+
   '</div>';
@@ -728,6 +731,14 @@ var A = {
   },
   num: function(el){
     club()[el.dataset.k] = Number(el.value)||0;
+    U.cambio();
+  },
+  /* Se aplica sobre pts por diferencia con la anterior, para no pisar un pts
+     que ya estuviera bien y no obligar a pulsar "Usar lo que dicen los partidos". */
+  penalizacion: function(el){
+    var e = club(), n = Math.max(0, Math.floor(Number(el.value)||0));
+    e.pts = (e.pts||0) - (n - (e.penalizacion||0));
+    if(n) e.penalizacion = n; else delete e.penalizacion;
     U.cambio();
   },
 

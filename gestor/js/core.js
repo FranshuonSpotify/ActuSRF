@@ -91,13 +91,14 @@ function pool(comp){ return comp==='ascenso'?D.partidos_ascenso:comp==='copa'?D.
 
 /* --------------------------------------------------------------------------
    2. CLASIFICACIÓN — orderStandings() de app.js, criterio por criterio
-   Ocho desempates, no siete: entre derrotas y alfabético hay uno por partidos
-   jugados (menos jugados, más arriba). Está en el código de la web y por
-   tanto es la fórmula real.
+   A igualdad de puntos manda tener MENOS partidos jugados, antes que la
+   diferencia de goles: quien ha jugado más ha tenido más ocasiones de marcar
+   y la comparación de goles no sería justa.
    -------------------------------------------------------------------------- */
 function orderStandings(list){
   return list.slice().sort(function(a,b){
     if(b.pts!==a.pts) return b.pts-a.pts;
+    if((a.pj||0)!==(b.pj||0)) return (a.pj||0)-(b.pj||0);
     var dA=(a.gf||0)-(a.gc||0), dB=(b.gf||0)-(b.gc||0);
     if(dB!==dA) return dB-dA;
     if((b.gf||0)!==(a.gf||0)) return (b.gf||0)-(a.gf||0);
@@ -105,7 +106,6 @@ function orderStandings(list){
     if((b.g||0)!==(a.g||0)) return (b.g||0)-(a.g||0);
     if((b.e||0)!==(a.e||0)) return (b.e||0)-(a.e||0);
     if((a.p||0)!==(b.p||0)) return (a.p||0)-(b.p||0);
-    if((a.pj||0)!==(b.pj||0)) return (a.pj||0)-(b.pj||0);
     return a.nombre.localeCompare(b.nombre,'es');
   });
 }
@@ -325,7 +325,10 @@ function calcScorers(ms){
    -------------------------------------------------------------------------- */
 function tablaCalculada(){
   var t={};
-  D.equipos.forEach(function(e){ t[e.nombre]={pj:0,g:0,e:0,p:0,gf:0,gc:0,pts:0}; });
+  /* e.penalizacion: puntos quitados por sanción. Se parte de ese negativo
+     para que pts ya salga descontado y la penalización no aparezca como
+     "desajuste" con los partidos. */
+  D.equipos.forEach(function(e){ t[e.nombre]={pj:0,g:0,e:0,p:0,gf:0,gc:0,pts:0-(e.penalizacion||0)}; });
   [D.partidos_liga,D.partidos_ascenso].forEach(function(lista){
     (lista||[]).forEach(function(p){
       /* Las eliminatorias (Play-in, Play-off, final) no reparten puntos. */
@@ -412,6 +415,8 @@ function cerrarTemporada(d, opciones){
 
   d.equipos.forEach(function(e){
     CAMPOS_TABLA.forEach(function(k){ if(e[k]) resumen.equipos++; e[k]=0; });
+    /* La sanción es de la temporada que se cierra, no se arrastra. */
+    delete e.penalizacion;
     /* Un club archivado no compite: si se le siguiera cerrando la temporada
        a sus jugadores, la etapa abierta se les alargaría cada cierre aunque
        nadie haya vuelto a jugar ahí, y acabarían pareciendo activos hasta

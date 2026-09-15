@@ -68,10 +68,20 @@ function sf_divIcon(?array $e): string {
 
 /* ---------------------------- Clasificación ---------------------------- */
 
+// Marca de puntos quitados por sanción, igual que sancionMarca() de app.js.
+function sf_sancionMarca(array $e): string {
+    $n = (int)($e['penalizacion'] ?? 0);
+    if ($n <= 0) return '';
+    return ' <abbr title="'.sf_esc('Sanción: '.$n.' puntos menos').'" '
+        .'style="font-size:.6875rem;font-weight:500;color:var(--accent);text-decoration:none;white-space:nowrap;cursor:help">−'.$n.'</abbr>';
+}
+
 function sf_orderStandings(array $list): array {
     usort($list, function (array $a, array $b): int {
         $pa = (int)($a['pts'] ?? 0); $pb = (int)($b['pts'] ?? 0);
         if ($pb !== $pa) return $pb <=> $pa;
+        // A igualdad de puntos, más arriba quien ha jugado menos (igual que app.js).
+        if ((int)($a['pj'] ?? 0) !== (int)($b['pj'] ?? 0)) return (int)($a['pj'] ?? 0) <=> (int)($b['pj'] ?? 0);
         $dA = (int)($a['gf'] ?? 0) - (int)($a['gc'] ?? 0);
         $dB = (int)($b['gf'] ?? 0) - (int)($b['gc'] ?? 0);
         if ($dB !== $dA) return $dB <=> $dA;
@@ -126,7 +136,7 @@ function sf_renderClasBody(array $equipos, array $partidosLiga, string $div): st
             .'<td class="mono hide-sm">'.(int)($e['g'] ?? 0).'</td><td class="mono hide-sm">'.(int)($e['e'] ?? 0).'</td><td class="mono hide-sm">'.(int)($e['p'] ?? 0).'</td>'
             .'<td class="mono hide-sm">'.(int)($e['gf'] ?? 0).'</td><td class="mono hide-sm">'.(int)($e['gc'] ?? 0).'</td>'
             .'<td class="mono hide-xs">'.($dg > 0 ? '+' : '').$dg.'</td>'
-            .'<td class="pts">'.(int)($e['pts'] ?? 0).'</td>'
+            .'<td class="pts">'.(int)($e['pts'] ?? 0).sf_sancionMarca($e).'</td>'
             .'<td class="hide-sm"><span class="frm">'.$formHtml.'</span></td>'
             .'</tr>';
     }

@@ -333,6 +333,10 @@ function matchesOf(div){ return div==='SUPERLIGA'?bd.partidos_liga:bd.partidos_a
 function orderStandings(list){
   return list.slice().sort(function(a,b){
     if(b.pts!==a.pts) return b.pts-a.pts;
+    /* A igualdad de puntos, más arriba quien ha jugado menos: con más
+       partidos se tienen más ocasiones de marcar, así que los goles no
+       comparan en igualdad. */
+    if((a.pj||0)!==(b.pj||0)) return (a.pj||0)-(b.pj||0);
     var dA=(a.gf||0)-(a.gc||0), dB=(b.gf||0)-(b.gc||0);
     if(dB!==dA) return dB-dA;
     if((b.gf||0)!==(a.gf||0)) return (b.gf||0)-(a.gf||0);
@@ -340,22 +344,25 @@ function orderStandings(list){
     if((b.g||0)!==(a.g||0)) return (b.g||0)-(a.g||0);
     if((b.e||0)!==(a.e||0)) return (b.e||0)-(a.e||0);
     if((a.p||0)!==(b.p||0)) return (a.p||0)-(b.p||0);
-    if((a.pj||0)!==(b.pj||0)) return (a.pj||0)-(b.pj||0);
     return cmpClub(a.nombre,b.nombre);
   });
 }
 function prevOrder(div,list){
   var ms=matchesOf(div).filter(isFin);
   var maxJ=ms.reduce(function(m,p){ return Math.max(m,parseInt(p.jornada)||0); },0);
-  var t={}; list.forEach(function(e){ t[e.nombre]={pts:0,gf:0,gc:0}; });
+  /* La penalización de puntos (e.penalizacion) ya va restada en e.pts; aquí
+     se descuenta también para que la flecha de tendencia no la ignore. */
+  var t={}; list.forEach(function(e){ t[e.nombre]={pts:0-(e.penalizacion||0),gf:0,gc:0,pj:0}; });
   ms.filter(function(p){ return (parseInt(p.jornada)||0)<maxJ; }).forEach(function(p){
     if(!t[p.local]||!t[p.visitante]) return;
     var a=gl(p), b=gv(p);
+    t[p.local].pj++; t[p.visitante].pj++;
     t[p.local].gf+=a; t[p.local].gc+=b; t[p.visitante].gf+=b; t[p.visitante].gc+=a;
     if(a>b) t[p.local].pts+=3; else if(b>a) t[p.visitante].pts+=3; else { t[p.local].pts++; t[p.visitante].pts++; }
   });
   return Object.keys(t).sort(function(a,b){
     if(t[b].pts!==t[a].pts) return t[b].pts-t[a].pts;
+    if(t[a].pj!==t[b].pj) return t[a].pj-t[b].pj;
     return (t[b].gf-t[b].gc)-(t[a].gf-t[a].gc);
   });
 }
@@ -382,6 +389,16 @@ function posOf(name){
   return _posCache[name]||null;
 }
 
+/* Puntos quitados por sanción (e.penalizacion, lo pone el gestor). e.pts ya
+   viene descontado; la marca solo explica por qué no cuadra con G/E/P. Lleva
+   el número en texto, no solo color. */
+function sancionMarca(e){
+  var n=parseInt(e.penalizacion,10)||0;
+  if(n<=0) return '';
+  return ' <abbr title="'+esc(T('clas.sancion','Sanción: {n} puntos menos').replace('{n}',n))+'" '+
+    'style="font-size:.6875rem;font-weight:500;color:var(--accent);text-decoration:none;white-space:nowrap;cursor:help">−'+n+'</abbr>';
+}
+
 function renderClas(div){
   curDiv=div;
   var list=bd.equipos.filter(function(e){ return e.division===div&&!e.archivado; });
@@ -405,7 +422,7 @@ function renderClas(div){
       '<td class="mono hide-sm">'+(e.g||0)+'</td><td class="mono hide-sm">'+(e.e||0)+'</td><td class="mono hide-sm">'+(e.p||0)+'</td>'+
       '<td class="mono hide-sm">'+(e.gf||0)+'</td><td class="mono hide-sm">'+(e.gc||0)+'</td>'+
       '<td class="mono hide-xs">'+(dg>0?'+':'')+dg+'</td>'+
-      '<td class="pts">'+(e.pts||0)+'</td>'+
+      '<td class="pts">'+(e.pts||0)+sancionMarca(e)+'</td>'+
       '<td class="hide-sm"><span class="frm">'+formOf(div,e.nombre,5).map(function(r){ return '<i class="f-'+r+'"></i>'; }).join('')+'</span></td>'+
     '</tr>';
   });

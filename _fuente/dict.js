@@ -161,6 +161,7 @@ window.SF_DICT = {
 'bracket.playoff.ascenso': ['Cuadro del Play-off de ascenso','Promotion Play-off bracket','Quadro do Play-off de subida','Tabellone Play-off promozione','Tableau des barrages de montée','昇格プレーオフ トーナメント表','승격 플레이오프 대진표','Drabinka baraży o awans','Схема на плейофа за промоция','Жреб плеј-офа за пласман'],
 'zone.ascenso.directo': ['Ascenso directo','Automatic promotion','Subida direta','Promozione diretta','Montée directe','自動昇格','자동 승격','Bezpośredni awans','Директна промоция','Директан пласман'],
 'zone.playoff.ascenso': ['Play-off de ascenso','Promotion Play-off','Play-off de subida','Play-off promozione','Barrages de montée','昇格プレーオフ','승격 플레이오프','Baraż o awans','Плейоф за промоция','Плеј-оф за пласман'],
+'clas.sancion': ['Sanción: {n} puntos menos','{n}-point deduction','Sanção: menos {n} pontos','Penalizzazione di {n} punti','Pénalité de {n} points','勝ち点{n}剥奪','승점 {n}점 삭감','Kara: minus {n} pkt','Наказание: −{n} точки','Казна: одузето {n} бодова'],
 'fase.preliminar': ['Preliminar','Preliminary round','Pré-eliminatória','Turno preliminare','Tour préliminaire','予備ラウンド','예비 라운드','Runda wstępna','Предварителен кръг','Претколо'],
 'grupo': ['Grupo','Group','Grupo','Girone','Groupe','グループ','조','Grupa','Група','Група'],
 'fase.grupos': ['Fase de grupos','Group stage','Fase de grupos','Fase a gironi','Phase de groupes','グループステージ','조별리그','Faza grupowa','Групова фаза','Групна фаза'],

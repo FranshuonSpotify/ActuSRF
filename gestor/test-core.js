@@ -109,9 +109,21 @@ const ok = (m) => { n++; console.log('  ok  ' + m); };
   assert.strictEqual(primero(con({ nombre: 'A', g: 2 }), con({ nombre: 'B', g: 1 })), 'A', 'victorias');
   assert.strictEqual(primero(con({ nombre: 'A', g: 1, e: 2 }), con({ nombre: 'B', g: 1, e: 1 })), 'A', 'empates');
   assert.strictEqual(primero(con({ nombre: 'A', p: 0 }), con({ nombre: 'B', p: 1 })), 'A', 'derrotas, menos es mejor');
-  assert.strictEqual(primero(con({ nombre: 'A', pj: 2 }), con({ nombre: 'B', pj: 3 })), 'A', 'partidos jugados (8.o criterio, el que CLAUDE.md omitia)');
+  /* Partidos jugados va justo detras de puntos: gana al que tiene mejor
+     diferencia, mas goles y mas victorias si ha jugado mas. */
+  assert.strictEqual(primero(con({ nombre: 'A', pj: 2 }), con({ nombre: 'B', pj: 3, gf: 20, gc: 0, g: 3, e: 0, p: 0 })), 'A', 'menos partidos jugados, antes que los goles');
   assert.strictEqual(primero(con({ nombre: 'Alpino' }), con({ nombre: 'Zanark' })), 'Alpino', 'alfabetico');
   ok('orderStandings: los 9 criterios en orden');
+}
+
+/* -- 4b. Penalizacion de puntos: tablaCalculada la descuenta ------------ */
+{
+  const e = d.equipos.find((x) => !x.archivado);
+  const sin = C.tablaCalculada()[e.nombre].pts;
+  e.penalizacion = 3;
+  assert.strictEqual(C.tablaCalculada()[e.nombre].pts, sin - 3, 'pts descuenta la penalizacion');
+  delete e.penalizacion;
+  ok('tablaCalculada: resta la penalizacion de puntos');
 }
 
 /* -- 5. Copa: ganador y resolución en cascada -------------------------- */
