@@ -526,3 +526,41 @@ ese origen, `sfATApply(el, texto, true, origen)` no toca el texto si coincide
 con el idioma de la web y, si no, traduce con `sl=<origen>` en vez de `sl=auto`.
 Si la detección falla, se vuelve a la detección suelta de antes. Comprobado con
 los 13 equipos: todos salen `es` salvo Academia IA (`en`), que es correcto.
+
+## Historial de clubes: división real y temporada en curso
+
+- **División.** El campo `division` de cada etapa del historial es la del día
+  del fichaje y no se actualiza, así que un jugador que subió con su club
+  (Raleigh Greenstreet, Zanark Domain) seguía saliendo en "Ascenso Frontier".
+  Ahora la etapa abierta muestra la división actual del club, y la cerrada la
+  del último snapshot de `historial_temporadas` en que jugó ahí
+  (`divisionEnClub()`). El campo del JSON queda solo como último recurso.
+- **Temporada en curso.** La etapa abierta suma la temporada actual
+  (`config.temporada`) aunque no haya terminado, siempre que el club ya haya
+  jugado algún partido en ella. Greenstreet pasa de "Temporada 2 - 3 · 2" a
+  "Temporada 2 - 4 · 3". Una etapa cerrada sigue terminando en la última
+  temporada archivada en que jugó: quien se fue este año sin llegar a jugar no
+  suma la actual. De las 44 salidas de la Temporada 4, ninguna marcó con su
+  ex-club, y no hay alineaciones por jugador (`pj=0` en todo el JSON) para
+  afinar más.
+
+## URLs limpias: sin .html ni .php
+
+`.htaccess` redirige con 301 cualquier GET a `x.html`/`x.php` a `x`, y
+`index.html`/`index.php` a su carpeta (la portada queda en
+`superligafrontier.es/`). `/fr.html` y `/fr` van a `/?lang=fr`, que es la URL
+que ya declaran hreflang y sitemap. Por dentro, `/terminos` sirve
+`terminos.html` y `/supertecnicas/registro` sirve `registro.php`.
+
+- Las redirecciones miran `THE_REQUEST` para no entrar en bucle con la
+  reescritura interna, y solo actúan en GET: un 301 a un POST pierde el
+  formulario, así que los `action="guardar.php"` siguen igual.
+- Se quedan fuera `api/`, `cron/`, `config/`, `api_*.php`, `test_*.php` y el
+  fichero de verificación de Google: los llaman programas que no tienen por
+  qué seguir una redirección.
+- `Options -MultiViews` para que Apache no negocie `/terminos` por su cuenta.
+- Enlaces, canonical, hreflang y sitemap de `terminos` sin `.html`; los de
+  `404.html` a `/`.
+- Probado con un Apache 2.4 local sobre esta carpeta: 28 casos (portada,
+  idiomas, términos, 404, supertécnicas GET/POST, dashboard, gestor, API,
+  cron, verificación de Google).

@@ -1,4 +1,4 @@
-Options -Indexes
+Options -Indexes -MultiViews
 AddDefaultCharset UTF-8
 
 # Cada .html va con CSS+JS fundidos dentro (600KB+ por página, ver más abajo)
@@ -50,8 +50,40 @@ AddDefaultCharset UTF-8
     RewriteCond %{HTTPS} off
     RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
+    # URLs limpias: sin .html ni .php, y la portada siempre como "/".
+    # Las redirecciones miran THE_REQUEST (la petición tal cual llegó del
+    # navegador) y no la ruta ya reescrita: si no, la reescritura interna de
+    # más abajo (/terminos -> terminos.html) volvería a disparar el 301 y
+    # entraría en bucle. Solo GET: un 301 a un POST pierde el formulario, así
+    # que los action="guardar.php" siguen funcionando tal cual.
+    RewriteCond %{THE_REQUEST} ^GET\ /((?:[^?\ ]*/)?)index\.(?:html|php)[?\ ]
+    RewriteRule ^ /%1 [R=301,L]
+
+    # /fr.html y /fr son el mismo contenido que /?lang=fr, que es la URL que
+    # declaran hreflang y sitemap.xml: se unifican en esa.
+    RewriteCond %{THE_REQUEST} ^GET\ /(en|pt|it|fr|ja|ko|pl|bg|sr)(?:\.html)?[?\ ]
+    RewriteRule ^ /?lang=%1 [R=301,L]
+
+    # api/, cron/ y los endpoints sueltos (api_apuestas.php...) los llaman
+    # programas —cron de IONOS, Discord, fetch()— que no tienen por qué
+    # seguir una redirección; se quedan con su URL de siempre. El fichero de
+    # verificación de Google tampoco se toca.
+    RewriteCond %{REQUEST_URI} !^/(api|cron|config)/
+    RewriteCond %{REQUEST_URI} !^/(api_|test_|google[0-9a-f]+\.html)
+    RewriteCond %{THE_REQUEST} ^GET\ /([^?\ ]+)\.(?:html|php)[?\ ]
+    RewriteRule ^ /%1 [R=301,L]
+
     RewriteCond %{QUERY_STRING} (^|&)lang=(en|pt|it|fr|ja|ko|pl|bg|sr)(&|$)
     RewriteRule ^$ %2.html [L]
+
+    # Y al revés: /terminos sirve terminos.html, /dashboard/plantilla sirve
+    # plantilla.php. Una carpeta real (/gestor/) sigue yendo a su index.
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME}.html -f
+    RewriteRule ^(.+)$ $1.html [L]
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME}.php -f
+    RewriteRule ^(.+)$ $1.php [L]
 </IfModule>
 
 # 404.html existía en el sitio pero nunca estaba enganchado como página de

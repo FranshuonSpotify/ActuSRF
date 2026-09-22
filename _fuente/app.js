@@ -749,9 +749,8 @@ function seasonLabel(s){
    copia de la plantilla real de cada temporada ya cerrada —, así que la
    antigüedad se cuenta ahí: en cuántas temporadas archivadas aparece ese
    jugador en ese club.
-   La temporada en curso no cuenta hasta que se cierra y se archiva, que es
-   justo cómo la cuenta la liga: un fichaje de esta temporada sale con 0
-   hasta que la temporada termine.
+   Esto sólo cuenta temporadas archivadas; la ficha de jugador suma aparte
+   la temporada en curso a la etapa abierta (ver el historial en openPlayer).
    Limitación conocida: si alguien se fuera y volviera al mismo club, sus dos
    etapas comparten equipo_id y saldrían con el mismo recuento. Hoy no pasa
    en ningún jugador del archivo; cuando pase habrá que cortar por temporada.
@@ -790,6 +789,17 @@ function temporadasEnClub(nombreJugador, equipoId){
                .sort(function(a,b){ return a-b; });
 }
 window.temporadasEnClub=temporadasEnClub;
+/* División de la última temporada archivada en la que el jugador compitió
+   en ese club, o null. El campo division del historial es la del día del
+   fichaje y no se actualiza: un jugador que subió con su club seguía
+   saliendo como "Ascenso Frontier". */
+function divisionEnClub(nombreJugador, equipoId){
+  var idx=idxTemporadas()[equipoId+'|'+norm(nombreJugador)]||[];
+  if(!idx.length) return null;
+  var snap=(bd.historial_temporadas||[])[Math.max.apply(null,idx)];
+  var eq=snap&&(snap.equipos||[]).find(function(x){ return x.id===equipoId; });
+  return eq?eq.division:null;
+}
 
 var curTeamDiv='SUPERLIGA';
 function renderTeams(div){
@@ -1061,6 +1071,16 @@ function openPlayer(teamId,nameEnc){
        snapshot —etapas antiguas de clubes que ya no existen— se cae a las
        etiquetas del archivo. */
     var temporadas=temporadasEnClub(j.nombre, h.equipo_id);
+    /* La temporada en curso cuenta aunque no haya terminado, pero sólo en la
+       etapa abierta y si el club ya ha jugado algo en ella. Una etapa
+       cerrada termina en la última temporada archivada en la que jugó: quien
+       se fue este año sin llegar a jugar no suma la actual (comprobado: de
+       las 44 salidas de la Temporada 4 ninguna marcó con su ex-club).
+       ponytail: "el club ha jugado" es el indicio, no hay alineaciones por
+       jugador (pj=0 en todo el JSON); si algún día las hay, usar esas. */
+    var enCurso=activo&&te&&te.id===e.id&&(e.pj||0)>0;
+    var tAct=seasonNum(bd.config&&bd.config.temporada);
+    if(enCurso&&tAct!=null&&temporadas.indexOf(tAct)<0) temporadas=temporadas.concat(tAct);
     var nIni, nFin, temps;
     if(temporadas.length){
       nIni=temporadas[0]; nFin=temporadas[temporadas.length-1];
@@ -1077,7 +1097,8 @@ function openPlayer(teamId,nameEnc){
       : (nFin!=null&&nFin!==nIni)
         ? T('temporada','Temporada')+' '+nIni+' - '+nFin
         : T('temporada','Temporada')+' '+nIni;
-    var divTxt=h.division==='ASCENSO'?T('comp.ascenso','Ascenso Frontier'):(h.division==='SUPERLIGA'?T('comp.superliga','Superliga Frontier'):(h.division||'·'));
+    var div=(activo&&te&&te.id===e.id)?e.division:(divisionEnClub(j.nombre,h.equipo_id)||h.division);
+    var divTxt=div==='ASCENSO'?T('comp.ascenso','Ascenso Frontier'):(div==='SUPERLIGA'?T('comp.superliga','Superliga Frontier'):(div||'·'));
     /* La etapa abierta suma también lo marcado en la temporada en curso, que
        el JSON todavía no ha volcado al historial. */
     var golesEtapa=(h.goles||0)+(activo&&te&&te.id===e.id?golesTemporada(j):0);
@@ -1290,7 +1311,7 @@ function openNews(i){
             '<dt>'+T('news.fecha','Fecha')+'</dt><dd>'+esc(n.fecha||'·')+'</dd>'+
             (n.tag?'<dt>'+T('news.seccion','Sección')+'</dt><dd>'+esc(n.tag)+'</dd>':'')+
           '</dl>'+
-          '<a href="https://discord.gg/KgEBHA87fF" target="_blank" rel="noopener" class="btn btn-secondary"><i class="ph-bold ph-discord-logo"></i> '+T('news.comentar','Comentar en Discord')+'</a>'+
+          '<a href="https://discord.gg/superligafrontier" target="_blank" rel="noopener" class="btn btn-secondary"><i class="ph-bold ph-discord-logo"></i> '+T('news.comentar','Comentar en Discord')+'</a>'+
         '</aside>'+
         '<div class="art-text"><p>'+esc(n.cuerpo||'')+'</p></div>'+
       '</div>'+
