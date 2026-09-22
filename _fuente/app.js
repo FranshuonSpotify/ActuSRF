@@ -1062,7 +1062,17 @@ function openPlayer(teamId,nameEnc){
      nada. Ahora cada club es una fila desplegable con lo que de verdad se
      pregunta: cuántos goles marcó ahí, cuántas temporadas estuvo y si sigue
      en el club o ya lo dejó (campo `abierto` del JSON). */
-  var hist=(j.historial||[]).map(function(h,hi){
+  /* El historial solo gana una entrada con un traspaso: quien está en su
+     primera temporada en la liga (118 jugadores al empezar la Temporada 4)
+     lo tenía vacío y la ficha no enseñaba ningún club. Se añade la etapa
+     abierta en el club actual; el resto (temporada en curso, división,
+     goles) lo resuelve el mismo cálculo que para cualquier otra etapa. */
+  var etapas=(j.historial||[]).slice();
+  if(!etapas.some(function(h){ return h.equipo_id===e.id; })){
+    etapas.push({equipo:e.nombre, equipo_id:e.id, division:e.division, abierto:true, goles:0,
+      temporada_inicio:(bd.config&&bd.config.temporada)||''});
+  }
+  var hist=etapas.map(function(h,hi){
     var cl=clubHist(h), te=cl.e;
     var activo=h.abierto===true;
     /* Temporadas cerradas en las que ese jugador aparece de verdad en este

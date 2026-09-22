@@ -564,3 +564,11 @@ que ya declaran hreflang y sitemap. Por dentro, `/terminos` sirve
 - Probado con un Apache 2.4 local sobre esta carpeta: 28 casos (portada,
   idiomas, términos, 404, supertécnicas GET/POST, dashboard, gestor, API,
   cron, verificación de Google).
+
+**Ampliación — primera temporada en un club.** El historial de un jugador solo
+gana una entrada con un traspaso, así que quien está en su primera temporada
+en la liga (118 jugadores al empezar la Temporada 4) lo tenía vacío y la ficha
+no enseñaba ningún club. Si el historial no incluye el club actual, la ficha
+añade una etapa abierta en él, con el mismo cálculo que las demás: Jude Gordon
+(Brain) sale como "Temporada 4 · 1 temporada · Ascenso Frontier". El JSON no
+se toca.
