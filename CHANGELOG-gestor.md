@@ -503,3 +503,26 @@ saliendo de verdad a la red y verifica que la bio del fundador, la cronología y
 las reseñas acaban traducidas, y que la caché no guarda originales sin traducir.
 Si no hay conexión, avisa y no falla: prueba el camino del código, no que
 Google esté disponible.
+
+## Supertécnicas: no se traducen si ya están en el idioma de la web
+
+El traductor (`sl=auto`) ya devolvía el idioma detectado de cada texto, pero se
+ignoraba: una supertécnica escrita en francés con la web en francés pasaba por
+una "traducción" fr→fr que cambiaba mayúsculas o reescribía palabras.
+`_sfATTextos()` compara ahora el idioma detectado con el de la web y, si
+coinciden, devuelve el original intacto; si no, la traducción. Vale para
+nombre y descripción de supertécnica y para cualquier otro texto que pase por
+el traductor, en los diez idiomas. `SF_CACHE_V` sube a `v4` para tirar las
+entradas de caché que guardaban esas reescrituras.
+
+**Comprobación:** `node _fuente/test-idioma-origen.js` (sin red).
+
+**Ampliación — idioma detectado por equipo.** Detectar el idioma de cada
+nombre suelto no basta: son demasiado cortos. "Grandius" (Mark Evans) salía
+como latín y se "traducía" a "Más grande"; "Mano Celestial", como inglés. Ahora
+la ficha de jugador junta todas las técnicas del equipo (las escribe su
+presidente) y detecta el idioma una vez (`sfDetectarIdioma()`, en caché). Con
+ese origen, `sfATApply(el, texto, true, origen)` no toca el texto si coincide
+con el idioma de la web y, si no, traduce con `sl=<origen>` en vez de `sl=auto`.
+Si la detección falla, se vuelve a la detección suelta de antes. Comprobado con
+los 13 equipos: todos salen `es` salvo Academia IA (`en`), que es correcto.

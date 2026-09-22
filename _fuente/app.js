@@ -1138,13 +1138,29 @@ function openPlayer(teamId,nameEnc){
         '<button class="btn btn-secondary" data-share-player="'+esc(e.id)+'|'+esc(encodeURIComponent(j.nombre))+'"><i class="ph-bold ph-download-simple"></i> Descargar carta</button>'+
       '</div>'+
     '</div>';
-  (j.supertecnicas||[]).forEach(function(t,ti){
-    if(!window.sfATApply) return;
-    var elN=document.querySelector('#sheet-player-body [data-tech-nombre="'+ti+'"]');
-    if(elN && t.nombre) sfATApply(elN, t.nombre, true);
-    var elD=document.querySelector('#sheet-player-body [data-tech-desc="'+ti+'"]');
-    if(elD && t.descripcion) sfATApply(elD, t.descripcion, true);
-  });
+  /* El idioma se detecta con TODAS las técnicas del equipo juntas (las
+     escribe su presidente): un nombre suelto es demasiado corto y el
+     traductor lo adivinaba mal ("Grandius" como latín -> "Más grande").
+     Con el idioma de origen fijado, si coincide con el de la web el texto
+     no se toca; si no, se traduce desde ese idioma. Si la detección falla
+     (null), cada texto vuelve a la detección suelta de siempre. */
+  if(window.sfATApply && (j.supertecnicas||[]).length){
+    var textoEquipo=(e.jugadores||[]).map(function(jj){
+      return (jj.supertecnicas||[]).map(function(t){ return [t.nombre,t.descripcion].filter(Boolean).join('. '); }).join('. ');
+    }).filter(Boolean).join('. ');
+    /* Los nodos se cogen YA: si se abre otra ficha antes de que llegue la
+       detección, se escribe en nodos desenganchados, no en la ficha nueva. */
+    var nodosTec=(j.supertecnicas||[]).map(function(t,ti){
+      return [document.querySelector('#sheet-player-body [data-tech-nombre="'+ti+'"]'),
+              document.querySelector('#sheet-player-body [data-tech-desc="'+ti+'"]')];
+    });
+    (window.sfDetectarIdioma ? sfDetectarIdioma(textoEquipo) : Promise.resolve(null)).then(function(origen){
+      (j.supertecnicas||[]).forEach(function(t,ti){
+        if(nodosTec[ti][0] && t.nombre) sfATApply(nodosTec[ti][0], t.nombre, true, origen||undefined);
+        if(nodosTec[ti][1] && t.descripcion) sfATApply(nodosTec[ti][1], t.descripcion, true, origen||undefined);
+      });
+    });
+  }
   openSheet('sheet-player');
 }
 

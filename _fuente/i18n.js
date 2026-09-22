@@ -203,7 +203,9 @@
            entera: sin esto, una traducción mala se quedaba pegada para siempre
            en el navegador de quien la hubiera cogido. Se limita el tamaño
            porque localStorage ronda los 5 MB y la web tiene mucho texto. */
-        var SF_CACHE_V = 'v3';
+        /* v4: la caché v3 guarda "traducciones" de un idioma a sí mismo
+           (fr→fr con mayúsculas cambiadas); _sfATTextos ya no las produce. */
+        var SF_CACHE_V = 'v4';
         var SF_CACHE_MAX = 4000;
         var _sfATCache = (function() {
             try {
@@ -245,20 +247,28 @@
            sfATApply(forzar) traduce texto libre de idioma desconocido —el
            nombre de una supertécnica lo puede haber escrito un presidente en
            francés o en japonés— y con sl=es fijo eso volvía sin tocar. */
-        function _sfATUrl(textos, lang) {
-            return 'https://translate.googleapis.com/translate_a/t?client=dict-chrome-ex&sl=auto&tl=' + lang +
+        function _sfATUrl(textos, lang, origen) {
+            return 'https://translate.googleapis.com/translate_a/t?client=dict-chrome-ex&sl=' + (origen || 'auto') + '&tl=' + lang +
                 textos.map(function(t){ return '&q=' + encodeURIComponent(t); }).join('');
         }
 
         /* La respuesta cambia de forma según sl: con sl=auto viene
            [[traducción, idioma detectado], ...] y con sl=<idioma> viene
            [traducción, ...]. Se aceptan las dos y se devuelve null si el
-           reparto no cuadra, que es la señal de "no escribas nada". */
-        function _sfATTextos(data, cuantos) {
-            if (!Array.isArray(data) || data.length !== cuantos) return null;
-            var out = data.map(function(x) {
+           reparto no cuadra, que es la señal de "no escribas nada".
+
+           Si el idioma detectado ya es el de la web, se devuelve el original
+           intacto: una supertécnica escrita en francés se lee tal cual con la
+           web en francés, en vez de pasar por una "traducción" fr→fr que
+           cambia mayúsculas o reescribe palabras. Se compara sólo el prefijo
+           ("zh-CN" → "zh") porque los códigos de la web son de dos letras. */
+        function _sfATTextos(data, originales, lang) {
+            if (!Array.isArray(data) || data.length !== originales.length) return null;
+            var out = data.map(function(x, i) {
                 if (typeof x === 'string') return x;
-                return (Array.isArray(x) && typeof x[0] === 'string') ? x[0] : null;
+                if (!Array.isArray(x) || typeof x[0] !== 'string') return null;
+                if (typeof x[1] === 'string' && x[1].split('-')[0].toLowerCase() === lang) return originales[i];
+                return x[0];
             });
             return out.some(function(t){ return t == null; }) ? null : out;
         }
@@ -285,11 +295,14 @@
             }
         }
 
-        async function sfATFetch(text, lang) {
+        /* origen (opcional): idioma de partida ya conocido. La clave de caché
+           lo incluye porque "Grandius" desde latín y desde español no dan lo
+           mismo. */
+        async function sfATFetch(text, lang, origen) {
             if (!text || !text.trim()) return text;
-            var key = _sfATKey(text, lang);
+            var key = _sfATKey(text, origen ? origen + '>' + lang : lang);
             if (_sfATCache[key] !== undefined) return _sfATCache[key];
-            var queued = await _sfQueue(function(){ return _sfATRequest(text, lang); });
+            var queued = await _sfQueue(function(){ return _sfATRequest(text, lang, origen); });
             return queued == null ? text : queued;
         }
 
@@ -298,13 +311,13 @@
            cachear el original como si fuese la traducción dejaba la cadena
            congelada en español PARA SIEMPRE, aunque el traductor volviera a
            funcionar. Así estaban las 40 entradas de caché en producción. */
-        async function _sfATRequest(text, lang) {
-            var key = _sfATKey(text, lang);
+        async function _sfATRequest(text, lang, origen) {
+            var key = _sfATKey(text, origen ? origen + '>' + lang : lang);
             if (_sfATCache[key] !== undefined) return _sfATCache[key];
             try {
-                var resp = await fetch(_sfATUrl([text], lang));
+                var resp = await fetch(_sfATUrl([text], lang, origen));
                 if (!resp.ok) throw new Error('translate fail');
-                var textos = _sfATTextos(await resp.json(), 1);
+                var textos = _sfATTextos(await resp.json(), [text], lang);
                 if (!textos) throw new Error('respuesta inesperada');
                 _sfATCache[key] = textos[0];
                 _sfATSaveCache();
@@ -312,6 +325,25 @@
             } catch(e) {
                 return null;
             }
+        }
+
+        /* Idioma de un bloque de texto, o null si no se sabe. Sirve para
+           textos cortos cuyo idioma no se puede adivinar sueltos: "Grandius"
+           a solas sale latín y "Mano Celestial" inglés, pero todas las
+           técnicas de un equipo juntas (las escribe el mismo presidente)
+           se detectan bien. Se pide con tl=en sólo para leer la detección. */
+        async function sfDetectarIdioma(texto) {
+            texto = String(texto || '').slice(0, 1500);
+            if (!texto.trim()) return null;
+            var key = 'det::' + texto;
+            if (_sfATCache[key] !== undefined) return _sfATCache[key];
+            return _sfQueue(async function() {
+                var data = await (await fetch(_sfATUrl([texto], 'en'))).json();
+                var det = Array.isArray(data) && Array.isArray(data[0]) && typeof data[0][1] === 'string'
+                    ? data[0][1].split('-')[0].toLowerCase() : null;
+                if (det) { _sfATCache[key] = det; _sfATSaveCache(); }
+                return det;
+            });
         }
 
         /* forzar=true traduce también hacia español. Por defecto español es
@@ -330,15 +362,19 @@
             return s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
         }
 
-        function sfATApply(el, text, forzar) {
+        function sfATApply(el, text, forzar, origen) {
             if (!el || !text) return;
             var lang = sfGetLang();
             if (lang === 'es' && !forzar) { el.textContent = text; return; }
             el.textContent = text;
-            var key = _sfATKey(text, lang);
-            if (_sfATCache[key] !== undefined) { el.textContent = sfCapitalizarInicial(_sfATCache[key]); return; }
-            sfATFetch(text, lang).then(function(res) {
-                if (sfGetLang() === lang) el.textContent = sfCapitalizarInicial(res);
+            if (origen === lang) return;
+            var key = _sfATKey(text, origen ? origen + '>' + lang : lang);
+            /* Texto que ya estaba en el idioma de la web vuelve idéntico (ver
+               _sfATTextos) y se deja tal cual lo escribió su autor. */
+            function poner(res) { el.textContent = res === text ? text : sfCapitalizarInicial(res); }
+            if (_sfATCache[key] !== undefined) { poner(_sfATCache[key]); return; }
+            sfATFetch(text, lang, origen).then(function(res) {
+                if (sfGetLang() === lang) poner(res);
             });
         }
 
@@ -538,7 +574,7 @@
             try {
                 var resp = await fetch(_sfATUrl(list, lang));
                 if (!resp.ok) throw new Error('translate fail');
-                return _sfATTextos(await resp.json(), list.length);
+                return _sfATTextos(await resp.json(), list, lang);
             } catch (e) { return null; }
         }
 
@@ -938,6 +974,7 @@
         window.sfT = sfT;
         window.sfATApply = sfATApply;
         window.sfATFetch = sfATFetch;
+        window.sfDetectarIdioma = sfDetectarIdioma;
         window.sfAfinidadLabel = sfAfinidadLabel;
         window.sfGetLang = sfGetLang;
         window.sfTipoLabel = sfTipoLabel;
