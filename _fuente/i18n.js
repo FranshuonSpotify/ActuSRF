@@ -939,6 +939,7 @@
            nombre: en japonés y coreano el orden gramatical es el inverso
            (posesivo + cargo), una plantilla fija lo habría roto. */
         'resenas.rol.superliga':['Presidente de la Superliga Frontier','President of Frontier Superleague','Presidente da Superliga Frontier','Presidente della Superlega Frontier','Président de la Superligue Frontier','フロンティア・スーパーリーグ会長','프런티어 슈퍼리그 회장','Prezes Superliga Frontier','Президент на Суперлига Фронтиър','Председник Суперлиге Фронтиер'],
+        'resenas.rol.exsuperliga':['Ex-presidente de la Superliga Frontier','Former President of Frontier Superleague','Ex-presidente da Superliga Frontier','Ex presidente della Superlega Frontier','Ancien président de la Superligue Frontier','フロンティア・スーパーリーグ元会長','프런티어 슈퍼리그 전 회장','Były prezes Superliga Frontier','Бивш президент на Суперлига Фронтиър','Бивши председник Суперлиге Фронтиер'],
         'resenas.rol.ascenso':['Presidente del Ascenso Frontier','President of Frontier Championship','Presidente do Acesso Frontier','Presidente della Cadetta Frontier','Président du Championnat Frontier','フロンティア・チャンピオンシップ会長','프런티어 챔피언십 회장','Prezes Awans Frontier','Президент на Фронтиър Чемпиъншип','Председник Фронтиер Чемпионата'],
         'resenas.rol.exjugador':['Ex-jugador reclutado','Recruited ex-player','Ex-jogador recrutado','Ex giocatore reclutato','Ancien joueur recruté','スカウトされた元選手','영입된 전 선수','Zwerbowany były zawodnik','Привлечен бивш играч','Регрутован бивши играч']
         };

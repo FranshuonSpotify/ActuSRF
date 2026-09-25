@@ -1200,8 +1200,12 @@ function openPlayer(teamId,nameEnc){
 function playerIn(teamName,nm){
   var e=team(teamName);
   if(e){
-    var n=norm(nm);
-    var f=(e.jugadores||[]).find(function(p){ var pn=norm(p.nombre); return pn===n||pn.indexOf(n)===0||n.indexOf(pn.split(' ')[0])===0; });
+    var n=norm(nm), js=e.jugadores||[];
+    /* La coincidencia exacta va primero: con solo la de "misma primera
+       palabra", "Tom Skipper" caía en "Tom Gato", que va antes en la plantilla
+       del Shuriken. Las parciales quedan para nombres abreviados. */
+    var f=js.find(function(p){ return norm(p.nombre)===n; })||
+          js.find(function(p){ var pn=norm(p.nombre); return pn.indexOf(n)===0||n.indexOf(pn.split(' ')[0])===0; });
     if(f) return {j:f,e:e};
   }
   return findPlayer(nm);
@@ -1812,7 +1816,7 @@ window.renderFaq=renderFaq;
    los 10 idiomas (audit Tarea 2.3). En el footer, lo destacado (<b>) es el
    nombre del autor (q.s) y el rol va como subtítulo (<span>). */
 var QUOTES=[
-  {t:'Gracias a esta liga podemos seguir disfrutando el juego y crear una comunidad del juego de nuestras infancias además de todo el trabajo que hay detrás de ella.',a:'superliga',s:'Totti Alcresise',i:'assets/totti_alcresise.webp',n:9.5},
+  {t:'Gracias a esta liga podemos seguir disfrutando el juego y crear una comunidad del juego de nuestras infancias además de todo el trabajo que hay detrás de ella.',a:'exsuperliga',s:'Totti Alcresise',i:'assets/totti_alcresise.webp',n:9.5},
   {t:'Gracias a esta liga aprendí muchas cosas, entre ellas, a saber aceptar consejos. Personalmente, creo que la liga es lo que mantendrá viva a la comunidad del juego.',a:'ascenso',s:'manueljoinazuma788',i:'assets/manu.webp',n:9.6},
   {t:'Llevo tres ligas distintas probadas y esta es la única donde perder no se siente como una excusa de mala suerte del rival.',a:'exjugador',s:'Contenido de ejemplo',i:'assets/payo-aguao.webp',n:9.2}
 ];
