@@ -1,0 +1,63 @@
+/* lesiones/css/lesiones.css
+   Se carga DESPUÉS de ../_fuente/styles.css y ../dashboard/css/dashboard.css.
+   Las pantallas usan tal cual los componentes del dashboard para verse igual
+   que él; copiarlos aquí sería tener dos versiones que acaban divergiendo.
+   Aquí solo va lo que no existe en ninguna de las dos hojas: la lista de
+   lesionados, el modal y la ceremonia de la tira. Sin tokens nuevos. */
+
+/* El atributo hidden solo oculta por la hoja del navegador ([hidden]{display:none}),
+   y cualquier display de autor gana a esa regla: .btn (inline-flex en
+   _fuente/styles.css), .confirmar y .ceremonia (flex) seguían visibles con
+   hidden puesto, y la ceremonia tapaba admin.php nada más cargar. Ninguna de
+   las dos hojas base trae una regla [hidden] global, así que va aquí. */
+[hidden]{ display:none !important; }
+
+.lista-lesionados{ list-style:none; margin:0; padding:0; display:grid; gap:.75rem; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); }
+.tarjeta-lesionado{ display:flex; align-items:center; gap:.75rem; background:var(--surface-2); border:1px solid var(--line); border-radius:var(--r); padding:.75rem; }
+.tarjeta-lesionado img{ width:40px; height:40px; border-radius:50%; object-fit:cover; }
+
+/* --------------------------------------------------------- confirmar */
+/* Nombre propio, no ".modal": dashboard.css ya define ".modal" para un
+   <dialog> nativo (backdrop, position:fixed centrado por UA, [open]) y esto
+   es un <div> propio. Reutilizar el nombre sumaba las dos reglas en el mismo
+   elemento y rompía la caja. z-index 500: por encima de la .nav (400) de la
+   web, por debajo de sus .ov/.sheet (800-900). */
+.confirmar{ position:fixed; inset:0; background:rgba(0,0,0,.7); display:flex; align-items:center; justify-content:center; z-index:500; }
+.confirmar-caja{ background:var(--surface); border:1px solid var(--line); border-radius:var(--r-lg); padding:1.5rem; max-width:420px; width:90%; display:grid; gap:1rem; }
+.confirmar-botones{ display:flex; justify-content:flex-end; gap:.75rem; }
+
+/* ------------------------------------------------------------ ceremonia */
+/* z-index 600: por encima de la .nav (400) de la web y de .confirmar (500),
+   por debajo de sus .ov/.sheet (800-900). */
+.ceremonia{ position:fixed; inset:0; background:var(--bg,#000); display:flex; align-items:center; justify-content:center; z-index:600; padding:1rem; overflow-y:auto; }
+.ceremonia-caja{ display:grid; gap:1.25rem; justify-items:center; width:min(960px,100%); }
+.ceremonia-titulo{ font-family:var(--f-display); font-size:clamp(1.75rem,4vw,2.75rem); letter-spacing:.02em; text-align:center; }
+.ceremonia-resultado{ min-height:1.5em; font-family:var(--f-mono); color:var(--ink); text-align:center; }
+.ceremonia-botones{ display:flex; gap:.75rem; }
+
+/* La tira: la pista se desliza por debajo de un marcador fijo en el centro.
+   overflow:hidden aquí, en el contenedor, y no en body: la pista mide 48
+   casillas y sin este recorte metería scroll horizontal en toda la página.
+   La animación la pone y la quita apertura.js, que también respeta
+   prefers-reduced-motion; por eso aquí no hay transition. */
+.tira{ position:relative; width:100%; overflow:hidden; border:1px solid var(--line-2); border-radius:var(--r-lg); background:var(--surface); padding-block:1rem; }
+.tira-pista{ display:flex; gap:.75rem; padding-inline:.75rem; will-change:transform; }
+.tira-marcador{ position:absolute; top:0; bottom:0; left:50%; width:2px; margin-left:-1px; background:var(--accent); box-shadow:0 0 12px var(--accent-glow); pointer-events:none; }
+.tira-celda{ flex:0 0 140px; height:140px; display:grid; place-items:center; align-content:center; gap:.5rem; padding:.75rem; border-radius:var(--r); background:var(--surface-2); border:1px solid var(--line); text-align:center; font-weight:600; overflow-wrap:anywhere; }
+.tira-celda img, .tira-sin-foto{ width:64px; height:64px; border-radius:50%; object-fit:cover; background:var(--surface-3); }
+.tira-celda.nada{ color:var(--ink-2); }
+.tira-celda.evento{ color:var(--accent); border-color:var(--accent); }
+
+/* Lesionados ya revelados. La gravedad lleva siempre su texto (la duración),
+   el color del borde solo lo refuerza. */
+.reveladas{ list-style:none; margin:0; padding:0; display:flex; flex-wrap:wrap; gap:.75rem; justify-content:center; }
+.revelada{ display:grid; gap:.25rem; justify-items:center; padding:.75rem 1rem; border-radius:var(--r); border:2px solid var(--line-2); background:var(--surface-2); }
+.revelada-nombre{ font-weight:600; }
+.revelada-duracion{ font-family:var(--f-mono); font-size:.8125rem; color:var(--ink-2); }
+.revelada.gravedad-baja{ border-color:var(--gold,#FFC94A); }
+.revelada.gravedad-alta{ border-color:var(--accent); box-shadow:0 0 16px var(--accent-glow); }
+.revelada.gravedad-temporada{ border-color:var(--c-copa,#FF3B3B); box-shadow:0 0 24px rgba(255,59,59,.35); }
+
+@media (max-width:640px){
+  .tira-celda{ flex-basis:110px; height:120px; }
+}

@@ -1,0 +1,39 @@
+{
+  "config": {"temporada": "Temporada 4"},
+  "equipos": [
+    {
+      "id": "eq_1",
+      "nombre": "Alpino",
+      "division": "SUPERLIGA",
+      "archivado": false,
+      "jugadores": [
+        {"nombre": "Jugador Uno", "dorsal": 1, "posicion": "POR", "foto": "uno.webp"},
+        {"nombre": "Jugador Dos", "dorsal": 7, "posicion": "DEL", "foto": "dos.webp"}
+      ]
+    },
+    {
+      "id": "eq_2",
+      "nombre": "Zanark Domain",
+      "division": "ASCENSO",
+      "archivado": false,
+      "jugadores": [
+        {"nombre": "Jugador Tres", "dorsal": 4, "posicion": "DEF", "foto": "tres.webp"},
+        {"nombre": "Jugador Cuatro", "dorsal": 4, "posicion": "MED", "foto": "cuatro.webp"}
+      ]
+    },
+    {
+      "id": "eq_3",
+      "nombre": "Equipo Archivado",
+      "division": "SUPERLIGA",
+      "archivado": true,
+      "jugadores": [
+        {"nombre": "Jugador Fantasma", "dorsal": 9, "posicion": "MED", "foto": ""}
+      ]
+    }
+  ],
+  "partidos_liga": [
+    {"jornada": 1, "estado": "FINALIZADO", "local": "Alpino", "visitante": "Zanark Domain", "goles_l": 2, "goles_v": 1}
+  ],
+  "partidos_ascenso": [],
+  "partidos_copa": []
+}
