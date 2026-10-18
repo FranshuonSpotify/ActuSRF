@@ -505,12 +505,21 @@ function renderPlayoffReal(el,ms,comp){
 var curComp='liga', jornadas=[], jIdx=0;
 function poolOf(c){ return c==='liga'?bd.partidos_liga:c==='ascenso'?bd.partidos_ascenso:c==='torneo'?(bd.partidos_torneo||[]):bd.partidos_copa; }
 
+/* Jornada con la que Resultados agrupa un partido: los cruces de una misma fase
+   (p. ej. las dos semifinales del Play-off) comparten hueco aunque el JSON les
+   haya dado números distintos. */
+function jOf(p,pool){
+  if(!p.fase) return p.jornada;
+  var m=p.jornada;
+  pool.forEach(function(q){ if(q.fase===p.fase&&(parseInt(q.jornada)||0)<(parseInt(m)||0)) m=q.jornada; });
+  return m;
+}
 function initJornadas(){
   var jn=$('jnav');
   if(esCopa(curComp)){ jornadas=[]; if(jn) jn.style.display='none'; return; }
   if(jn) jn.style.display='';
   var pool=poolOf(curComp);
-  jornadas=Array.from(new Set(pool.map(function(p){ return p.jornada; })))
+  jornadas=Array.from(new Set(pool.map(function(p){ return jOf(p,pool); })))
     .filter(function(x){ return x!=null&&x!==''; })
     .sort(function(a,b){ return (parseInt(a)||0)-(parseInt(b)||0); });
   /* Por defecto se abre en la primera jornada que todavía tiene algún
@@ -518,7 +527,7 @@ function initJornadas(){
      a la siguiente. Cuando ya está todo jugado (o no hay ninguna pendiente),
      se queda en la última — el comportamiento de siempre. */
   var idx=jornadas.findIndex(function(j){
-    return pool.some(function(p){ return p.jornada===j&&!isFin(p); });
+    return pool.some(function(p){ return jOf(p,pool)===j&&!isFin(p); });
   });
   jIdx=idx>=0?idx:Math.max(0,jornadas.length-1);
 }
@@ -527,7 +536,7 @@ function renderMatches(){
   if(esCopa(curComp)) list=pool.slice();
   else {
     var j=jornadas[jIdx];
-    list=pool.filter(function(p){ return p.jornada===j; });
+    list=pool.filter(function(p){ return jOf(p,pool)===j; });
     /* Un hueco de "jornada" hecho de eliminatorias (todas sus partidos llevan
        fase) se etiqueta con esa fase, no con "Jornada N": el número es sólo
        un hueco técnico para que Resultados tenga dónde listarlas, nunca algo
@@ -644,6 +653,18 @@ function renderTorneo(){
   var el=$('bracket-torneo'); if(!el) return;
   cuadro(el,bd.partidos_torneo||[],'torneo',T('empty.torneo','El Torneo Frontier todavía no tiene cruces publicados.'));
 }
+var gruposCopa={};
+/* Vista extendida de un grupo de Copa: la misma tabla que la clasificación. */
+function openGrupo(k){
+  var rows=gruposCopa[k]; if(!rows) return;
+  $('sheet-grupo-body').innerHTML='<h3 style="margin-bottom:1rem">'+esc(T('grupo','Grupo'))+' '+esc(k)+'</h3>'+
+    '<div class="tbl-wrap"><div class="tbl-scroll"><table class="tbl"><thead><tr><th>#</th><th>'+T('th.equipo','Equipo')+'</th><th>PJ</th><th>G</th><th>E</th><th>P</th><th>GF</th><th>GC</th><th>DG</th><th>Pts</th></tr></thead><tbody>'+
+    rows.map(function(r,i){
+      var dg=r.gf-r.gc, t=team(r.n);
+      return '<tr'+(t?' data-team="'+esc(t.id)+'"':'')+'><td class="pos">'+(i+1)+'</td><td><span class="tm">'+(t?crest(t):'')+esc(X(r.n))+'</span></td><td class="mono">'+r.pj+'</td><td class="mono">'+r.g+'</td><td class="mono">'+r.e+'</td><td class="mono">'+r.p+'</td><td class="mono">'+r.gf+'</td><td class="mono">'+r.gc+'</td><td class="mono">'+(dg>0?'+':'')+dg+'</td><td class="pts">'+r.pts+'</td></tr>';
+    }).join('')+'</tbody></table></div></div>';
+  openSheet('sheet-grupo');
+}
 function renderCopa(){
   var el=$('bracket-copa'); if(!el) return;
   cuadro(el,bd.partidos_copa,'copa',T('empty.copa','La Copa todavía no tiene cruces publicados.'));
@@ -659,11 +680,11 @@ function renderCopa(){
       /* La plaza de un ganador de la preliminar aún sin decidir cuenta como
          una fila más ("ABC / DEF"), para que el grupo se vea con sus cinco. */
       var l=resolveSide(p,'local').n, v=resolveSide(p,'visitante').n;
-      [l,v].forEach(function(n){ if(!t[n]) t[n]={n:n,pts:0,gf:0,gc:0}; });
+      [l,v].forEach(function(n){ if(!t[n]) t[n]={n:n,pts:0,gf:0,gc:0,pj:0,g:0,e:0,p:0}; });
       if(!isFin(p)) return;
       var a=gl(p), b=gv(p);
-      t[l].gf+=a; t[l].gc+=b; t[v].gf+=b; t[v].gc+=a;
-      if(a>b) t[l].pts+=3; else if(b>a) t[v].pts+=3; else { t[l].pts++; t[v].pts++; }
+      t[l].gf+=a; t[l].gc+=b; t[v].gf+=b; t[v].gc+=a; t[l].pj++; t[v].pj++;
+      if(a>b){ t[l].pts+=3; t[l].g++; t[v].p++; } else if(b>a){ t[v].pts+=3; t[v].g++; t[l].p++; } else { t[l].pts++; t[v].pts++; t[l].e++; t[v].e++; }
     });
     /* Puntos, diferencia, goles a favor y nombre: el mismo orden con el que
        api/discord_update.php y el gestor deciden quién pasa a cuartos. */
@@ -673,7 +694,8 @@ function renderCopa(){
       if(b.gf!==a.gf) return b.gf-a.gf;
       return a.n<b.n?-1:a.n>b.n?1:0;
     });
-    return '<div class="card group"><h4>'+esc(T('grupo','Grupo'))+' '+esc(k)+'</h4>'+rows.map(function(r,i){
+    gruposCopa[k]=rows;
+    return '<div class="card group" data-grupo="'+esc(k)+'" role="button" tabindex="0" style="cursor:pointer"><h4>'+esc(T('grupo','Grupo'))+' '+esc(k)+'</h4>'+rows.map(function(r,i){
       return '<div class="group-row '+(i<2?'group-q':'')+'">'+(team(r.n)?crest(team(r.n),18):'')+'<span class="nm">'+esc(X(r.n))+'</span><span class="p">'+r.pts+'</span></div>';
     }).join('')+'</div>';
   }).join('');
@@ -2225,6 +2247,7 @@ document.addEventListener('click', function(ev){
     return;
   }
 
+  var gr=t.closest('[data-grupo]'); if(gr){ openGrupo(gr.dataset.grupo); return; }
   var match=t.closest('[data-idx][data-comp]'); if(match){ openMatch(match.dataset.comp,parseInt(match.dataset.idx)); return; }
   var pl=t.closest('[data-player]'); if(pl){ openPlayer(pl.dataset.team,pl.dataset.player); return; }
   var tm=t.closest('[data-team]'); if(tm){ openTeam(tm.dataset.team); return; }

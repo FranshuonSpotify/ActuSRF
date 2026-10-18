@@ -348,11 +348,11 @@ function filaPartido(p, i, comp){
       (p.fase && C.FASES_LIGA.indexOf(p.fase)<0 ? '<option selected>'+esc(p.fase)+'</option>' : '')+
     '</select></td>'+
     '<td><input class="inp inp-sm" style="width:120px" value="'+esc(p.fecha||'')+'" data-c="partidos:campo" data-i="'+i+'" data-k="fecha" placeholder="dd/mm/aaaa"></td>'+
-    '<td style="min-width:180px">'+U.selectEquipos(p.local, 'class="inp inp-sm" data-c="partidos:campo" data-i="'+i+'" data-k="local"')+'</td>'+
+    '<td style="min-width:180px">'+(elim ? ladoCopa(p, i, 'local', comp) : U.selectEquipos(p.local, 'class="inp inp-sm" data-c="partidos:campo" data-i="'+i+'" data-k="local"'))+'</td>'+
     '<td class="num"><input class="inp inp-sm inp-num" type="number" min="0" value="'+(Number(C.gl(p))||0)+'" data-c="partidos:gol" data-i="'+i+'" data-k="goles_l"></td>'+
     '<td style="color:var(--ink-5)">–</td>'+
     '<td class="num"><input class="inp inp-sm inp-num" type="number" min="0" value="'+(Number(C.gv(p))||0)+'" data-c="partidos:gol" data-i="'+i+'" data-k="goles_v"></td>'+
-    '<td style="min-width:180px">'+U.selectEquipos(p.visitante, 'class="inp inp-sm" data-c="partidos:campo" data-i="'+i+'" data-k="visitante"')+'</td>'+
+    '<td style="min-width:180px">'+(elim ? ladoCopa(p, i, 'visitante', comp) : U.selectEquipos(p.visitante, 'class="inp inp-sm" data-c="partidos:campo" data-i="'+i+'" data-k="visitante"'))+'</td>'+
     '<td><select class="inp inp-sm" style="width:auto" data-c="partidos:estado" data-i="'+i+'">'+
       ['PENDIENTE','FINALIZADO'].map(function(e){ return '<option'+(p.estado===e?' selected':'')+'>'+e+'</option>'; }).join('')+'</select></td>'+
     '<td><button class="btn btn-secondary btn-sm" data-a="partidos:eventos" data-comp="'+comp+'" data-i="'+i+'">'+
@@ -544,25 +544,28 @@ function tablaCopa(ms){
 
 /* Un lado de un cruce: o se elige el equipo a mano, o se encadena al ganador
    de otro cruce. Nunca las dos cosas, para que no haya dos verdades. */
-function ladoCopa(p, i, lado){
+function ladoCopa(p, i, lado, comp){
+  /* `comp` solo llega desde las eliminatorias de Liga/Ascenso (Play-in, Play-off):
+     mismas reglas que la Copa, pero sobre su propia lista y sus propios handlers. */
+  var L = comp ? lista(comp) : cl(), ns = comp ? 'partidos' : 'copa';
   var k = lado==='local' ? 'origen_local' : 'origen_visitante';
   var vinculado = p[k]!=null && p[k]!=='';
-  var sel = '<select class="inp inp-sm" style="margin-top:.25rem;font-size:.6875rem" data-c="copa:origen" data-i="'+i+'" data-k="'+lado+'">'+
+  var sel = '<select class="inp inp-sm" style="margin-top:.25rem;font-size:.6875rem" data-c="'+ns+':origen" data-i="'+i+'" data-k="'+lado+'">'+
     '<option value="">Equipo fijo</option>'+
-    cl().map(function(q,qi){
-      if(qi===i) return '';
+    L.map(function(q,qi){
+      if(qi===i || (comp && C.esRegular(q))) return '';
       return '<option value="'+qi+'"'+(String(p[k])===String(qi)?' selected':'')+'>Ganador de #'+qi+': '+esc(etiquetaCruce(q))+'</option>';
     }).join('')+'</select>';
 
   if(vinculado || p['origen_grupo_'+lado]){
-    var r = C.resolveSide(p, lado, cl());
+    var r = C.resolveSide(p, lado, L);
     return '<div style="font-size:.75rem;'+(r.pend?'color:var(--ink-4)':'color:var(--ink);font-weight:500')+'">'+
       (r.pend ? '<i class="ph ph-hourglass"></i> ' : '<i class="ph-bold ph-arrow-elbow-down-right" style="color:var(--accent)"></i> ')+
       esc(r.n||'—')+'</div>'+
       /* Un puesto de grupo es una regla fija del formato, no se revincula. */
       (p['origen_grupo_'+lado] ? '<div class="ayuda mono">'+esc(p['origen_grupo_'+lado])+'</div>' : sel);
   }
-  return U.selectEquipos(p[lado], 'class="inp inp-sm" data-c="copa:campo" data-i="'+i+'" data-k="'+lado+'"')+sel;
+  return U.selectEquipos(p[lado], 'class="inp inp-sm" data-c="'+ns+':campo" data-i="'+i+'" data-k="'+lado+'"')+sel;
 }
 function etiquetaCruce(q){
   var a = q.local ? C.abbr3(q.local, (C.equipo(q.local)||{}).abreviatura) : '?';
@@ -1108,6 +1111,13 @@ var A = {
        partido del reparto: las dos cosas rehacen la tabla. */
     if(k==='local'||k==='visitante'||k==='fase') trasResultado();
     else U.cambio();
+  },
+  origen: function(el){
+    var p = lista(st.comp)[Number(el.dataset.i)], lado = el.dataset.k;
+    var k = lado==='local' ? 'origen_local' : 'origen_visitante';
+    p[k] = el.value==='' ? null : Number(el.value);
+    if(el.value!=='') p[lado] = '';   // vinculado, el nombre fijo sería una segunda verdad
+    U.cambio();
   },
   gol: function(el){
     var p = lista(st.comp)[Number(el.dataset.i)];
