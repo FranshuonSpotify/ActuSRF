@@ -665,30 +665,40 @@ document.addEventListener('keydown',function(e){
    styles.css; aquí solo se arma el marcado. */
 function openGrupo(k){
   var g=gruposCopa[k]; if(!g) return;
-  var pct=g.total?Math.round(g.jugados*100/g.total):0;
-  function num(v,cls){ return '<td class="gm-c'+(cls?' '+cls:'')+'">'+v+'</td>'; }
+  var goles=g.rows.reduce(function(a,r){ return a+r.gf; },0);
+  var media=g.jugados?(goles/g.jugados).toFixed(1):'0.0';
+  /* Misma ficha que un club (tm-hero + tm-stats) y la misma tabla que la
+     clasificación de liga: nada de estilos propios. */
   $('sheet-grupo-body').innerHTML=
-    '<header class="gm-head">'+
-      '<span class="gm-eyebrow">Fútbol Frontier · '+esc(T('fase.grupos','Fase de grupos'))+'</span>'+
-      '<h3 class="gm-title"><span>'+esc(T('grupo','Grupo'))+'</span><b>'+esc(k)+'</b></h3>'+
-      '<div class="gm-meta"><span class="gm-prog" role="img" aria-label="'+pct+'%"><i style="width:'+pct+'%"></i></span>'+
-        '<span class="gm-count">'+g.jugados+' / '+g.total+' '+esc(T('grupo.partidos','partidos'))+'</span></div>'+
+    '<header class="tm-hero">'+
+      '<div class="tm-hero-wash" style="background:radial-gradient(ellipse 70% 100% at 12% 0%, var(--accent-glow), transparent 70%)"></div>'+
+      '<div class="tm-hero-in"><div>'+
+        '<h1 class="tm-name">'+esc(T('grupo','Grupo'))+' '+esc(k)+'</h1>'+
+        '<div class="tm-sub"><span class="badge badge-copa">'+esc(T('sec.copa','Fútbol Frontier'))+'</span><span>'+esc(T('fase.grupos','Fase de grupos'))+'</span></div>'+
+      '</div></div>'+
     '</header>'+
-    '<div class="gm-body"><div class="gm-scroll"><table class="gm-t"><thead><tr>'+
-      '<th class="gm-pos">#</th><th class="gm-th-team">'+esc(T('th.equipo','Equipo'))+'</th>'+
-      '<th>PJ</th><th class="hide-xs">G</th><th class="hide-xs">E</th><th class="hide-xs">P</th><th class="hide-sm">GF</th><th class="hide-sm">GC</th><th>DG</th><th class="gm-th-pts">Pts</th>'+
-    '</tr></thead><tbody>'+
-    g.rows.map(function(r,i){
-      var dg=r.gf-r.gc, t=team(r.n), q=i<2;
-      return '<tr class="'+(q?'gm-q':'')+'" style="--i:'+i+'">'+
-        '<td class="gm-pos"><span class="gm-n">'+(i+1)+'</span></td>'+
-        '<td><span class="gm-team">'+(t?crest(t,28):'')+'<b>'+esc(X(r.n))+'</b></span></td>'+
-        num(r.pj)+num(r.g,'hide-xs')+num(r.e,'hide-xs')+num(r.p,'hide-xs')+num(r.gf,'hide-sm')+num(r.gc,'hide-sm')+
-        num((dg>0?'+':'')+dg,dg>0?'gm-pos-dg':dg<0?'gm-neg-dg':'')+
-        '<td class="gm-c gm-pts"><span>'+r.pts+'</span></td></tr>';
-    }).join('')+
-    '</tbody></table></div>'+
-    '<p class="gm-leg"><i></i>'+esc(T('grupo.clasifican','Los dos primeros pasan a cuartos de final'))+'</p></div>';
+    '<div class="tm-stats" style="grid-template-columns:repeat(3,1fr)">'+
+      '<div class="tm-stat"><b class="mono">'+g.jugados+'/'+g.total+'</b><span>'+esc(T('grupo.partidos','Partidos'))+'</span></div>'+
+      '<div class="tm-stat"><b class="mono">'+goles+'</b><span>'+esc(T('grupo.goles','Goles'))+'</span></div>'+
+      '<div class="tm-stat"><b class="mono">'+media+'</b><span>'+esc(T('grupo.media','Media'))+'</span></div>'+
+    '</div>'+
+    '<div class="mt-body">'+
+      '<div class="tbl-wrap"><div class="tbl-scroll"><table class="tbl"><thead><tr>'+
+        '<th>'+T('th.pos','Pos')+'</th><th>'+T('th.equipo','Equipo')+'</th><th>'+T('th.pj','PJ')+'</th>'+
+        '<th class="hide-sm">'+T('th.g','G')+'</th><th class="hide-sm">'+T('th.e','E')+'</th><th class="hide-sm">'+T('th.p','P')+'</th>'+
+        '<th class="hide-sm">'+T('th.gf','GF')+'</th><th class="hide-sm">'+T('th.gc','GC')+'</th><th class="hide-xs">'+T('th.dg','DG')+'</th><th>'+T('th.pts','Pts')+'</th>'+
+      '</tr></thead><tbody>'+
+      g.rows.map(function(r,i){
+        var dg=r.gf-r.gc, t=team(r.n);
+        return '<tr style="cursor:default"><td class="pos"><span class="zone '+(i<2?'z-po':'')+'"></span>'+(i+1)+'</td>'+
+          '<td><span class="tm">'+(t?crest(t):'')+esc(X(r.n))+'</span></td>'+
+          '<td class="mono">'+r.pj+'</td><td class="mono hide-sm">'+r.g+'</td><td class="mono hide-sm">'+r.e+'</td><td class="mono hide-sm">'+r.p+'</td>'+
+          '<td class="mono hide-sm">'+r.gf+'</td><td class="mono hide-sm">'+r.gc+'</td><td class="mono hide-xs">'+(dg>0?'+':'')+dg+'</td>'+
+          '<td class="pts">'+r.pts+'</td></tr>';
+      }).join('')+
+      '</tbody></table></div></div>'+
+      '<div class="legend"><span><i class="z-po"></i>'+esc(T('grupo.clasifican','Pasan a cuartos de final'))+'</span></div>'+
+    '</div>';
   openSheet('sheet-grupo');
 }
 function renderCopa(){
@@ -2274,8 +2284,6 @@ document.addEventListener('click', function(ev){
   }
 
   var gr=t.closest('[data-grupo]'); if(gr){ openGrupo(gr.dataset.grupo); return; }
-  /* Modal centrado: un clic en el fondo oscuro lo cierra. */
-  if(t.classList&&t.classList.contains('sheet-scroll')&&t.parentNode.classList.contains('sheet-modal')){ closeSheets(); return; }
   var match=t.closest('[data-idx][data-comp]'); if(match){ openMatch(match.dataset.comp,parseInt(match.dataset.idx)); return; }
   var pl=t.closest('[data-player]'); if(pl){ openPlayer(pl.dataset.team,pl.dataset.player); return; }
   var tm=t.closest('[data-team]'); if(tm){ openTeam(tm.dataset.team); return; }

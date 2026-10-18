@@ -186,7 +186,13 @@ window.SF_DICT = {
 'lang.title':       ['Idioma','Language','Idioma','Lingua','Langue','言語','언어','Język','Език','Језик'],
 'champs.note':      ['Campeones calculados sobre la clasificación final archivada de esa temporada y el resultado de la final de Copa. Toca un club para abrir su ficha.','Champions derived from that season’s archived final standings and the Cup final result. Tap a club to open its profile.','Campeões calculados a partir da classificação final arquivada dessa temporada e do resultado da final da Taça. Toca num clube para abrir a ficha.','Campioni calcolati sulla classifica finale archiviata di quella stagione e sul risultato della finale di Coppa. Tocca un club per aprirne la scheda.','Champions calculés à partir du classement final archivé de cette saison et du résultat de la finale de Coupe. Touche un club pour ouvrir sa fiche.','そのシーズンの最終順位表とカップ決勝の結果から算出した優勝チームです。クラブをタップすると詳細が開きます。','해당 시즌의 최종 순위표와 컵 결승 결과로 산출한 우승팀입니다. 구단을 누르면 상세 정보가 열립니다.','Mistrzowie wyliczeni na podstawie zarchiwizowanej tabeli końcowej tego sezonu i wyniku finału Pucharu. Dotknij klubu, aby otworzyć profil.','Шампионите са изчислени по архивираното крайно класиране за този сезон и резултата от финала за Купата. Докосни клуб, за да отвориш профила му.','Шампиони израчунати на основу архивиране коначне табеле те сезоне и резултата финала Купа. Додирни клуб да отвориш профил.'],
 'snd.on':           ['Activar música','Turn music on','Ativar música','Attiva la musica','Activer la musique','音楽をオンにする','음악 켜기','Włącz muzykę','Включи музиката','Укључи музику'],
-'snd.off':          ['Silenciar música','Mute music','Silenciar música','Silenzia la musica','Couper la musique','音楽をオフにする','음악 끄기','Wycisz muzykę','Заглуши музиката','Искључи музику']
+'snd.off':          ['Silenciar música','Mute music','Silenciar música','Silenzia la musica','Couper la musique','音楽をオフにする','음악 끄기','Wycisz muzykę','Заглуши музиката','Искључи музику'],
+
+/* ─────────────────── FICHA DE GRUPO DE COPA ─────────────────── */
+'grupo.partidos':   ['Partidos','Matches','Jogos','Partite','Matchs','試合','경기','Mecze','Мачове','Мечеви'],
+'grupo.goles':      ['Goles','Goals','Golos','Gol','Buts','ゴール','골','Gole','Голове','Голови'],
+'grupo.media':      ['Media','Average','Média','Media','Moyenne','平均','평균','Średnia','Средно','Просек'],
+'grupo.clasifican': ['Pasan a cuartos de final','Advance to the quarter-finals','Passam aos quartos de final','Passano ai quarti di finale','Qualifiés pour les quarts de finale','準々決勝進出','8강 진출','Awansują do ćwierćfinałów','Класират се за четвъртфиналите','Пролазе у четвртфинале'],
 
 };
 })();
