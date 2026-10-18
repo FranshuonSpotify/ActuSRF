@@ -1443,3 +1443,82 @@ body.locked{ overflow:hidden; }
   /* anillo del hito "en curso" de la línea temporal: deja de expandirse */
   .tl-node-live::after{ animation:none; opacity:.5; }
 }
+
+/* ==========================================================================
+   MODAL DE GRUPO DE COPA (.sheet-modal + .gm-*)
+   Reutiliza la mecánica de .sheet (foco, Esc, cierre) pero centrado y como
+   tarjeta: el resto de fichas siguen a pantalla completa.
+   ========================================================================== */
+.sheet-modal{ background:rgba(0,0,0,.66); -webkit-backdrop-filter:blur(18px) saturate(140%); backdrop-filter:blur(18px) saturate(140%); }
+.sheet-modal .sheet-scroll{ display:flex; padding:clamp(.75rem,4vw,3rem); }
+.sheet-modal .sheet-bar{ position:absolute; top:clamp(.75rem,2.5vw,1.5rem); right:clamp(.75rem,2.5vw,1.5rem); padding:0; background:none; border:0; -webkit-backdrop-filter:none; backdrop-filter:none; z-index:12; }
+.sheet-modal .sheet-bar .eyebrow{ display:none; }
+.sheet-modal .sheet-bar .btn-icon{ width:44px; height:44px; background:rgba(255,255,255,.07); border:1px solid var(--line-2); color:var(--ink); border-radius:var(--r-full); }
+.sheet-modal .sheet-bar .btn-icon:hover{ background:var(--accent); border-color:var(--accent); color:#fff; }
+.sheet-modal .sheet-inner{
+  position:relative; width:min(760px,100%); margin:auto; overflow:hidden;
+  background:linear-gradient(180deg,#131313 0%,#070707 100%);
+  border:1px solid var(--line-2); border-radius:var(--r-xl);
+  box-shadow:0 50px 140px -30px #000, 0 0 0 1px rgba(255,255,255,.03) inset, 0 -120px 140px -110px var(--accent-glow) inset;
+  transform:translateY(28px) scale(.965);
+  transition:opacity 420ms var(--ease) 40ms, transform 520ms var(--ease) 40ms;
+}
+.sheet-modal.open .sheet-inner{ transform:none; }
+
+.gm-head{
+  position:relative; padding:2.25rem 2rem 1.5rem; overflow:hidden;
+  background:
+    radial-gradient(110% 150% at 0% 0%, rgba(255,81,0,.24), transparent 58%),
+    linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px) 0 0/100% 28px;
+  border-bottom:1px solid var(--line);
+}
+.gm-head::after{ content:''; position:absolute; right:-40px; top:-40px; width:220px; height:220px; border-radius:50%; background:radial-gradient(circle,rgba(255,81,0,.16),transparent 65%); pointer-events:none; }
+.gm-eyebrow{ display:inline-flex; align-items:center; gap:.55rem; font-family:var(--f-mono); font-size:.6875rem; font-weight:500; letter-spacing:.16em; text-transform:uppercase; color:var(--ink-2); }
+.gm-eyebrow::before{ content:''; width:6px; height:6px; border-radius:50%; background:var(--accent); box-shadow:0 0 10px var(--accent); }
+.gm-title{ display:flex; align-items:baseline; gap:.9rem; margin:.65rem 0 0; font-family:var(--f-display); text-transform:uppercase; line-height:.82; }
+.gm-title span{ font-size:1.5rem; font-weight:500; letter-spacing:.2em; color:var(--ink-2); }
+.gm-title b{ font-size:clamp(5.5rem,15vw,8.5rem); font-weight:600; letter-spacing:-.02em;
+  background:linear-gradient(180deg,#fff 10%,#FFB48A 55%,var(--accent) 100%); -webkit-background-clip:text; background-clip:text; color:transparent;
+  filter:drop-shadow(0 8px 36px var(--accent-glow)); }
+.gm-meta{ display:flex; align-items:center; gap:.9rem; margin-top:1.25rem; }
+.gm-prog{ width:150px; height:4px; border-radius:var(--r-full); background:rgba(255,255,255,.1); overflow:hidden; }
+.gm-prog i{ display:block; height:100%; border-radius:inherit; background:linear-gradient(90deg,var(--accent),var(--accent-2)); box-shadow:0 0 12px var(--accent-glow); }
+.gm-count{ font-family:var(--f-mono); font-size:.75rem; color:var(--ink-2); letter-spacing:-.01em; }
+
+.gm-body{ padding:1rem 1rem 1.25rem; }
+.gm-scroll{ overflow-x:auto; }
+.gm-t{ width:100%; border-collapse:separate; border-spacing:0 6px; min-width:0; }
+.gm-t th{ padding:.4rem .6rem; font-family:var(--f-mono); font-size:.625rem; font-weight:500; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-3); text-align:center; white-space:nowrap; }
+.gm-t .gm-th-team{ text-align:left; }
+.gm-t .gm-th-pts{ color:var(--ink); }
+.gm-t td{ padding:.7rem .6rem; background:rgba(255,255,255,.028); font-size:.875rem; vertical-align:middle; }
+.gm-t td:first-child{ border-radius:var(--r) 0 0 var(--r); }
+.gm-t td:last-child{ border-radius:0 var(--r) var(--r) 0; }
+.gm-c{ text-align:center; font-family:var(--f-mono); font-variant-numeric:tabular-nums; letter-spacing:-.02em; color:var(--ink-2); }
+.gm-pos-dg{ color:var(--af-bosque,#46B45F); } .gm-neg-dg{ color:#FF6B5C; }
+.gm-pos{ width:54px; text-align:center; }
+.gm-n{ display:inline-grid; place-items:center; width:28px; height:28px; border-radius:50%; font-family:var(--f-mono); font-size:.75rem; font-weight:600; color:var(--ink-3); background:rgba(255,255,255,.05); }
+.gm-team{ display:flex; align-items:center; gap:.75rem; min-width:0; color:var(--ink-2); }
+.gm-team img{ width:28px; height:28px; object-fit:contain; flex-shrink:0; }
+.gm-team b{ font-weight:550; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.gm-pts span{ display:inline-block; min-width:2.2rem; padding:.25rem .55rem; border-radius:var(--r-full); background:rgba(255,255,255,.07); color:var(--ink); font-weight:700; font-size:.9375rem; }
+.gm-q td{ background:linear-gradient(90deg,rgba(255,81,0,.16),rgba(255,255,255,.045) 62%); color:var(--ink); }
+.gm-q td:first-child{ box-shadow:inset 3px 0 0 var(--accent); }
+.gm-q .gm-team{ color:var(--ink); }
+.gm-q .gm-n{ background:var(--accent); color:#fff; box-shadow:0 0 18px var(--accent-glow); }
+.gm-q .gm-pts span{ background:var(--accent); color:#fff; }
+.gm-leg{ display:flex; align-items:center; gap:.6rem; margin:.5rem .6rem 0; font-size:.75rem; color:var(--ink-3); }
+.gm-leg i{ width:3px; height:14px; border-radius:2px; background:var(--accent); }
+
+.sheet.open .gm-t tbody tr{ animation:gmIn 560ms var(--ease) both; animation-delay:calc(180ms + var(--i,0) * 70ms); }
+@keyframes gmIn{ from{ opacity:0; transform:translateY(14px); } to{ opacity:1; transform:none; } }
+@media (max-width:640px){
+  .gm-head{ padding:1.75rem 1.25rem 1.25rem; }
+  .gm-body{ padding:.75rem .5rem 1rem; }
+  .gm-t td{ padding:.6rem .35rem; } .gm-t th{ padding:.4rem .35rem; }
+  .gm-pos{ width:40px; }
+}
+@media (prefers-reduced-motion:reduce){
+  .sheet-modal .sheet-inner{ transform:none; transition:opacity 1ms; }
+  .sheet.open .gm-t tbody tr{ animation:none; }
+}

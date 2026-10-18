@@ -654,15 +654,41 @@ function renderTorneo(){
   cuadro(el,bd.partidos_torneo||[],'torneo',T('empty.torneo','El Torneo Frontier todavía no tiene cruces publicados.'));
 }
 var gruposCopa={};
-/* Vista extendida de un grupo de Copa: la misma tabla que la clasificación. */
+/* La tarjeta de grupo es role=button: Enter / Espacio la abren como un clic. */
+document.addEventListener('keydown',function(e){
+  var d=e.target&&e.target.dataset;
+  if(d&&d.grupo&&(e.key==='Enter'||e.key===' ')){ e.preventDefault(); openGrupo(d.grupo); }
+});
+/* Vista extendida de un grupo de Copa, como modal centrado: cabecera con la
+   letra del grupo, tabla completa (los dos primeros pasan a cuartos, igual que
+   en las tarjetas) y barra de partidos jugados. El estilo vive en .gm-* de
+   styles.css; aquí solo se arma el marcado. */
 function openGrupo(k){
-  var rows=gruposCopa[k]; if(!rows) return;
-  $('sheet-grupo-body').innerHTML='<h3 style="margin-bottom:1rem">'+esc(T('grupo','Grupo'))+' '+esc(k)+'</h3>'+
-    '<div class="tbl-wrap"><div class="tbl-scroll"><table class="tbl"><thead><tr><th>#</th><th>'+T('th.equipo','Equipo')+'</th><th>PJ</th><th>G</th><th>E</th><th>P</th><th>GF</th><th>GC</th><th>DG</th><th>Pts</th></tr></thead><tbody>'+
-    rows.map(function(r,i){
-      var dg=r.gf-r.gc, t=team(r.n);
-      return '<tr'+(t?' data-team="'+esc(t.id)+'"':'')+'><td class="pos">'+(i+1)+'</td><td><span class="tm">'+(t?crest(t):'')+esc(X(r.n))+'</span></td><td class="mono">'+r.pj+'</td><td class="mono">'+r.g+'</td><td class="mono">'+r.e+'</td><td class="mono">'+r.p+'</td><td class="mono">'+r.gf+'</td><td class="mono">'+r.gc+'</td><td class="mono">'+(dg>0?'+':'')+dg+'</td><td class="pts">'+r.pts+'</td></tr>';
-    }).join('')+'</tbody></table></div></div>';
+  var g=gruposCopa[k]; if(!g) return;
+  var pct=g.total?Math.round(g.jugados*100/g.total):0;
+  function num(v,cls){ return '<td class="gm-c'+(cls?' '+cls:'')+'">'+v+'</td>'; }
+  $('sheet-grupo-body').innerHTML=
+    '<header class="gm-head">'+
+      '<span class="gm-eyebrow">Fútbol Frontier · '+esc(T('fase.grupos','Fase de grupos'))+'</span>'+
+      '<h3 class="gm-title"><span>'+esc(T('grupo','Grupo'))+'</span><b>'+esc(k)+'</b></h3>'+
+      '<div class="gm-meta"><span class="gm-prog" role="img" aria-label="'+pct+'%"><i style="width:'+pct+'%"></i></span>'+
+        '<span class="gm-count">'+g.jugados+' / '+g.total+' '+esc(T('grupo.partidos','partidos'))+'</span></div>'+
+    '</header>'+
+    '<div class="gm-body"><div class="gm-scroll"><table class="gm-t"><thead><tr>'+
+      '<th class="gm-pos">#</th><th class="gm-th-team">'+esc(T('th.equipo','Equipo'))+'</th>'+
+      '<th>PJ</th><th class="hide-xs">G</th><th class="hide-xs">E</th><th class="hide-xs">P</th><th class="hide-sm">GF</th><th class="hide-sm">GC</th><th>DG</th><th class="gm-th-pts">Pts</th>'+
+    '</tr></thead><tbody>'+
+    g.rows.map(function(r,i){
+      var dg=r.gf-r.gc, t=team(r.n), q=i<2;
+      return '<tr class="'+(q?'gm-q':'')+'" style="--i:'+i+'">'+
+        '<td class="gm-pos"><span class="gm-n">'+(i+1)+'</span></td>'+
+        '<td><span class="gm-team">'+(t?crest(t,28):'')+'<b>'+esc(X(r.n))+'</b></span></td>'+
+        num(r.pj)+num(r.g,'hide-xs')+num(r.e,'hide-xs')+num(r.p,'hide-xs')+num(r.gf,'hide-sm')+num(r.gc,'hide-sm')+
+        num((dg>0?'+':'')+dg,dg>0?'gm-pos-dg':dg<0?'gm-neg-dg':'')+
+        '<td class="gm-c gm-pts"><span>'+r.pts+'</span></td></tr>';
+    }).join('')+
+    '</tbody></table></div>'+
+    '<p class="gm-leg"><i></i>'+esc(T('grupo.clasifican','Los dos primeros pasan a cuartos de final'))+'</p></div>';
   openSheet('sheet-grupo');
 }
 function renderCopa(){
@@ -694,7 +720,7 @@ function renderCopa(){
       if(b.gf!==a.gf) return b.gf-a.gf;
       return a.n<b.n?-1:a.n>b.n?1:0;
     });
-    gruposCopa[k]=rows;
+    gruposCopa[k]={rows:rows,total:by[k].length,jugados:by[k].filter(isFin).length};
     return '<div class="card group" data-grupo="'+esc(k)+'" role="button" tabindex="0" style="cursor:pointer"><h4>'+esc(T('grupo','Grupo'))+' '+esc(k)+'</h4>'+rows.map(function(r,i){
       return '<div class="group-row '+(i<2?'group-q':'')+'">'+(team(r.n)?crest(team(r.n),18):'')+'<span class="nm">'+esc(X(r.n))+'</span><span class="p">'+r.pts+'</span></div>';
     }).join('')+'</div>';
@@ -2248,6 +2274,8 @@ document.addEventListener('click', function(ev){
   }
 
   var gr=t.closest('[data-grupo]'); if(gr){ openGrupo(gr.dataset.grupo); return; }
+  /* Modal centrado: un clic en el fondo oscuro lo cierra. */
+  if(t.classList&&t.classList.contains('sheet-scroll')&&t.parentNode.classList.contains('sheet-modal')){ closeSheets(); return; }
   var match=t.closest('[data-idx][data-comp]'); if(match){ openMatch(match.dataset.comp,parseInt(match.dataset.idx)); return; }
   var pl=t.closest('[data-player]'); if(pl){ openPlayer(pl.dataset.team,pl.dataset.player); return; }
   var tm=t.closest('[data-team]'); if(tm){ openTeam(tm.dataset.team); return; }

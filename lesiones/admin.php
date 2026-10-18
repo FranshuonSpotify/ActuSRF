@@ -26,7 +26,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_GET['accion'] ?? '') === 'tirar'
     if ($equipoId === '') {
         leResponderJson(400, ['ok' => false, 'error' => 'falta_equipo']);
     }
-    $resultado = leTirarParaEquipo($equipoId);
+    // Panel secreto (Ctrl+4): mismo camino que una tirada real, pero con el
+    // resultado puesto a mano. Se revalida entero en leTirarParaEquipo.
+    $manual = null;
+    if (is_string($_POST['manual_codigo'] ?? null) && $_POST['manual_codigo'] !== '') {
+        $ids = is_array($_POST['manual_jugadores'] ?? null) ? array_filter($_POST['manual_jugadores'], 'is_string') : [];
+        $manual = ['codigo' => $_POST['manual_codigo'], 'jugadores' => $ids];
+    }
+    $resultado = leTirarParaEquipo($equipoId, null, null, null, $manual);
     // La tira de la apertura pasa las caras de toda la plantilla antes de
     // parar en el lesionado, así que la necesita; solo cuando hay evento.
     if (($resultado['ok'] ?? false) && ($resultado['principal'] ?? '') === 'evento') {
@@ -186,6 +193,27 @@ $temporada = leTemporadaActual();
     <?php endif; ?>
   </section>
 
+  <?php // Panel secreto (Ctrl+4): lesiones asignadas a dedo. Solo equipos que aún no han tirado. ?>
+  <script type="application/json" id="manual-datos"><?= json_encode([
+      'tabla' => array_map(static fn(array $f): array => ['codigo' => $f['codigo'], 'jugadores' => $f['jugadores'], 'partidos' => $f['partidos']], LE_TABLA_SECUNDARIA),
+      'equipos' => array_map(static fn(array $eq): array => [
+          'id' => $eq['id'], 'nombre' => $eq['nombre'],
+          'jugadores' => array_map(static fn(array $j): array => ['id' => $j['id'], 'nombre' => $j['nombre']], $eq['jugadores']),
+      ], $equipos),
+  ], JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE) ?></script>
+  <div id="panel-manual" class="confirmar" hidden>
+    <form class="confirmar-caja" id="form-manual" role="dialog" aria-modal="true" aria-labelledby="manual-titulo">
+      <h2 id="manual-titulo">Asignar lesión a mano</h2>
+      <label class="ayuda">Equipo <select class="inp" id="manual-equipo"></select></label>
+      <label class="ayuda">Resultado <select class="inp" id="manual-codigo"></select></label>
+      <fieldset id="manual-jugadores" style="border:0;padding:0;max-height:40vh;overflow:auto"></fieldset>
+      <div class="confirmar-botones">
+        <button class="btn btn-secondary" type="button" id="manual-cancelar">Cancelar</button>
+        <button class="btn btn-primary" type="submit">Aplicar y tirar</button>
+      </div>
+    </form>
+  </div>
+
   <div id="modal-confirmar" class="confirmar" hidden>
     <div class="confirmar-caja" role="dialog" aria-modal="true" aria-labelledby="modal-titulo">
       <h2 id="modal-titulo">¿Tirar la ruleta de <span id="modal-equipo"></span>?</h2>
@@ -217,5 +245,6 @@ $temporada = leTemporadaActual();
 <input type="hidden" id="csrf-token" value="<?= leEsc(leTokenCsrf()) ?>">
 <script src="js/ruleta.js"></script>
 <script src="js/apertura.js"></script>
+<script src="js/manual.js"></script>
 </body>
 </html>

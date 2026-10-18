@@ -298,11 +298,30 @@ function leTirarParaEquipo(
     string $equipoId,
     ?callable $azarPrincipal = null,
     ?callable $azarSecundario = null,
-    ?callable $azarSeleccion = null
+    ?callable $azarSeleccion = null,
+    ?array $manual = null
 ): array {
     $equipo = leBuscarEquipoOficial($equipoId);
     if ($equipo === null) {
         return ['ok' => false, 'error' => 'equipo_no_encontrado'];
+    }
+
+    // Tirada a dedo (panel secreto del admin): ['codigo' => 'nada'|código de
+    // LE_TABLA_SECUNDARIA, 'jugadores' => [ids]]. Se valida ANTES de reclamar la
+    // semana, para que un dato malo no gaste la tirada del equipo.
+    $filaManual = null;
+    $elegidosManual = [];
+    if ($manual !== null && ($manual['codigo'] ?? '') !== 'nada') {
+        foreach (LE_TABLA_SECUNDARIA as $fila) {
+            if ($fila['codigo'] === ($manual['codigo'] ?? '')) $filaManual = $fila;
+        }
+        $ids = array_values(array_unique(array_map('strval', $manual['jugadores'] ?? [])));
+        foreach ($equipo['jugadores'] as $j) {
+            if (in_array((string) $j['id'], $ids, true)) $elegidosManual[] = $j;
+        }
+        if ($filaManual === null || count($elegidosManual) !== $filaManual['jugadores'] || count($ids) !== count($elegidosManual)) {
+            return ['ok' => false, 'error' => 'manual_invalido'];
+        }
     }
 
     $semana   = leSemanaISO();
@@ -315,7 +334,7 @@ function leTirarParaEquipo(
         // no fue "ya_tirado", fue un fallo de escritura.
         return ['ok' => false, 'error' => leEquipoTiradoEstaSemana($equipoId) ? 'ya_tirado' : 'escritura'];
     }
-    $principal = leTirarPrincipal($azarPrincipal);
+    $principal = $manual !== null ? ($filaManual === null ? 'nada' : 'evento') : leTirarPrincipal($azarPrincipal);
 
     // Lo necesario para anular la tirada (leAnularTirada). Se guarda justo
     // después de reclamar la semana y de escribir las lesiones, no dentro de
@@ -337,8 +356,8 @@ function leTirarParaEquipo(
         return ['ok' => true, 'principal' => 'nada'];
     }
 
-    $resultado = leTirarSecundaria($azarSecundario);
-    $elegidos  = leSeleccionarJugadores($equipo['jugadores'], (int) $resultado['jugadores'], $azarSeleccion);
+    $resultado = $filaManual ?? leTirarSecundaria($azarSecundario);
+    $elegidos  = $filaManual !== null ? $elegidosManual : leSeleccionarJugadores($equipo['jugadores'], (int) $resultado['jugadores'], $azarSeleccion);
 
     // Se lee una sola vez, antes del callback: leActualizarJson puede
     // reintentar bajo lock, y la temporada no cambia a media tirada.
