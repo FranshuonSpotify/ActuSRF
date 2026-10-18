@@ -4,25 +4,1087 @@
 
   <url>
     <loc>https://superligafrontier.es/</loc>
-    <lastmod>2026-08-08</lastmod>
-
+    <lastmod>2026-10-18</lastmod>
     <xhtml:link rel="alternate" hreflang="es" href="https://superligafrontier.es/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://superligafrontier.es/?lang=en" />
+    <xhtml:link rel="alternate" hreflang="gl" href="https://superligafrontier.es/?lang=gl" />
     <xhtml:link rel="alternate" hreflang="pt" href="https://superligafrontier.es/?lang=pt" />
-    <xhtml:link rel="alternate" hreflang="it" href="https://superligafrontier.es/?lang=it" />
     <xhtml:link rel="alternate" hreflang="fr" href="https://superligafrontier.es/?lang=fr" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://superligafrontier.es/?lang=it" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://superligafrontier.es/?lang=de" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://superligafrontier.es/?lang=ar" />
+    <xhtml:link rel="alternate" hreflang="ro" href="https://superligafrontier.es/?lang=ro" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://superligafrontier.es/?lang=nl" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://superligafrontier.es/?lang=uk" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://superligafrontier.es/?lang=ru" />
+    <xhtml:link rel="alternate" hreflang="zh" href="https://superligafrontier.es/?lang=zh" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://superligafrontier.es/?lang=pl" />
+    <xhtml:link rel="alternate" hreflang="tr" href="https://superligafrontier.es/?lang=tr" />
     <xhtml:link rel="alternate" hreflang="ja" href="https://superligafrontier.es/?lang=ja" />
     <xhtml:link rel="alternate" hreflang="ko" href="https://superligafrontier.es/?lang=ko" />
-    <xhtml:link rel="alternate" hreflang="pl" href="https://superligafrontier.es/?lang=pl" />
     <xhtml:link rel="alternate" hreflang="bg" href="https://superligafrontier.es/?lang=bg" />
     <xhtml:link rel="alternate" hreflang="sr" href="https://superligafrontier.es/?lang=sr" />
+    <xhtml:link rel="alternate" hreflang="el" href="https://superligafrontier.es/?lang=el" />
+    <xhtml:link rel="alternate" hreflang="cs" href="https://superligafrontier.es/?lang=cs" />
+    <xhtml:link rel="alternate" hreflang="hu" href="https://superligafrontier.es/?lang=hu" />
+    <xhtml:link rel="alternate" hreflang="sv" href="https://superligafrontier.es/?lang=sv" />
+    <xhtml:link rel="alternate" hreflang="id" href="https://superligafrontier.es/?lang=id" />
+    <xhtml:link rel="alternate" hreflang="vi" href="https://superligafrontier.es/?lang=vi" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://superligafrontier.es/?lang=th" />
+    <xhtml:link rel="alternate" hreflang="hi" href="https://superligafrontier.es/?lang=hi" />
+    <xhtml:link rel="alternate" hreflang="bn" href="https://superligafrontier.es/?lang=bn" />
+    <xhtml:link rel="alternate" hreflang="ms" href="https://superligafrontier.es/?lang=ms" />
+    <xhtml:link rel="alternate" hreflang="tl" href="https://superligafrontier.es/?lang=tl" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://superligafrontier.es/" />
+  </url>
 
+  <url>
+    <loc>https://superligafrontier.es/?lang=en</loc>
+    <lastmod>2026-10-18</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://superligafrontier.es/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://superligafrontier.es/?lang=en" />
+    <xhtml:link rel="alternate" hreflang="gl" href="https://superligafrontier.es/?lang=gl" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://superligafrontier.es/?lang=pt" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://superligafrontier.es/?lang=fr" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://superligafrontier.es/?lang=it" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://superligafrontier.es/?lang=de" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://superligafrontier.es/?lang=ar" />
+    <xhtml:link rel="alternate" hreflang="ro" href="https://superligafrontier.es/?lang=ro" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://superligafrontier.es/?lang=nl" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://superligafrontier.es/?lang=uk" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://superligafrontier.es/?lang=ru" />
+    <xhtml:link rel="alternate" hreflang="zh" href="https://superligafrontier.es/?lang=zh" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://superligafrontier.es/?lang=pl" />
+    <xhtml:link rel="alternate" hreflang="tr" href="https://superligafrontier.es/?lang=tr" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://superligafrontier.es/?lang=ja" />
+    <xhtml:link rel="alternate" hreflang="ko" href="https://superligafrontier.es/?lang=ko" />
+    <xhtml:link rel="alternate" hreflang="bg" href="https://superligafrontier.es/?lang=bg" />
+    <xhtml:link rel="alternate" hreflang="sr" href="https://superligafrontier.es/?lang=sr" />
+    <xhtml:link rel="alternate" hreflang="el" href="https://superligafrontier.es/?lang=el" />
+    <xhtml:link rel="alternate" hreflang="cs" href="https://superligafrontier.es/?lang=cs" />
+    <xhtml:link rel="alternate" hreflang="hu" href="https://superligafrontier.es/?lang=hu" />
+    <xhtml:link rel="alternate" hreflang="sv" href="https://superligafrontier.es/?lang=sv" />
+    <xhtml:link rel="alternate" hreflang="id" href="https://superligafrontier.es/?lang=id" />
+    <xhtml:link rel="alternate" hreflang="vi" href="https://superligafrontier.es/?lang=vi" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://superligafrontier.es/?lang=th" />
+    <xhtml:link rel="alternate" hreflang="hi" href="https://superligafrontier.es/?lang=hi" />
+    <xhtml:link rel="alternate" hreflang="bn" href="https://superligafrontier.es/?lang=bn" />
+    <xhtml:link rel="alternate" hreflang="ms" href="https://superligafrontier.es/?lang=ms" />
+    <xhtml:link rel="alternate" hreflang="tl" href="https://superligafrontier.es/?lang=tl" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://superligafrontier.es/" />
+  </url>
+
+  <url>
+    <loc>https://superligafrontier.es/?lang=gl</loc>
+    <lastmod>2026-10-18</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://superligafrontier.es/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://superligafrontier.es/?lang=en" />
+    <xhtml:link rel="alternate" hreflang="gl" href="https://superligafrontier.es/?lang=gl" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://superligafrontier.es/?lang=pt" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://superligafrontier.es/?lang=fr" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://superligafrontier.es/?lang=it" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://superligafrontier.es/?lang=de" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://superligafrontier.es/?lang=ar" />
+    <xhtml:link rel="alternate" hreflang="ro" href="https://superligafrontier.es/?lang=ro" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://superligafrontier.es/?lang=nl" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://superligafrontier.es/?lang=uk" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://superligafrontier.es/?lang=ru" />
+    <xhtml:link rel="alternate" hreflang="zh" href="https://superligafrontier.es/?lang=zh" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://superligafrontier.es/?lang=pl" />
+    <xhtml:link rel="alternate" hreflang="tr" href="https://superligafrontier.es/?lang=tr" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://superligafrontier.es/?lang=ja" />
+    <xhtml:link rel="alternate" hreflang="ko" href="https://superligafrontier.es/?lang=ko" />
+    <xhtml:link rel="alternate" hreflang="bg" href="https://superligafrontier.es/?lang=bg" />
+    <xhtml:link rel="alternate" hreflang="sr" href="https://superligafrontier.es/?lang=sr" />
+    <xhtml:link rel="alternate" hreflang="el" href="https://superligafrontier.es/?lang=el" />
+    <xhtml:link rel="alternate" hreflang="cs" href="https://superligafrontier.es/?lang=cs" />
+    <xhtml:link rel="alternate" hreflang="hu" href="https://superligafrontier.es/?lang=hu" />
+    <xhtml:link rel="alternate" hreflang="sv" href="https://superligafrontier.es/?lang=sv" />
+    <xhtml:link rel="alternate" hreflang="id" href="https://superligafrontier.es/?lang=id" />
+    <xhtml:link rel="alternate" hreflang="vi" href="https://superligafrontier.es/?lang=vi" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://superligafrontier.es/?lang=th" />
+    <xhtml:link rel="alternate" hreflang="hi" href="https://superligafrontier.es/?lang=hi" />
+    <xhtml:link rel="alternate" hreflang="bn" href="https://superligafrontier.es/?lang=bn" />
+    <xhtml:link rel="alternate" hreflang="ms" href="https://superligafrontier.es/?lang=ms" />
+    <xhtml:link rel="alternate" hreflang="tl" href="https://superligafrontier.es/?lang=tl" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://superligafrontier.es/" />
+  </url>
+
+  <url>
+    <loc>https://superligafrontier.es/?lang=pt</loc>
+    <lastmod>2026-10-18</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://superligafrontier.es/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://superligafrontier.es/?lang=en" />
+    <xhtml:link rel="alternate" hreflang="gl" href="https://superligafrontier.es/?lang=gl" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://superligafrontier.es/?lang=pt" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://superligafrontier.es/?lang=fr" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://superligafrontier.es/?lang=it" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://superligafrontier.es/?lang=de" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://superligafrontier.es/?lang=ar" />
+    <xhtml:link rel="alternate" hreflang="ro" href="https://superligafrontier.es/?lang=ro" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://superligafrontier.es/?lang=nl" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://superligafrontier.es/?lang=uk" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://superligafrontier.es/?lang=ru" />
+    <xhtml:link rel="alternate" hreflang="zh" href="https://superligafrontier.es/?lang=zh" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://superligafrontier.es/?lang=pl" />
+    <xhtml:link rel="alternate" hreflang="tr" href="https://superligafrontier.es/?lang=tr" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://superligafrontier.es/?lang=ja" />
+    <xhtml:link rel="alternate" hreflang="ko" href="https://superligafrontier.es/?lang=ko" />
+    <xhtml:link rel="alternate" hreflang="bg" href="https://superligafrontier.es/?lang=bg" />
+    <xhtml:link rel="alternate" hreflang="sr" href="https://superligafrontier.es/?lang=sr" />
+    <xhtml:link rel="alternate" hreflang="el" href="https://superligafrontier.es/?lang=el" />
+    <xhtml:link rel="alternate" hreflang="cs" href="https://superligafrontier.es/?lang=cs" />
+    <xhtml:link rel="alternate" hreflang="hu" href="https://superligafrontier.es/?lang=hu" />
+    <xhtml:link rel="alternate" hreflang="sv" href="https://superligafrontier.es/?lang=sv" />
+    <xhtml:link rel="alternate" hreflang="id" href="https://superligafrontier.es/?lang=id" />
+    <xhtml:link rel="alternate" hreflang="vi" href="https://superligafrontier.es/?lang=vi" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://superligafrontier.es/?lang=th" />
+    <xhtml:link rel="alternate" hreflang="hi" href="https://superligafrontier.es/?lang=hi" />
+    <xhtml:link rel="alternate" hreflang="bn" href="https://superligafrontier.es/?lang=bn" />
+    <xhtml:link rel="alternate" hreflang="ms" href="https://superligafrontier.es/?lang=ms" />
+    <xhtml:link rel="alternate" hreflang="tl" href="https://superligafrontier.es/?lang=tl" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://superligafrontier.es/" />
+  </url>
+
+  <url>
+    <loc>https://superligafrontier.es/?lang=fr</loc>
+    <lastmod>2026-10-18</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://superligafrontier.es/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://superligafrontier.es/?lang=en" />
+    <xhtml:link rel="alternate" hreflang="gl" href="https://superligafrontier.es/?lang=gl" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://superligafrontier.es/?lang=pt" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://superligafrontier.es/?lang=fr" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://superligafrontier.es/?lang=it" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://superligafrontier.es/?lang=de" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://superligafrontier.es/?lang=ar" />
+    <xhtml:link rel="alternate" hreflang="ro" href="https://superligafrontier.es/?lang=ro" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://superligafrontier.es/?lang=nl" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://superligafrontier.es/?lang=uk" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://superligafrontier.es/?lang=ru" />
+    <xhtml:link rel="alternate" hreflang="zh" href="https://superligafrontier.es/?lang=zh" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://superligafrontier.es/?lang=pl" />
+    <xhtml:link rel="alternate" hreflang="tr" href="https://superligafrontier.es/?lang=tr" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://superligafrontier.es/?lang=ja" />
+    <xhtml:link rel="alternate" hreflang="ko" href="https://superligafrontier.es/?lang=ko" />
+    <xhtml:link rel="alternate" hreflang="bg" href="https://superligafrontier.es/?lang=bg" />
+    <xhtml:link rel="alternate" hreflang="sr" href="https://superligafrontier.es/?lang=sr" />
+    <xhtml:link rel="alternate" hreflang="el" href="https://superligafrontier.es/?lang=el" />
+    <xhtml:link rel="alternate" hreflang="cs" href="https://superligafrontier.es/?lang=cs" />
+    <xhtml:link rel="alternate" hreflang="hu" href="https://superligafrontier.es/?lang=hu" />
+    <xhtml:link rel="alternate" hreflang="sv" href="https://superligafrontier.es/?lang=sv" />
+    <xhtml:link rel="alternate" hreflang="id" href="https://superligafrontier.es/?lang=id" />
+    <xhtml:link rel="alternate" hreflang="vi" href="https://superligafrontier.es/?lang=vi" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://superligafrontier.es/?lang=th" />
+    <xhtml:link rel="alternate" hreflang="hi" href="https://superligafrontier.es/?lang=hi" />
+    <xhtml:link rel="alternate" hreflang="bn" href="https://superligafrontier.es/?lang=bn" />
+    <xhtml:link rel="alternate" hreflang="ms" href="https://superligafrontier.es/?lang=ms" />
+    <xhtml:link rel="alternate" hreflang="tl" href="https://superligafrontier.es/?lang=tl" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://superligafrontier.es/" />
+  </url>
+
+  <url>
+    <loc>https://superligafrontier.es/?lang=it</loc>
+    <lastmod>2026-10-18</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://superligafrontier.es/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://superligafrontier.es/?lang=en" />
+    <xhtml:link rel="alternate" hreflang="gl" href="https://superligafrontier.es/?lang=gl" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://superligafrontier.es/?lang=pt" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://superligafrontier.es/?lang=fr" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://superligafrontier.es/?lang=it" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://superligafrontier.es/?lang=de" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://superligafrontier.es/?lang=ar" />
+    <xhtml:link rel="alternate" hreflang="ro" href="https://superligafrontier.es/?lang=ro" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://superligafrontier.es/?lang=nl" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://superligafrontier.es/?lang=uk" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://superligafrontier.es/?lang=ru" />
+    <xhtml:link rel="alternate" hreflang="zh" href="https://superligafrontier.es/?lang=zh" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://superligafrontier.es/?lang=pl" />
+    <xhtml:link rel="alternate" hreflang="tr" href="https://superligafrontier.es/?lang=tr" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://superligafrontier.es/?lang=ja" />
+    <xhtml:link rel="alternate" hreflang="ko" href="https://superligafrontier.es/?lang=ko" />
+    <xhtml:link rel="alternate" hreflang="bg" href="https://superligafrontier.es/?lang=bg" />
+    <xhtml:link rel="alternate" hreflang="sr" href="https://superligafrontier.es/?lang=sr" />
+    <xhtml:link rel="alternate" hreflang="el" href="https://superligafrontier.es/?lang=el" />
+    <xhtml:link rel="alternate" hreflang="cs" href="https://superligafrontier.es/?lang=cs" />
+    <xhtml:link rel="alternate" hreflang="hu" href="https://superligafrontier.es/?lang=hu" />
+    <xhtml:link rel="alternate" hreflang="sv" href="https://superligafrontier.es/?lang=sv" />
+    <xhtml:link rel="alternate" hreflang="id" href="https://superligafrontier.es/?lang=id" />
+    <xhtml:link rel="alternate" hreflang="vi" href="https://superligafrontier.es/?lang=vi" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://superligafrontier.es/?lang=th" />
+    <xhtml:link rel="alternate" hreflang="hi" href="https://superligafrontier.es/?lang=hi" />
+    <xhtml:link rel="alternate" hreflang="bn" href="https://superligafrontier.es/?lang=bn" />
+    <xhtml:link rel="alternate" hreflang="ms" href="https://superligafrontier.es/?lang=ms" />
+    <xhtml:link rel="alternate" hreflang="tl" href="https://superligafrontier.es/?lang=tl" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://superligafrontier.es/" />
+  </url>
+
+  <url>
+    <loc>https://superligafrontier.es/?lang=de</loc>
+    <lastmod>2026-10-18</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://superligafrontier.es/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://superligafrontier.es/?lang=en" />
+    <xhtml:link rel="alternate" hreflang="gl" href="https://superligafrontier.es/?lang=gl" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://superligafrontier.es/?lang=pt" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://superligafrontier.es/?lang=fr" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://superligafrontier.es/?lang=it" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://superligafrontier.es/?lang=de" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://superligafrontier.es/?lang=ar" />
+    <xhtml:link rel="alternate" hreflang="ro" href="https://superligafrontier.es/?lang=ro" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://superligafrontier.es/?lang=nl" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://superligafrontier.es/?lang=uk" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://superligafrontier.es/?lang=ru" />
+    <xhtml:link rel="alternate" hreflang="zh" href="https://superligafrontier.es/?lang=zh" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://superligafrontier.es/?lang=pl" />
+    <xhtml:link rel="alternate" hreflang="tr" href="https://superligafrontier.es/?lang=tr" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://superligafrontier.es/?lang=ja" />
+    <xhtml:link rel="alternate" hreflang="ko" href="https://superligafrontier.es/?lang=ko" />
+    <xhtml:link rel="alternate" hreflang="bg" href="https://superligafrontier.es/?lang=bg" />
+    <xhtml:link rel="alternate" hreflang="sr" href="https://superligafrontier.es/?lang=sr" />
+    <xhtml:link rel="alternate" hreflang="el" href="https://superligafrontier.es/?lang=el" />
+    <xhtml:link rel="alternate" hreflang="cs" href="https://superligafrontier.es/?lang=cs" />
+    <xhtml:link rel="alternate" hreflang="hu" href="https://superligafrontier.es/?lang=hu" />
+    <xhtml:link rel="alternate" hreflang="sv" href="https://superligafrontier.es/?lang=sv" />
+    <xhtml:link rel="alternate" hreflang="id" href="https://superligafrontier.es/?lang=id" />
+    <xhtml:link rel="alternate" hreflang="vi" href="https://superligafrontier.es/?lang=vi" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://superligafrontier.es/?lang=th" />
+    <xhtml:link rel="alternate" hreflang="hi" href="https://superligafrontier.es/?lang=hi" />
+    <xhtml:link rel="alternate" hreflang="bn" href="https://superligafrontier.es/?lang=bn" />
+    <xhtml:link rel="alternate" hreflang="ms" href="https://superligafrontier.es/?lang=ms" />
+    <xhtml:link rel="alternate" hreflang="tl" href="https://superligafrontier.es/?lang=tl" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://superligafrontier.es/" />
+  </url>
+
+  <url>
+    <loc>https://superligafrontier.es/?lang=ar</loc>
+    <lastmod>2026-10-18</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://superligafrontier.es/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://superligafrontier.es/?lang=en" />
+    <xhtml:link rel="alternate" hreflang="gl" href="https://superligafrontier.es/?lang=gl" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://superligafrontier.es/?lang=pt" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://superligafrontier.es/?lang=fr" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://superligafrontier.es/?lang=it" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://superligafrontier.es/?lang=de" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://superligafrontier.es/?lang=ar" />
+    <xhtml:link rel="alternate" hreflang="ro" href="https://superligafrontier.es/?lang=ro" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://superligafrontier.es/?lang=nl" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://superligafrontier.es/?lang=uk" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://superligafrontier.es/?lang=ru" />
+    <xhtml:link rel="alternate" hreflang="zh" href="https://superligafrontier.es/?lang=zh" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://superligafrontier.es/?lang=pl" />
+    <xhtml:link rel="alternate" hreflang="tr" href="https://superligafrontier.es/?lang=tr" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://superligafrontier.es/?lang=ja" />
+    <xhtml:link rel="alternate" hreflang="ko" href="https://superligafrontier.es/?lang=ko" />
+    <xhtml:link rel="alternate" hreflang="bg" href="https://superligafrontier.es/?lang=bg" />
+    <xhtml:link rel="alternate" hreflang="sr" href="https://superligafrontier.es/?lang=sr" />
+    <xhtml:link rel="alternate" hreflang="el" href="https://superligafrontier.es/?lang=el" />
+    <xhtml:link rel="alternate" hreflang="cs" href="https://superligafrontier.es/?lang=cs" />
+    <xhtml:link rel="alternate" hreflang="hu" href="https://superligafrontier.es/?lang=hu" />
+    <xhtml:link rel="alternate" hreflang="sv" href="https://superligafrontier.es/?lang=sv" />
+    <xhtml:link rel="alternate" hreflang="id" href="https://superligafrontier.es/?lang=id" />
+    <xhtml:link rel="alternate" hreflang="vi" href="https://superligafrontier.es/?lang=vi" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://superligafrontier.es/?lang=th" />
+    <xhtml:link rel="alternate" hreflang="hi" href="https://superligafrontier.es/?lang=hi" />
+    <xhtml:link rel="alternate" hreflang="bn" href="https://superligafrontier.es/?lang=bn" />
+    <xhtml:link rel="alternate" hreflang="ms" href="https://superligafrontier.es/?lang=ms" />
+    <xhtml:link rel="alternate" hreflang="tl" href="https://superligafrontier.es/?lang=tl" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://superligafrontier.es/" />
+  </url>
+
+  <url>
+    <loc>https://superligafrontier.es/?lang=ro</loc>
+    <lastmod>2026-10-18</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://superligafrontier.es/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://superligafrontier.es/?lang=en" />
+    <xhtml:link rel="alternate" hreflang="gl" href="https://superligafrontier.es/?lang=gl" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://superligafrontier.es/?lang=pt" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://superligafrontier.es/?lang=fr" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://superligafrontier.es/?lang=it" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://superligafrontier.es/?lang=de" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://superligafrontier.es/?lang=ar" />
+    <xhtml:link rel="alternate" hreflang="ro" href="https://superligafrontier.es/?lang=ro" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://superligafrontier.es/?lang=nl" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://superligafrontier.es/?lang=uk" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://superligafrontier.es/?lang=ru" />
+    <xhtml:link rel="alternate" hreflang="zh" href="https://superligafrontier.es/?lang=zh" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://superligafrontier.es/?lang=pl" />
+    <xhtml:link rel="alternate" hreflang="tr" href="https://superligafrontier.es/?lang=tr" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://superligafrontier.es/?lang=ja" />
+    <xhtml:link rel="alternate" hreflang="ko" href="https://superligafrontier.es/?lang=ko" />
+    <xhtml:link rel="alternate" hreflang="bg" href="https://superligafrontier.es/?lang=bg" />
+    <xhtml:link rel="alternate" hreflang="sr" href="https://superligafrontier.es/?lang=sr" />
+    <xhtml:link rel="alternate" hreflang="el" href="https://superligafrontier.es/?lang=el" />
+    <xhtml:link rel="alternate" hreflang="cs" href="https://superligafrontier.es/?lang=cs" />
+    <xhtml:link rel="alternate" hreflang="hu" href="https://superligafrontier.es/?lang=hu" />
+    <xhtml:link rel="alternate" hreflang="sv" href="https://superligafrontier.es/?lang=sv" />
+    <xhtml:link rel="alternate" hreflang="id" href="https://superligafrontier.es/?lang=id" />
+    <xhtml:link rel="alternate" hreflang="vi" href="https://superligafrontier.es/?lang=vi" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://superligafrontier.es/?lang=th" />
+    <xhtml:link rel="alternate" hreflang="hi" href="https://superligafrontier.es/?lang=hi" />
+    <xhtml:link rel="alternate" hreflang="bn" href="https://superligafrontier.es/?lang=bn" />
+    <xhtml:link rel="alternate" hreflang="ms" href="https://superligafrontier.es/?lang=ms" />
+    <xhtml:link rel="alternate" hreflang="tl" href="https://superligafrontier.es/?lang=tl" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://superligafrontier.es/" />
+  </url>
+
+  <url>
+    <loc>https://superligafrontier.es/?lang=nl</loc>
+    <lastmod>2026-10-18</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://superligafrontier.es/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://superligafrontier.es/?lang=en" />
+    <xhtml:link rel="alternate" hreflang="gl" href="https://superligafrontier.es/?lang=gl" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://superligafrontier.es/?lang=pt" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://superligafrontier.es/?lang=fr" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://superligafrontier.es/?lang=it" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://superligafrontier.es/?lang=de" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://superligafrontier.es/?lang=ar" />
+    <xhtml:link rel="alternate" hreflang="ro" href="https://superligafrontier.es/?lang=ro" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://superligafrontier.es/?lang=nl" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://superligafrontier.es/?lang=uk" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://superligafrontier.es/?lang=ru" />
+    <xhtml:link rel="alternate" hreflang="zh" href="https://superligafrontier.es/?lang=zh" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://superligafrontier.es/?lang=pl" />
+    <xhtml:link rel="alternate" hreflang="tr" href="https://superligafrontier.es/?lang=tr" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://superligafrontier.es/?lang=ja" />
+    <xhtml:link rel="alternate" hreflang="ko" href="https://superligafrontier.es/?lang=ko" />
+    <xhtml:link rel="alternate" hreflang="bg" href="https://superligafrontier.es/?lang=bg" />
+    <xhtml:link rel="alternate" hreflang="sr" href="https://superligafrontier.es/?lang=sr" />
+    <xhtml:link rel="alternate" hreflang="el" href="https://superligafrontier.es/?lang=el" />
+    <xhtml:link rel="alternate" hreflang="cs" href="https://superligafrontier.es/?lang=cs" />
+    <xhtml:link rel="alternate" hreflang="hu" href="https://superligafrontier.es/?lang=hu" />
+    <xhtml:link rel="alternate" hreflang="sv" href="https://superligafrontier.es/?lang=sv" />
+    <xhtml:link rel="alternate" hreflang="id" href="https://superligafrontier.es/?lang=id" />
+    <xhtml:link rel="alternate" hreflang="vi" href="https://superligafrontier.es/?lang=vi" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://superligafrontier.es/?lang=th" />
+    <xhtml:link rel="alternate" hreflang="hi" href="https://superligafrontier.es/?lang=hi" />
+    <xhtml:link rel="alternate" hreflang="bn" href="https://superligafrontier.es/?lang=bn" />
+    <xhtml:link rel="alternate" hreflang="ms" href="https://superligafrontier.es/?lang=ms" />
+    <xhtml:link rel="alternate" hreflang="tl" href="https://superligafrontier.es/?lang=tl" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://superligafrontier.es/" />
+  </url>
+
+  <url>
+    <loc>https://superligafrontier.es/?lang=uk</loc>
+    <lastmod>2026-10-18</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://superligafrontier.es/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://superligafrontier.es/?lang=en" />
+    <xhtml:link rel="alternate" hreflang="gl" href="https://superligafrontier.es/?lang=gl" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://superligafrontier.es/?lang=pt" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://superligafrontier.es/?lang=fr" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://superligafrontier.es/?lang=it" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://superligafrontier.es/?lang=de" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://superligafrontier.es/?lang=ar" />
+    <xhtml:link rel="alternate" hreflang="ro" href="https://superligafrontier.es/?lang=ro" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://superligafrontier.es/?lang=nl" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://superligafrontier.es/?lang=uk" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://superligafrontier.es/?lang=ru" />
+    <xhtml:link rel="alternate" hreflang="zh" href="https://superligafrontier.es/?lang=zh" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://superligafrontier.es/?lang=pl" />
+    <xhtml:link rel="alternate" hreflang="tr" href="https://superligafrontier.es/?lang=tr" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://superligafrontier.es/?lang=ja" />
+    <xhtml:link rel="alternate" hreflang="ko" href="https://superligafrontier.es/?lang=ko" />
+    <xhtml:link rel="alternate" hreflang="bg" href="https://superligafrontier.es/?lang=bg" />
+    <xhtml:link rel="alternate" hreflang="sr" href="https://superligafrontier.es/?lang=sr" />
+    <xhtml:link rel="alternate" hreflang="el" href="https://superligafrontier.es/?lang=el" />
+    <xhtml:link rel="alternate" hreflang="cs" href="https://superligafrontier.es/?lang=cs" />
+    <xhtml:link rel="alternate" hreflang="hu" href="https://superligafrontier.es/?lang=hu" />
+    <xhtml:link rel="alternate" hreflang="sv" href="https://superligafrontier.es/?lang=sv" />
+    <xhtml:link rel="alternate" hreflang="id" href="https://superligafrontier.es/?lang=id" />
+    <xhtml:link rel="alternate" hreflang="vi" href="https://superligafrontier.es/?lang=vi" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://superligafrontier.es/?lang=th" />
+    <xhtml:link rel="alternate" hreflang="hi" href="https://superligafrontier.es/?lang=hi" />
+    <xhtml:link rel="alternate" hreflang="bn" href="https://superligafrontier.es/?lang=bn" />
+    <xhtml:link rel="alternate" hreflang="ms" href="https://superligafrontier.es/?lang=ms" />
+    <xhtml:link rel="alternate" hreflang="tl" href="https://superligafrontier.es/?lang=tl" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://superligafrontier.es/" />
+  </url>
+
+  <url>
+    <loc>https://superligafrontier.es/?lang=ru</loc>
+    <lastmod>2026-10-18</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://superligafrontier.es/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://superligafrontier.es/?lang=en" />
+    <xhtml:link rel="alternate" hreflang="gl" href="https://superligafrontier.es/?lang=gl" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://superligafrontier.es/?lang=pt" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://superligafrontier.es/?lang=fr" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://superligafrontier.es/?lang=it" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://superligafrontier.es/?lang=de" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://superligafrontier.es/?lang=ar" />
+    <xhtml:link rel="alternate" hreflang="ro" href="https://superligafrontier.es/?lang=ro" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://superligafrontier.es/?lang=nl" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://superligafrontier.es/?lang=uk" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://superligafrontier.es/?lang=ru" />
+    <xhtml:link rel="alternate" hreflang="zh" href="https://superligafrontier.es/?lang=zh" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://superligafrontier.es/?lang=pl" />
+    <xhtml:link rel="alternate" hreflang="tr" href="https://superligafrontier.es/?lang=tr" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://superligafrontier.es/?lang=ja" />
+    <xhtml:link rel="alternate" hreflang="ko" href="https://superligafrontier.es/?lang=ko" />
+    <xhtml:link rel="alternate" hreflang="bg" href="https://superligafrontier.es/?lang=bg" />
+    <xhtml:link rel="alternate" hreflang="sr" href="https://superligafrontier.es/?lang=sr" />
+    <xhtml:link rel="alternate" hreflang="el" href="https://superligafrontier.es/?lang=el" />
+    <xhtml:link rel="alternate" hreflang="cs" href="https://superligafrontier.es/?lang=cs" />
+    <xhtml:link rel="alternate" hreflang="hu" href="https://superligafrontier.es/?lang=hu" />
+    <xhtml:link rel="alternate" hreflang="sv" href="https://superligafrontier.es/?lang=sv" />
+    <xhtml:link rel="alternate" hreflang="id" href="https://superligafrontier.es/?lang=id" />
+    <xhtml:link rel="alternate" hreflang="vi" href="https://superligafrontier.es/?lang=vi" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://superligafrontier.es/?lang=th" />
+    <xhtml:link rel="alternate" hreflang="hi" href="https://superligafrontier.es/?lang=hi" />
+    <xhtml:link rel="alternate" hreflang="bn" href="https://superligafrontier.es/?lang=bn" />
+    <xhtml:link rel="alternate" hreflang="ms" href="https://superligafrontier.es/?lang=ms" />
+    <xhtml:link rel="alternate" hreflang="tl" href="https://superligafrontier.es/?lang=tl" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://superligafrontier.es/" />
+  </url>
+
+  <url>
+    <loc>https://superligafrontier.es/?lang=zh</loc>
+    <lastmod>2026-10-18</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://superligafrontier.es/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://superligafrontier.es/?lang=en" />
+    <xhtml:link rel="alternate" hreflang="gl" href="https://superligafrontier.es/?lang=gl" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://superligafrontier.es/?lang=pt" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://superligafrontier.es/?lang=fr" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://superligafrontier.es/?lang=it" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://superligafrontier.es/?lang=de" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://superligafrontier.es/?lang=ar" />
+    <xhtml:link rel="alternate" hreflang="ro" href="https://superligafrontier.es/?lang=ro" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://superligafrontier.es/?lang=nl" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://superligafrontier.es/?lang=uk" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://superligafrontier.es/?lang=ru" />
+    <xhtml:link rel="alternate" hreflang="zh" href="https://superligafrontier.es/?lang=zh" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://superligafrontier.es/?lang=pl" />
+    <xhtml:link rel="alternate" hreflang="tr" href="https://superligafrontier.es/?lang=tr" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://superligafrontier.es/?lang=ja" />
+    <xhtml:link rel="alternate" hreflang="ko" href="https://superligafrontier.es/?lang=ko" />
+    <xhtml:link rel="alternate" hreflang="bg" href="https://superligafrontier.es/?lang=bg" />
+    <xhtml:link rel="alternate" hreflang="sr" href="https://superligafrontier.es/?lang=sr" />
+    <xhtml:link rel="alternate" hreflang="el" href="https://superligafrontier.es/?lang=el" />
+    <xhtml:link rel="alternate" hreflang="cs" href="https://superligafrontier.es/?lang=cs" />
+    <xhtml:link rel="alternate" hreflang="hu" href="https://superligafrontier.es/?lang=hu" />
+    <xhtml:link rel="alternate" hreflang="sv" href="https://superligafrontier.es/?lang=sv" />
+    <xhtml:link rel="alternate" hreflang="id" href="https://superligafrontier.es/?lang=id" />
+    <xhtml:link rel="alternate" hreflang="vi" href="https://superligafrontier.es/?lang=vi" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://superligafrontier.es/?lang=th" />
+    <xhtml:link rel="alternate" hreflang="hi" href="https://superligafrontier.es/?lang=hi" />
+    <xhtml:link rel="alternate" hreflang="bn" href="https://superligafrontier.es/?lang=bn" />
+    <xhtml:link rel="alternate" hreflang="ms" href="https://superligafrontier.es/?lang=ms" />
+    <xhtml:link rel="alternate" hreflang="tl" href="https://superligafrontier.es/?lang=tl" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://superligafrontier.es/" />
+  </url>
+
+  <url>
+    <loc>https://superligafrontier.es/?lang=pl</loc>
+    <lastmod>2026-10-18</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://superligafrontier.es/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://superligafrontier.es/?lang=en" />
+    <xhtml:link rel="alternate" hreflang="gl" href="https://superligafrontier.es/?lang=gl" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://superligafrontier.es/?lang=pt" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://superligafrontier.es/?lang=fr" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://superligafrontier.es/?lang=it" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://superligafrontier.es/?lang=de" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://superligafrontier.es/?lang=ar" />
+    <xhtml:link rel="alternate" hreflang="ro" href="https://superligafrontier.es/?lang=ro" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://superligafrontier.es/?lang=nl" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://superligafrontier.es/?lang=uk" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://superligafrontier.es/?lang=ru" />
+    <xhtml:link rel="alternate" hreflang="zh" href="https://superligafrontier.es/?lang=zh" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://superligafrontier.es/?lang=pl" />
+    <xhtml:link rel="alternate" hreflang="tr" href="https://superligafrontier.es/?lang=tr" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://superligafrontier.es/?lang=ja" />
+    <xhtml:link rel="alternate" hreflang="ko" href="https://superligafrontier.es/?lang=ko" />
+    <xhtml:link rel="alternate" hreflang="bg" href="https://superligafrontier.es/?lang=bg" />
+    <xhtml:link rel="alternate" hreflang="sr" href="https://superligafrontier.es/?lang=sr" />
+    <xhtml:link rel="alternate" hreflang="el" href="https://superligafrontier.es/?lang=el" />
+    <xhtml:link rel="alternate" hreflang="cs" href="https://superligafrontier.es/?lang=cs" />
+    <xhtml:link rel="alternate" hreflang="hu" href="https://superligafrontier.es/?lang=hu" />
+    <xhtml:link rel="alternate" hreflang="sv" href="https://superligafrontier.es/?lang=sv" />
+    <xhtml:link rel="alternate" hreflang="id" href="https://superligafrontier.es/?lang=id" />
+    <xhtml:link rel="alternate" hreflang="vi" href="https://superligafrontier.es/?lang=vi" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://superligafrontier.es/?lang=th" />
+    <xhtml:link rel="alternate" hreflang="hi" href="https://superligafrontier.es/?lang=hi" />
+    <xhtml:link rel="alternate" hreflang="bn" href="https://superligafrontier.es/?lang=bn" />
+    <xhtml:link rel="alternate" hreflang="ms" href="https://superligafrontier.es/?lang=ms" />
+    <xhtml:link rel="alternate" hreflang="tl" href="https://superligafrontier.es/?lang=tl" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://superligafrontier.es/" />
+  </url>
+
+  <url>
+    <loc>https://superligafrontier.es/?lang=tr</loc>
+    <lastmod>2026-10-18</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://superligafrontier.es/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://superligafrontier.es/?lang=en" />
+    <xhtml:link rel="alternate" hreflang="gl" href="https://superligafrontier.es/?lang=gl" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://superligafrontier.es/?lang=pt" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://superligafrontier.es/?lang=fr" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://superligafrontier.es/?lang=it" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://superligafrontier.es/?lang=de" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://superligafrontier.es/?lang=ar" />
+    <xhtml:link rel="alternate" hreflang="ro" href="https://superligafrontier.es/?lang=ro" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://superligafrontier.es/?lang=nl" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://superligafrontier.es/?lang=uk" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://superligafrontier.es/?lang=ru" />
+    <xhtml:link rel="alternate" hreflang="zh" href="https://superligafrontier.es/?lang=zh" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://superligafrontier.es/?lang=pl" />
+    <xhtml:link rel="alternate" hreflang="tr" href="https://superligafrontier.es/?lang=tr" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://superligafrontier.es/?lang=ja" />
+    <xhtml:link rel="alternate" hreflang="ko" href="https://superligafrontier.es/?lang=ko" />
+    <xhtml:link rel="alternate" hreflang="bg" href="https://superligafrontier.es/?lang=bg" />
+    <xhtml:link rel="alternate" hreflang="sr" href="https://superligafrontier.es/?lang=sr" />
+    <xhtml:link rel="alternate" hreflang="el" href="https://superligafrontier.es/?lang=el" />
+    <xhtml:link rel="alternate" hreflang="cs" href="https://superligafrontier.es/?lang=cs" />
+    <xhtml:link rel="alternate" hreflang="hu" href="https://superligafrontier.es/?lang=hu" />
+    <xhtml:link rel="alternate" hreflang="sv" href="https://superligafrontier.es/?lang=sv" />
+    <xhtml:link rel="alternate" hreflang="id" href="https://superligafrontier.es/?lang=id" />
+    <xhtml:link rel="alternate" hreflang="vi" href="https://superligafrontier.es/?lang=vi" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://superligafrontier.es/?lang=th" />
+    <xhtml:link rel="alternate" hreflang="hi" href="https://superligafrontier.es/?lang=hi" />
+    <xhtml:link rel="alternate" hreflang="bn" href="https://superligafrontier.es/?lang=bn" />
+    <xhtml:link rel="alternate" hreflang="ms" href="https://superligafrontier.es/?lang=ms" />
+    <xhtml:link rel="alternate" hreflang="tl" href="https://superligafrontier.es/?lang=tl" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://superligafrontier.es/" />
+  </url>
+
+  <url>
+    <loc>https://superligafrontier.es/?lang=ja</loc>
+    <lastmod>2026-10-18</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://superligafrontier.es/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://superligafrontier.es/?lang=en" />
+    <xhtml:link rel="alternate" hreflang="gl" href="https://superligafrontier.es/?lang=gl" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://superligafrontier.es/?lang=pt" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://superligafrontier.es/?lang=fr" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://superligafrontier.es/?lang=it" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://superligafrontier.es/?lang=de" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://superligafrontier.es/?lang=ar" />
+    <xhtml:link rel="alternate" hreflang="ro" href="https://superligafrontier.es/?lang=ro" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://superligafrontier.es/?lang=nl" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://superligafrontier.es/?lang=uk" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://superligafrontier.es/?lang=ru" />
+    <xhtml:link rel="alternate" hreflang="zh" href="https://superligafrontier.es/?lang=zh" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://superligafrontier.es/?lang=pl" />
+    <xhtml:link rel="alternate" hreflang="tr" href="https://superligafrontier.es/?lang=tr" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://superligafrontier.es/?lang=ja" />
+    <xhtml:link rel="alternate" hreflang="ko" href="https://superligafrontier.es/?lang=ko" />
+    <xhtml:link rel="alternate" hreflang="bg" href="https://superligafrontier.es/?lang=bg" />
+    <xhtml:link rel="alternate" hreflang="sr" href="https://superligafrontier.es/?lang=sr" />
+    <xhtml:link rel="alternate" hreflang="el" href="https://superligafrontier.es/?lang=el" />
+    <xhtml:link rel="alternate" hreflang="cs" href="https://superligafrontier.es/?lang=cs" />
+    <xhtml:link rel="alternate" hreflang="hu" href="https://superligafrontier.es/?lang=hu" />
+    <xhtml:link rel="alternate" hreflang="sv" href="https://superligafrontier.es/?lang=sv" />
+    <xhtml:link rel="alternate" hreflang="id" href="https://superligafrontier.es/?lang=id" />
+    <xhtml:link rel="alternate" hreflang="vi" href="https://superligafrontier.es/?lang=vi" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://superligafrontier.es/?lang=th" />
+    <xhtml:link rel="alternate" hreflang="hi" href="https://superligafrontier.es/?lang=hi" />
+    <xhtml:link rel="alternate" hreflang="bn" href="https://superligafrontier.es/?lang=bn" />
+    <xhtml:link rel="alternate" hreflang="ms" href="https://superligafrontier.es/?lang=ms" />
+    <xhtml:link rel="alternate" hreflang="tl" href="https://superligafrontier.es/?lang=tl" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://superligafrontier.es/" />
+  </url>
+
+  <url>
+    <loc>https://superligafrontier.es/?lang=ko</loc>
+    <lastmod>2026-10-18</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://superligafrontier.es/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://superligafrontier.es/?lang=en" />
+    <xhtml:link rel="alternate" hreflang="gl" href="https://superligafrontier.es/?lang=gl" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://superligafrontier.es/?lang=pt" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://superligafrontier.es/?lang=fr" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://superligafrontier.es/?lang=it" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://superligafrontier.es/?lang=de" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://superligafrontier.es/?lang=ar" />
+    <xhtml:link rel="alternate" hreflang="ro" href="https://superligafrontier.es/?lang=ro" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://superligafrontier.es/?lang=nl" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://superligafrontier.es/?lang=uk" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://superligafrontier.es/?lang=ru" />
+    <xhtml:link rel="alternate" hreflang="zh" href="https://superligafrontier.es/?lang=zh" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://superligafrontier.es/?lang=pl" />
+    <xhtml:link rel="alternate" hreflang="tr" href="https://superligafrontier.es/?lang=tr" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://superligafrontier.es/?lang=ja" />
+    <xhtml:link rel="alternate" hreflang="ko" href="https://superligafrontier.es/?lang=ko" />
+    <xhtml:link rel="alternate" hreflang="bg" href="https://superligafrontier.es/?lang=bg" />
+    <xhtml:link rel="alternate" hreflang="sr" href="https://superligafrontier.es/?lang=sr" />
+    <xhtml:link rel="alternate" hreflang="el" href="https://superligafrontier.es/?lang=el" />
+    <xhtml:link rel="alternate" hreflang="cs" href="https://superligafrontier.es/?lang=cs" />
+    <xhtml:link rel="alternate" hreflang="hu" href="https://superligafrontier.es/?lang=hu" />
+    <xhtml:link rel="alternate" hreflang="sv" href="https://superligafrontier.es/?lang=sv" />
+    <xhtml:link rel="alternate" hreflang="id" href="https://superligafrontier.es/?lang=id" />
+    <xhtml:link rel="alternate" hreflang="vi" href="https://superligafrontier.es/?lang=vi" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://superligafrontier.es/?lang=th" />
+    <xhtml:link rel="alternate" hreflang="hi" href="https://superligafrontier.es/?lang=hi" />
+    <xhtml:link rel="alternate" hreflang="bn" href="https://superligafrontier.es/?lang=bn" />
+    <xhtml:link rel="alternate" hreflang="ms" href="https://superligafrontier.es/?lang=ms" />
+    <xhtml:link rel="alternate" hreflang="tl" href="https://superligafrontier.es/?lang=tl" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://superligafrontier.es/" />
+  </url>
+
+  <url>
+    <loc>https://superligafrontier.es/?lang=bg</loc>
+    <lastmod>2026-10-18</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://superligafrontier.es/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://superligafrontier.es/?lang=en" />
+    <xhtml:link rel="alternate" hreflang="gl" href="https://superligafrontier.es/?lang=gl" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://superligafrontier.es/?lang=pt" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://superligafrontier.es/?lang=fr" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://superligafrontier.es/?lang=it" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://superligafrontier.es/?lang=de" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://superligafrontier.es/?lang=ar" />
+    <xhtml:link rel="alternate" hreflang="ro" href="https://superligafrontier.es/?lang=ro" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://superligafrontier.es/?lang=nl" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://superligafrontier.es/?lang=uk" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://superligafrontier.es/?lang=ru" />
+    <xhtml:link rel="alternate" hreflang="zh" href="https://superligafrontier.es/?lang=zh" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://superligafrontier.es/?lang=pl" />
+    <xhtml:link rel="alternate" hreflang="tr" href="https://superligafrontier.es/?lang=tr" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://superligafrontier.es/?lang=ja" />
+    <xhtml:link rel="alternate" hreflang="ko" href="https://superligafrontier.es/?lang=ko" />
+    <xhtml:link rel="alternate" hreflang="bg" href="https://superligafrontier.es/?lang=bg" />
+    <xhtml:link rel="alternate" hreflang="sr" href="https://superligafrontier.es/?lang=sr" />
+    <xhtml:link rel="alternate" hreflang="el" href="https://superligafrontier.es/?lang=el" />
+    <xhtml:link rel="alternate" hreflang="cs" href="https://superligafrontier.es/?lang=cs" />
+    <xhtml:link rel="alternate" hreflang="hu" href="https://superligafrontier.es/?lang=hu" />
+    <xhtml:link rel="alternate" hreflang="sv" href="https://superligafrontier.es/?lang=sv" />
+    <xhtml:link rel="alternate" hreflang="id" href="https://superligafrontier.es/?lang=id" />
+    <xhtml:link rel="alternate" hreflang="vi" href="https://superligafrontier.es/?lang=vi" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://superligafrontier.es/?lang=th" />
+    <xhtml:link rel="alternate" hreflang="hi" href="https://superligafrontier.es/?lang=hi" />
+    <xhtml:link rel="alternate" hreflang="bn" href="https://superligafrontier.es/?lang=bn" />
+    <xhtml:link rel="alternate" hreflang="ms" href="https://superligafrontier.es/?lang=ms" />
+    <xhtml:link rel="alternate" hreflang="tl" href="https://superligafrontier.es/?lang=tl" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://superligafrontier.es/" />
+  </url>
+
+  <url>
+    <loc>https://superligafrontier.es/?lang=sr</loc>
+    <lastmod>2026-10-18</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://superligafrontier.es/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://superligafrontier.es/?lang=en" />
+    <xhtml:link rel="alternate" hreflang="gl" href="https://superligafrontier.es/?lang=gl" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://superligafrontier.es/?lang=pt" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://superligafrontier.es/?lang=fr" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://superligafrontier.es/?lang=it" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://superligafrontier.es/?lang=de" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://superligafrontier.es/?lang=ar" />
+    <xhtml:link rel="alternate" hreflang="ro" href="https://superligafrontier.es/?lang=ro" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://superligafrontier.es/?lang=nl" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://superligafrontier.es/?lang=uk" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://superligafrontier.es/?lang=ru" />
+    <xhtml:link rel="alternate" hreflang="zh" href="https://superligafrontier.es/?lang=zh" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://superligafrontier.es/?lang=pl" />
+    <xhtml:link rel="alternate" hreflang="tr" href="https://superligafrontier.es/?lang=tr" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://superligafrontier.es/?lang=ja" />
+    <xhtml:link rel="alternate" hreflang="ko" href="https://superligafrontier.es/?lang=ko" />
+    <xhtml:link rel="alternate" hreflang="bg" href="https://superligafrontier.es/?lang=bg" />
+    <xhtml:link rel="alternate" hreflang="sr" href="https://superligafrontier.es/?lang=sr" />
+    <xhtml:link rel="alternate" hreflang="el" href="https://superligafrontier.es/?lang=el" />
+    <xhtml:link rel="alternate" hreflang="cs" href="https://superligafrontier.es/?lang=cs" />
+    <xhtml:link rel="alternate" hreflang="hu" href="https://superligafrontier.es/?lang=hu" />
+    <xhtml:link rel="alternate" hreflang="sv" href="https://superligafrontier.es/?lang=sv" />
+    <xhtml:link rel="alternate" hreflang="id" href="https://superligafrontier.es/?lang=id" />
+    <xhtml:link rel="alternate" hreflang="vi" href="https://superligafrontier.es/?lang=vi" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://superligafrontier.es/?lang=th" />
+    <xhtml:link rel="alternate" hreflang="hi" href="https://superligafrontier.es/?lang=hi" />
+    <xhtml:link rel="alternate" hreflang="bn" href="https://superligafrontier.es/?lang=bn" />
+    <xhtml:link rel="alternate" hreflang="ms" href="https://superligafrontier.es/?lang=ms" />
+    <xhtml:link rel="alternate" hreflang="tl" href="https://superligafrontier.es/?lang=tl" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://superligafrontier.es/" />
+  </url>
+
+  <url>
+    <loc>https://superligafrontier.es/?lang=el</loc>
+    <lastmod>2026-10-18</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://superligafrontier.es/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://superligafrontier.es/?lang=en" />
+    <xhtml:link rel="alternate" hreflang="gl" href="https://superligafrontier.es/?lang=gl" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://superligafrontier.es/?lang=pt" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://superligafrontier.es/?lang=fr" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://superligafrontier.es/?lang=it" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://superligafrontier.es/?lang=de" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://superligafrontier.es/?lang=ar" />
+    <xhtml:link rel="alternate" hreflang="ro" href="https://superligafrontier.es/?lang=ro" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://superligafrontier.es/?lang=nl" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://superligafrontier.es/?lang=uk" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://superligafrontier.es/?lang=ru" />
+    <xhtml:link rel="alternate" hreflang="zh" href="https://superligafrontier.es/?lang=zh" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://superligafrontier.es/?lang=pl" />
+    <xhtml:link rel="alternate" hreflang="tr" href="https://superligafrontier.es/?lang=tr" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://superligafrontier.es/?lang=ja" />
+    <xhtml:link rel="alternate" hreflang="ko" href="https://superligafrontier.es/?lang=ko" />
+    <xhtml:link rel="alternate" hreflang="bg" href="https://superligafrontier.es/?lang=bg" />
+    <xhtml:link rel="alternate" hreflang="sr" href="https://superligafrontier.es/?lang=sr" />
+    <xhtml:link rel="alternate" hreflang="el" href="https://superligafrontier.es/?lang=el" />
+    <xhtml:link rel="alternate" hreflang="cs" href="https://superligafrontier.es/?lang=cs" />
+    <xhtml:link rel="alternate" hreflang="hu" href="https://superligafrontier.es/?lang=hu" />
+    <xhtml:link rel="alternate" hreflang="sv" href="https://superligafrontier.es/?lang=sv" />
+    <xhtml:link rel="alternate" hreflang="id" href="https://superligafrontier.es/?lang=id" />
+    <xhtml:link rel="alternate" hreflang="vi" href="https://superligafrontier.es/?lang=vi" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://superligafrontier.es/?lang=th" />
+    <xhtml:link rel="alternate" hreflang="hi" href="https://superligafrontier.es/?lang=hi" />
+    <xhtml:link rel="alternate" hreflang="bn" href="https://superligafrontier.es/?lang=bn" />
+    <xhtml:link rel="alternate" hreflang="ms" href="https://superligafrontier.es/?lang=ms" />
+    <xhtml:link rel="alternate" hreflang="tl" href="https://superligafrontier.es/?lang=tl" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://superligafrontier.es/" />
+  </url>
+
+  <url>
+    <loc>https://superligafrontier.es/?lang=cs</loc>
+    <lastmod>2026-10-18</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://superligafrontier.es/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://superligafrontier.es/?lang=en" />
+    <xhtml:link rel="alternate" hreflang="gl" href="https://superligafrontier.es/?lang=gl" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://superligafrontier.es/?lang=pt" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://superligafrontier.es/?lang=fr" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://superligafrontier.es/?lang=it" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://superligafrontier.es/?lang=de" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://superligafrontier.es/?lang=ar" />
+    <xhtml:link rel="alternate" hreflang="ro" href="https://superligafrontier.es/?lang=ro" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://superligafrontier.es/?lang=nl" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://superligafrontier.es/?lang=uk" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://superligafrontier.es/?lang=ru" />
+    <xhtml:link rel="alternate" hreflang="zh" href="https://superligafrontier.es/?lang=zh" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://superligafrontier.es/?lang=pl" />
+    <xhtml:link rel="alternate" hreflang="tr" href="https://superligafrontier.es/?lang=tr" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://superligafrontier.es/?lang=ja" />
+    <xhtml:link rel="alternate" hreflang="ko" href="https://superligafrontier.es/?lang=ko" />
+    <xhtml:link rel="alternate" hreflang="bg" href="https://superligafrontier.es/?lang=bg" />
+    <xhtml:link rel="alternate" hreflang="sr" href="https://superligafrontier.es/?lang=sr" />
+    <xhtml:link rel="alternate" hreflang="el" href="https://superligafrontier.es/?lang=el" />
+    <xhtml:link rel="alternate" hreflang="cs" href="https://superligafrontier.es/?lang=cs" />
+    <xhtml:link rel="alternate" hreflang="hu" href="https://superligafrontier.es/?lang=hu" />
+    <xhtml:link rel="alternate" hreflang="sv" href="https://superligafrontier.es/?lang=sv" />
+    <xhtml:link rel="alternate" hreflang="id" href="https://superligafrontier.es/?lang=id" />
+    <xhtml:link rel="alternate" hreflang="vi" href="https://superligafrontier.es/?lang=vi" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://superligafrontier.es/?lang=th" />
+    <xhtml:link rel="alternate" hreflang="hi" href="https://superligafrontier.es/?lang=hi" />
+    <xhtml:link rel="alternate" hreflang="bn" href="https://superligafrontier.es/?lang=bn" />
+    <xhtml:link rel="alternate" hreflang="ms" href="https://superligafrontier.es/?lang=ms" />
+    <xhtml:link rel="alternate" hreflang="tl" href="https://superligafrontier.es/?lang=tl" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://superligafrontier.es/" />
+  </url>
+
+  <url>
+    <loc>https://superligafrontier.es/?lang=hu</loc>
+    <lastmod>2026-10-18</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://superligafrontier.es/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://superligafrontier.es/?lang=en" />
+    <xhtml:link rel="alternate" hreflang="gl" href="https://superligafrontier.es/?lang=gl" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://superligafrontier.es/?lang=pt" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://superligafrontier.es/?lang=fr" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://superligafrontier.es/?lang=it" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://superligafrontier.es/?lang=de" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://superligafrontier.es/?lang=ar" />
+    <xhtml:link rel="alternate" hreflang="ro" href="https://superligafrontier.es/?lang=ro" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://superligafrontier.es/?lang=nl" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://superligafrontier.es/?lang=uk" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://superligafrontier.es/?lang=ru" />
+    <xhtml:link rel="alternate" hreflang="zh" href="https://superligafrontier.es/?lang=zh" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://superligafrontier.es/?lang=pl" />
+    <xhtml:link rel="alternate" hreflang="tr" href="https://superligafrontier.es/?lang=tr" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://superligafrontier.es/?lang=ja" />
+    <xhtml:link rel="alternate" hreflang="ko" href="https://superligafrontier.es/?lang=ko" />
+    <xhtml:link rel="alternate" hreflang="bg" href="https://superligafrontier.es/?lang=bg" />
+    <xhtml:link rel="alternate" hreflang="sr" href="https://superligafrontier.es/?lang=sr" />
+    <xhtml:link rel="alternate" hreflang="el" href="https://superligafrontier.es/?lang=el" />
+    <xhtml:link rel="alternate" hreflang="cs" href="https://superligafrontier.es/?lang=cs" />
+    <xhtml:link rel="alternate" hreflang="hu" href="https://superligafrontier.es/?lang=hu" />
+    <xhtml:link rel="alternate" hreflang="sv" href="https://superligafrontier.es/?lang=sv" />
+    <xhtml:link rel="alternate" hreflang="id" href="https://superligafrontier.es/?lang=id" />
+    <xhtml:link rel="alternate" hreflang="vi" href="https://superligafrontier.es/?lang=vi" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://superligafrontier.es/?lang=th" />
+    <xhtml:link rel="alternate" hreflang="hi" href="https://superligafrontier.es/?lang=hi" />
+    <xhtml:link rel="alternate" hreflang="bn" href="https://superligafrontier.es/?lang=bn" />
+    <xhtml:link rel="alternate" hreflang="ms" href="https://superligafrontier.es/?lang=ms" />
+    <xhtml:link rel="alternate" hreflang="tl" href="https://superligafrontier.es/?lang=tl" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://superligafrontier.es/" />
+  </url>
+
+  <url>
+    <loc>https://superligafrontier.es/?lang=sv</loc>
+    <lastmod>2026-10-18</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://superligafrontier.es/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://superligafrontier.es/?lang=en" />
+    <xhtml:link rel="alternate" hreflang="gl" href="https://superligafrontier.es/?lang=gl" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://superligafrontier.es/?lang=pt" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://superligafrontier.es/?lang=fr" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://superligafrontier.es/?lang=it" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://superligafrontier.es/?lang=de" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://superligafrontier.es/?lang=ar" />
+    <xhtml:link rel="alternate" hreflang="ro" href="https://superligafrontier.es/?lang=ro" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://superligafrontier.es/?lang=nl" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://superligafrontier.es/?lang=uk" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://superligafrontier.es/?lang=ru" />
+    <xhtml:link rel="alternate" hreflang="zh" href="https://superligafrontier.es/?lang=zh" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://superligafrontier.es/?lang=pl" />
+    <xhtml:link rel="alternate" hreflang="tr" href="https://superligafrontier.es/?lang=tr" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://superligafrontier.es/?lang=ja" />
+    <xhtml:link rel="alternate" hreflang="ko" href="https://superligafrontier.es/?lang=ko" />
+    <xhtml:link rel="alternate" hreflang="bg" href="https://superligafrontier.es/?lang=bg" />
+    <xhtml:link rel="alternate" hreflang="sr" href="https://superligafrontier.es/?lang=sr" />
+    <xhtml:link rel="alternate" hreflang="el" href="https://superligafrontier.es/?lang=el" />
+    <xhtml:link rel="alternate" hreflang="cs" href="https://superligafrontier.es/?lang=cs" />
+    <xhtml:link rel="alternate" hreflang="hu" href="https://superligafrontier.es/?lang=hu" />
+    <xhtml:link rel="alternate" hreflang="sv" href="https://superligafrontier.es/?lang=sv" />
+    <xhtml:link rel="alternate" hreflang="id" href="https://superligafrontier.es/?lang=id" />
+    <xhtml:link rel="alternate" hreflang="vi" href="https://superligafrontier.es/?lang=vi" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://superligafrontier.es/?lang=th" />
+    <xhtml:link rel="alternate" hreflang="hi" href="https://superligafrontier.es/?lang=hi" />
+    <xhtml:link rel="alternate" hreflang="bn" href="https://superligafrontier.es/?lang=bn" />
+    <xhtml:link rel="alternate" hreflang="ms" href="https://superligafrontier.es/?lang=ms" />
+    <xhtml:link rel="alternate" hreflang="tl" href="https://superligafrontier.es/?lang=tl" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://superligafrontier.es/" />
+  </url>
+
+  <url>
+    <loc>https://superligafrontier.es/?lang=id</loc>
+    <lastmod>2026-10-18</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://superligafrontier.es/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://superligafrontier.es/?lang=en" />
+    <xhtml:link rel="alternate" hreflang="gl" href="https://superligafrontier.es/?lang=gl" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://superligafrontier.es/?lang=pt" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://superligafrontier.es/?lang=fr" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://superligafrontier.es/?lang=it" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://superligafrontier.es/?lang=de" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://superligafrontier.es/?lang=ar" />
+    <xhtml:link rel="alternate" hreflang="ro" href="https://superligafrontier.es/?lang=ro" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://superligafrontier.es/?lang=nl" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://superligafrontier.es/?lang=uk" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://superligafrontier.es/?lang=ru" />
+    <xhtml:link rel="alternate" hreflang="zh" href="https://superligafrontier.es/?lang=zh" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://superligafrontier.es/?lang=pl" />
+    <xhtml:link rel="alternate" hreflang="tr" href="https://superligafrontier.es/?lang=tr" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://superligafrontier.es/?lang=ja" />
+    <xhtml:link rel="alternate" hreflang="ko" href="https://superligafrontier.es/?lang=ko" />
+    <xhtml:link rel="alternate" hreflang="bg" href="https://superligafrontier.es/?lang=bg" />
+    <xhtml:link rel="alternate" hreflang="sr" href="https://superligafrontier.es/?lang=sr" />
+    <xhtml:link rel="alternate" hreflang="el" href="https://superligafrontier.es/?lang=el" />
+    <xhtml:link rel="alternate" hreflang="cs" href="https://superligafrontier.es/?lang=cs" />
+    <xhtml:link rel="alternate" hreflang="hu" href="https://superligafrontier.es/?lang=hu" />
+    <xhtml:link rel="alternate" hreflang="sv" href="https://superligafrontier.es/?lang=sv" />
+    <xhtml:link rel="alternate" hreflang="id" href="https://superligafrontier.es/?lang=id" />
+    <xhtml:link rel="alternate" hreflang="vi" href="https://superligafrontier.es/?lang=vi" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://superligafrontier.es/?lang=th" />
+    <xhtml:link rel="alternate" hreflang="hi" href="https://superligafrontier.es/?lang=hi" />
+    <xhtml:link rel="alternate" hreflang="bn" href="https://superligafrontier.es/?lang=bn" />
+    <xhtml:link rel="alternate" hreflang="ms" href="https://superligafrontier.es/?lang=ms" />
+    <xhtml:link rel="alternate" hreflang="tl" href="https://superligafrontier.es/?lang=tl" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://superligafrontier.es/" />
+  </url>
+
+  <url>
+    <loc>https://superligafrontier.es/?lang=vi</loc>
+    <lastmod>2026-10-18</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://superligafrontier.es/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://superligafrontier.es/?lang=en" />
+    <xhtml:link rel="alternate" hreflang="gl" href="https://superligafrontier.es/?lang=gl" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://superligafrontier.es/?lang=pt" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://superligafrontier.es/?lang=fr" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://superligafrontier.es/?lang=it" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://superligafrontier.es/?lang=de" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://superligafrontier.es/?lang=ar" />
+    <xhtml:link rel="alternate" hreflang="ro" href="https://superligafrontier.es/?lang=ro" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://superligafrontier.es/?lang=nl" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://superligafrontier.es/?lang=uk" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://superligafrontier.es/?lang=ru" />
+    <xhtml:link rel="alternate" hreflang="zh" href="https://superligafrontier.es/?lang=zh" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://superligafrontier.es/?lang=pl" />
+    <xhtml:link rel="alternate" hreflang="tr" href="https://superligafrontier.es/?lang=tr" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://superligafrontier.es/?lang=ja" />
+    <xhtml:link rel="alternate" hreflang="ko" href="https://superligafrontier.es/?lang=ko" />
+    <xhtml:link rel="alternate" hreflang="bg" href="https://superligafrontier.es/?lang=bg" />
+    <xhtml:link rel="alternate" hreflang="sr" href="https://superligafrontier.es/?lang=sr" />
+    <xhtml:link rel="alternate" hreflang="el" href="https://superligafrontier.es/?lang=el" />
+    <xhtml:link rel="alternate" hreflang="cs" href="https://superligafrontier.es/?lang=cs" />
+    <xhtml:link rel="alternate" hreflang="hu" href="https://superligafrontier.es/?lang=hu" />
+    <xhtml:link rel="alternate" hreflang="sv" href="https://superligafrontier.es/?lang=sv" />
+    <xhtml:link rel="alternate" hreflang="id" href="https://superligafrontier.es/?lang=id" />
+    <xhtml:link rel="alternate" hreflang="vi" href="https://superligafrontier.es/?lang=vi" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://superligafrontier.es/?lang=th" />
+    <xhtml:link rel="alternate" hreflang="hi" href="https://superligafrontier.es/?lang=hi" />
+    <xhtml:link rel="alternate" hreflang="bn" href="https://superligafrontier.es/?lang=bn" />
+    <xhtml:link rel="alternate" hreflang="ms" href="https://superligafrontier.es/?lang=ms" />
+    <xhtml:link rel="alternate" hreflang="tl" href="https://superligafrontier.es/?lang=tl" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://superligafrontier.es/" />
+  </url>
+
+  <url>
+    <loc>https://superligafrontier.es/?lang=th</loc>
+    <lastmod>2026-10-18</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://superligafrontier.es/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://superligafrontier.es/?lang=en" />
+    <xhtml:link rel="alternate" hreflang="gl" href="https://superligafrontier.es/?lang=gl" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://superligafrontier.es/?lang=pt" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://superligafrontier.es/?lang=fr" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://superligafrontier.es/?lang=it" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://superligafrontier.es/?lang=de" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://superligafrontier.es/?lang=ar" />
+    <xhtml:link rel="alternate" hreflang="ro" href="https://superligafrontier.es/?lang=ro" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://superligafrontier.es/?lang=nl" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://superligafrontier.es/?lang=uk" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://superligafrontier.es/?lang=ru" />
+    <xhtml:link rel="alternate" hreflang="zh" href="https://superligafrontier.es/?lang=zh" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://superligafrontier.es/?lang=pl" />
+    <xhtml:link rel="alternate" hreflang="tr" href="https://superligafrontier.es/?lang=tr" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://superligafrontier.es/?lang=ja" />
+    <xhtml:link rel="alternate" hreflang="ko" href="https://superligafrontier.es/?lang=ko" />
+    <xhtml:link rel="alternate" hreflang="bg" href="https://superligafrontier.es/?lang=bg" />
+    <xhtml:link rel="alternate" hreflang="sr" href="https://superligafrontier.es/?lang=sr" />
+    <xhtml:link rel="alternate" hreflang="el" href="https://superligafrontier.es/?lang=el" />
+    <xhtml:link rel="alternate" hreflang="cs" href="https://superligafrontier.es/?lang=cs" />
+    <xhtml:link rel="alternate" hreflang="hu" href="https://superligafrontier.es/?lang=hu" />
+    <xhtml:link rel="alternate" hreflang="sv" href="https://superligafrontier.es/?lang=sv" />
+    <xhtml:link rel="alternate" hreflang="id" href="https://superligafrontier.es/?lang=id" />
+    <xhtml:link rel="alternate" hreflang="vi" href="https://superligafrontier.es/?lang=vi" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://superligafrontier.es/?lang=th" />
+    <xhtml:link rel="alternate" hreflang="hi" href="https://superligafrontier.es/?lang=hi" />
+    <xhtml:link rel="alternate" hreflang="bn" href="https://superligafrontier.es/?lang=bn" />
+    <xhtml:link rel="alternate" hreflang="ms" href="https://superligafrontier.es/?lang=ms" />
+    <xhtml:link rel="alternate" hreflang="tl" href="https://superligafrontier.es/?lang=tl" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://superligafrontier.es/" />
+  </url>
+
+  <url>
+    <loc>https://superligafrontier.es/?lang=hi</loc>
+    <lastmod>2026-10-18</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://superligafrontier.es/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://superligafrontier.es/?lang=en" />
+    <xhtml:link rel="alternate" hreflang="gl" href="https://superligafrontier.es/?lang=gl" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://superligafrontier.es/?lang=pt" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://superligafrontier.es/?lang=fr" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://superligafrontier.es/?lang=it" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://superligafrontier.es/?lang=de" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://superligafrontier.es/?lang=ar" />
+    <xhtml:link rel="alternate" hreflang="ro" href="https://superligafrontier.es/?lang=ro" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://superligafrontier.es/?lang=nl" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://superligafrontier.es/?lang=uk" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://superligafrontier.es/?lang=ru" />
+    <xhtml:link rel="alternate" hreflang="zh" href="https://superligafrontier.es/?lang=zh" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://superligafrontier.es/?lang=pl" />
+    <xhtml:link rel="alternate" hreflang="tr" href="https://superligafrontier.es/?lang=tr" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://superligafrontier.es/?lang=ja" />
+    <xhtml:link rel="alternate" hreflang="ko" href="https://superligafrontier.es/?lang=ko" />
+    <xhtml:link rel="alternate" hreflang="bg" href="https://superligafrontier.es/?lang=bg" />
+    <xhtml:link rel="alternate" hreflang="sr" href="https://superligafrontier.es/?lang=sr" />
+    <xhtml:link rel="alternate" hreflang="el" href="https://superligafrontier.es/?lang=el" />
+    <xhtml:link rel="alternate" hreflang="cs" href="https://superligafrontier.es/?lang=cs" />
+    <xhtml:link rel="alternate" hreflang="hu" href="https://superligafrontier.es/?lang=hu" />
+    <xhtml:link rel="alternate" hreflang="sv" href="https://superligafrontier.es/?lang=sv" />
+    <xhtml:link rel="alternate" hreflang="id" href="https://superligafrontier.es/?lang=id" />
+    <xhtml:link rel="alternate" hreflang="vi" href="https://superligafrontier.es/?lang=vi" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://superligafrontier.es/?lang=th" />
+    <xhtml:link rel="alternate" hreflang="hi" href="https://superligafrontier.es/?lang=hi" />
+    <xhtml:link rel="alternate" hreflang="bn" href="https://superligafrontier.es/?lang=bn" />
+    <xhtml:link rel="alternate" hreflang="ms" href="https://superligafrontier.es/?lang=ms" />
+    <xhtml:link rel="alternate" hreflang="tl" href="https://superligafrontier.es/?lang=tl" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://superligafrontier.es/" />
+  </url>
+
+  <url>
+    <loc>https://superligafrontier.es/?lang=bn</loc>
+    <lastmod>2026-10-18</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://superligafrontier.es/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://superligafrontier.es/?lang=en" />
+    <xhtml:link rel="alternate" hreflang="gl" href="https://superligafrontier.es/?lang=gl" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://superligafrontier.es/?lang=pt" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://superligafrontier.es/?lang=fr" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://superligafrontier.es/?lang=it" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://superligafrontier.es/?lang=de" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://superligafrontier.es/?lang=ar" />
+    <xhtml:link rel="alternate" hreflang="ro" href="https://superligafrontier.es/?lang=ro" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://superligafrontier.es/?lang=nl" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://superligafrontier.es/?lang=uk" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://superligafrontier.es/?lang=ru" />
+    <xhtml:link rel="alternate" hreflang="zh" href="https://superligafrontier.es/?lang=zh" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://superligafrontier.es/?lang=pl" />
+    <xhtml:link rel="alternate" hreflang="tr" href="https://superligafrontier.es/?lang=tr" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://superligafrontier.es/?lang=ja" />
+    <xhtml:link rel="alternate" hreflang="ko" href="https://superligafrontier.es/?lang=ko" />
+    <xhtml:link rel="alternate" hreflang="bg" href="https://superligafrontier.es/?lang=bg" />
+    <xhtml:link rel="alternate" hreflang="sr" href="https://superligafrontier.es/?lang=sr" />
+    <xhtml:link rel="alternate" hreflang="el" href="https://superligafrontier.es/?lang=el" />
+    <xhtml:link rel="alternate" hreflang="cs" href="https://superligafrontier.es/?lang=cs" />
+    <xhtml:link rel="alternate" hreflang="hu" href="https://superligafrontier.es/?lang=hu" />
+    <xhtml:link rel="alternate" hreflang="sv" href="https://superligafrontier.es/?lang=sv" />
+    <xhtml:link rel="alternate" hreflang="id" href="https://superligafrontier.es/?lang=id" />
+    <xhtml:link rel="alternate" hreflang="vi" href="https://superligafrontier.es/?lang=vi" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://superligafrontier.es/?lang=th" />
+    <xhtml:link rel="alternate" hreflang="hi" href="https://superligafrontier.es/?lang=hi" />
+    <xhtml:link rel="alternate" hreflang="bn" href="https://superligafrontier.es/?lang=bn" />
+    <xhtml:link rel="alternate" hreflang="ms" href="https://superligafrontier.es/?lang=ms" />
+    <xhtml:link rel="alternate" hreflang="tl" href="https://superligafrontier.es/?lang=tl" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://superligafrontier.es/" />
+  </url>
+
+  <url>
+    <loc>https://superligafrontier.es/?lang=ms</loc>
+    <lastmod>2026-10-18</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://superligafrontier.es/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://superligafrontier.es/?lang=en" />
+    <xhtml:link rel="alternate" hreflang="gl" href="https://superligafrontier.es/?lang=gl" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://superligafrontier.es/?lang=pt" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://superligafrontier.es/?lang=fr" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://superligafrontier.es/?lang=it" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://superligafrontier.es/?lang=de" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://superligafrontier.es/?lang=ar" />
+    <xhtml:link rel="alternate" hreflang="ro" href="https://superligafrontier.es/?lang=ro" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://superligafrontier.es/?lang=nl" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://superligafrontier.es/?lang=uk" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://superligafrontier.es/?lang=ru" />
+    <xhtml:link rel="alternate" hreflang="zh" href="https://superligafrontier.es/?lang=zh" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://superligafrontier.es/?lang=pl" />
+    <xhtml:link rel="alternate" hreflang="tr" href="https://superligafrontier.es/?lang=tr" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://superligafrontier.es/?lang=ja" />
+    <xhtml:link rel="alternate" hreflang="ko" href="https://superligafrontier.es/?lang=ko" />
+    <xhtml:link rel="alternate" hreflang="bg" href="https://superligafrontier.es/?lang=bg" />
+    <xhtml:link rel="alternate" hreflang="sr" href="https://superligafrontier.es/?lang=sr" />
+    <xhtml:link rel="alternate" hreflang="el" href="https://superligafrontier.es/?lang=el" />
+    <xhtml:link rel="alternate" hreflang="cs" href="https://superligafrontier.es/?lang=cs" />
+    <xhtml:link rel="alternate" hreflang="hu" href="https://superligafrontier.es/?lang=hu" />
+    <xhtml:link rel="alternate" hreflang="sv" href="https://superligafrontier.es/?lang=sv" />
+    <xhtml:link rel="alternate" hreflang="id" href="https://superligafrontier.es/?lang=id" />
+    <xhtml:link rel="alternate" hreflang="vi" href="https://superligafrontier.es/?lang=vi" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://superligafrontier.es/?lang=th" />
+    <xhtml:link rel="alternate" hreflang="hi" href="https://superligafrontier.es/?lang=hi" />
+    <xhtml:link rel="alternate" hreflang="bn" href="https://superligafrontier.es/?lang=bn" />
+    <xhtml:link rel="alternate" hreflang="ms" href="https://superligafrontier.es/?lang=ms" />
+    <xhtml:link rel="alternate" hreflang="tl" href="https://superligafrontier.es/?lang=tl" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://superligafrontier.es/" />
+  </url>
+
+  <url>
+    <loc>https://superligafrontier.es/?lang=tl</loc>
+    <lastmod>2026-10-18</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://superligafrontier.es/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://superligafrontier.es/?lang=en" />
+    <xhtml:link rel="alternate" hreflang="gl" href="https://superligafrontier.es/?lang=gl" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://superligafrontier.es/?lang=pt" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://superligafrontier.es/?lang=fr" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://superligafrontier.es/?lang=it" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://superligafrontier.es/?lang=de" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://superligafrontier.es/?lang=ar" />
+    <xhtml:link rel="alternate" hreflang="ro" href="https://superligafrontier.es/?lang=ro" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://superligafrontier.es/?lang=nl" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://superligafrontier.es/?lang=uk" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://superligafrontier.es/?lang=ru" />
+    <xhtml:link rel="alternate" hreflang="zh" href="https://superligafrontier.es/?lang=zh" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://superligafrontier.es/?lang=pl" />
+    <xhtml:link rel="alternate" hreflang="tr" href="https://superligafrontier.es/?lang=tr" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://superligafrontier.es/?lang=ja" />
+    <xhtml:link rel="alternate" hreflang="ko" href="https://superligafrontier.es/?lang=ko" />
+    <xhtml:link rel="alternate" hreflang="bg" href="https://superligafrontier.es/?lang=bg" />
+    <xhtml:link rel="alternate" hreflang="sr" href="https://superligafrontier.es/?lang=sr" />
+    <xhtml:link rel="alternate" hreflang="el" href="https://superligafrontier.es/?lang=el" />
+    <xhtml:link rel="alternate" hreflang="cs" href="https://superligafrontier.es/?lang=cs" />
+    <xhtml:link rel="alternate" hreflang="hu" href="https://superligafrontier.es/?lang=hu" />
+    <xhtml:link rel="alternate" hreflang="sv" href="https://superligafrontier.es/?lang=sv" />
+    <xhtml:link rel="alternate" hreflang="id" href="https://superligafrontier.es/?lang=id" />
+    <xhtml:link rel="alternate" hreflang="vi" href="https://superligafrontier.es/?lang=vi" />
+    <xhtml:link rel="alternate" hreflang="th" href="https://superligafrontier.es/?lang=th" />
+    <xhtml:link rel="alternate" hreflang="hi" href="https://superligafrontier.es/?lang=hi" />
+    <xhtml:link rel="alternate" hreflang="bn" href="https://superligafrontier.es/?lang=bn" />
+    <xhtml:link rel="alternate" hreflang="ms" href="https://superligafrontier.es/?lang=ms" />
+    <xhtml:link rel="alternate" hreflang="tl" href="https://superligafrontier.es/?lang=tl" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://superligafrontier.es/" />
   </url>
 
   <url>
     <loc>https://superligafrontier.es/terminos</loc>
-    <lastmod>2026-08-26</lastmod>
+    <lastmod>2026-10-18</lastmod>
   </url>
 
 </urlset>

@@ -16,7 +16,8 @@
 const fs = require('fs');
 const { JSDOM, VirtualConsole } = require('jsdom');
 
-async function prerender(html, datosPath, lang){
+async function prerender(html, datosPath, lang, opciones){
+  opciones = opciones || {};
   const datos = JSON.parse(fs.readFileSync(datosPath, 'utf8'));
 
   const virtualConsole = new VirtualConsole();
@@ -80,7 +81,8 @@ async function prerender(html, datosPath, lang){
 
   sincronizarFaqSchema(dom.window.document);
   actualizarDateModified(dom.window.document);
-  if (lang) autoreferenciarUrl(dom.window.document, lang);
+  ajustarJsonLd(dom.window.document, lang || 'es', opciones.idiomas || []);
+  if (lang) autoreferenciarUrl(dom.window.document, lang, opciones.idiomas || []);
 
   // app.js mide --sbw con innerWidth-clientWidth para que .hero-photo sangre
   // bajo la barra de scroll de verdad (ver styles.css). jsdom no hace layout
@@ -162,12 +164,52 @@ function actualizarDateModified(document){
   scriptTag.textContent = JSON.stringify(data, null, 2);
 }
 
-function autoreferenciarUrl(document, lang){
+function autoreferenciarUrl(document, lang, idiomas){
   const url = 'https://superligafrontier.es/?lang='+lang;
   const canon = document.querySelector('link[rel="canonical"]');
   if (canon) canon.setAttribute('href', url);
   const ogUrl = document.querySelector('meta[property="og:url"]');
   if (ogUrl) ogUrl.setAttribute('content', url);
+  /* og:locale es el de esta variante; el resto (incluido es_ES) van como
+     alternate, y ninguno repetido: Facebook/LinkedIn ignoran un alternate
+     igual al principal. */
+  const propio = document.querySelector('meta[property="og:locale"]');
+  const loc = propio ? propio.getAttribute('content') : '';
+  document.querySelectorAll('meta[property="og:locale:alternate"]').forEach(function(m){
+    if (m.getAttribute('content') === loc) m.remove();
+  });
+  const info = idiomas.filter(function(l){ return l.code === 'es'; })[0];
+  if (info && !document.querySelector('meta[property="og:locale:alternate"][content="'+info.locale+'"]') && propio) {
+    const m = document.createElement('meta');
+    m.setAttribute('property', 'og:locale:alternate');
+    m.setAttribute('content', info.locale);
+    propio.parentNode.insertBefore(m, propio.nextSibling);
+  }
+}
+
+/* JSON-LD por idioma: el WebPage declara su propio idioma, nombre, descripción
+   y URL (los de esta variante, no los del español), y el WebSite lista todos
+   los idiomas en que existe. Así un rastreador que lea solo el schema —los de
+   IA, sobre todo— no ve una página "es" con texto en otro idioma. */
+function ajustarJsonLd(document, lang, idiomas){
+  const tag = document.querySelector('script[type="application/ld+json"]');
+  if (!tag) return;
+  let data;
+  try { data = JSON.parse(tag.textContent); } catch(e){ return; }
+  const nodos = data['@graph'] || (Array.isArray(data) ? data : [data]);
+  const desc = document.querySelector('meta[name="description"]');
+  const url = lang === 'es' ? 'https://superligafrontier.es/' : 'https://superligafrontier.es/?lang='+lang;
+  nodos.forEach(function(n){
+    if (n['@type'] === 'WebPage') {
+      n.inLanguage = lang;
+      n.url = url;
+      n.name = document.title;
+      if (desc) n.description = desc.getAttribute('content');
+    } else if (n['@type'] === 'WebSite' && idiomas.length) {
+      n.inLanguage = idiomas.map(function(l){ return l.code; });
+    }
+  });
+  tag.textContent = JSON.stringify(data, null, 2);
 }
 
 module.exports = prerender;

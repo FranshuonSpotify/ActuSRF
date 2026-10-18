@@ -1,4 +1,37 @@
+# Superliga Frontier — superligafrontier.es
+# Todo el contenido público es rastreable, también por buscadores de IA: la
+# idea es que citen la liga con sus datos reales (clasificación, reglas, FAQ).
+# /dashboard/ y /lesiones/admin.php no se bloquean aquí a propósito: llevan
+# noindex y un Disallow impediría a Google ver esa etiqueta.
 User-agent: *
+Allow: /
+Disallow: /gestor/
+Disallow: /admin/
+Disallow: /config/
+Disallow: /cron/
+
+User-agent: GPTBot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-SearchBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Applebot-Extended
 Allow: /
 
 Sitemap: https://superligafrontier.es/sitemap.xml

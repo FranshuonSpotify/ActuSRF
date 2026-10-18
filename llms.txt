@@ -1,0 +1,35 @@
+# Superliga Frontier
+
+> Superliga Frontier es la liga abierta e inclusiva de Inazuma Eleven: Victory Road en español, activa desde enero de 2026. Reúne cuatro competiciones oficiales —Superliga Frontier, Ascenso Frontier, Fútbol Frontier y Torneo Frontier— con clasificación, resultados, goleadores y fichas de equipo y jugador actualizados tras cada jornada. Proyecto de fans sin ánimo de lucro, no afiliado a Level-5. Fundador: Franshu.
+
+La web está disponible en 30 idiomas. Cada idioma tiene su propia URL (`https://superligafrontier.es/?lang=xx`) y todas las variantes están declaradas con hreflang en el sitemap.
+
+## Qué es y cómo funciona
+
+- [Portada y clasificación](https://superligafrontier.es/): clasificación de Superliga y Ascenso, resultados por jornada, cuadro de play-off y de Copa, goleadores, equipos y noticias.
+- [Preguntas frecuentes](https://superligafrontier.es/#faq): cómo unirse, reglas, mercado y plantillas, formato de competición y datos de la web.
+- [Términos y privacidad](https://superligafrontier.es/terminos)
+
+## Reglas esenciales
+
+- Solo jugadores verdes (la rareza mínima del juego), al nivel máximo 99, con 4 técnicas canónicas por personaje y solo judías como equipamiento.
+- Sin reroll de pasivas: el azar existe una única vez, en la invocación inicial.
+- Mercado de fichajes con tope salarial (salary cap) de 250 millones por club, plantillas de 20 jugadores y sistema de lesiones por ruleta.
+- Dos divisiones con ascenso y descenso: Superliga Frontier (1.ª) y Ascenso Frontier (2.ª).
+- Desempate en la clasificación: puntos, diferencia de goles, goles a favor, goles en contra, victorias, empates, derrotas y orden alfabético.
+
+## Datos
+
+- [Datos oficiales de la liga (JSON)](https://superligafrontier.es/datos_oficiales.json): equipos, plantillas, partidos de Liga, Ascenso y Copa, y noticias. Es la fuente de la que sale toda la web.
+- [Mapa del sitio](https://superligafrontier.es/sitemap.xml)
+
+## Comunidad
+
+- Discord oficial: https://discord.gg/superligafrontier
+- Instagram: https://www.instagram.com/superligafrontier
+- X: https://x.com/supligafrontier
+- TikTok: https://www.tiktok.com/@superligafrontier
+
+## Aviso
+
+El arte de jugadores y equipos pertenece a Level-5, creadores de Inazuma Eleven. Superliga Frontier es un proyecto de fans sin ánimo de lucro y no genera ningún beneficio económico.

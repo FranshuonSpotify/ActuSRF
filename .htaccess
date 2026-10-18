@@ -61,7 +61,7 @@ AddDefaultCharset UTF-8
 
     # /fr.html y /fr son el mismo contenido que /?lang=fr, que es la URL que
     # declaran hreflang y sitemap.xml: se unifican en esa.
-    RewriteCond %{THE_REQUEST} ^GET\ /(en|pt|it|fr|ja|ko|pl|bg|sr)(?:\.html)?[?\ ]
+    RewriteCond %{THE_REQUEST} ^GET\ /(en|gl|pt|fr|it|de|ar|ro|nl|uk|ru|zh|pl|tr|ja|ko|bg|sr|el|cs|hu|sv|id|vi|th|hi|bn|ms|tl)(?:\.html)?[?\ ]
     RewriteRule ^ /?lang=%1 [R=301,L]
 
     # api/, cron/ y los endpoints sueltos (api_apuestas.php...) los llaman
@@ -73,7 +73,7 @@ AddDefaultCharset UTF-8
     RewriteCond %{THE_REQUEST} ^GET\ /([^?\ ]+)\.(?:html|php)[?\ ]
     RewriteRule ^ /%1 [R=301,L]
 
-    RewriteCond %{QUERY_STRING} (^|&)lang=(en|pt|it|fr|ja|ko|pl|bg|sr)(&|$)
+    RewriteCond %{QUERY_STRING} (^|&)lang=(en|gl|pt|fr|it|de|ar|ro|nl|uk|ru|zh|pl|tr|ja|ko|bg|sr|el|cs|hu|sv|id|vi|th|hi|bn|ms|tl)(&|$)
     RewriteRule ^$ %2.html [L]
 
     # Y al revés: /terminos sirve terminos.html, /dashboard/plantilla sirve

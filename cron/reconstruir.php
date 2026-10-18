@@ -123,8 +123,15 @@ if ($execFuncionaba) {
     @unlink($permisoNode);
 }
 
+/* Idiomas (salvo es) de _fuente/idiomas.json, la misma lista que usa build.js. */
+function sf_codigosIdioma(string $root): array {
+    $j = json_decode((string) @file_get_contents($root."/_fuente/idiomas.json"), true);
+    if (!is_array($j)) return ["en", "pt", "it", "fr", "ja", "ko", "pl", "bg", "sr"];
+    return array_values(array_filter(array_column($j, "code"), fn($c) => $c !== "es"));
+}
+
 if (!$usadoNode) {
-    $archivos = array_merge(['index.html'], array_map(fn($l) => "$l.html", ['en', 'pt', 'it', 'fr', 'ja', 'ko', 'pl', 'bg', 'sr']));
+    $archivos = array_merge(['index.html'], array_map(fn($l) => "$l.html", sf_codigosIdioma($root)));
     $actualizados = [];
     foreach ($archivos as $f) {
         $path = $root.'/'.$f;

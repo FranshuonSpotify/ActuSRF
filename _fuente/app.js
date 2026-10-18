@@ -659,22 +659,36 @@ document.addEventListener('keydown',function(e){
   var d=e.target&&e.target.dataset;
   if(d&&d.grupo&&(e.key==='Enter'||e.key===' ')){ e.preventDefault(); openGrupo(d.grupo); }
 });
-/* Vista extendida de un grupo de Copa, como modal centrado: cabecera con la
-   letra del grupo, tabla completa (los dos primeros pasan a cuartos, igual que
-   en las tarjetas) y barra de partidos jugados. El estilo vive en .gm-* de
-   styles.css; aquí solo se arma el marcado. */
+/* Vista extendida de un grupo de Copa. Misma ficha que un club (tm-hero +
+   tm-stats), la misma tabla que la clasificación de liga y, al lado, los
+   partidos del grupo por jornada: se abren con el mismo clic que en Resultados
+   (data-comp/data-idx). Solo se usan clases del sistema más las .gp-* de
+   styles.css para la rejilla y la fila de partido. */
 function openGrupo(k){
   var g=gruposCopa[k]; if(!g) return;
   var goles=g.rows.reduce(function(a,r){ return a+r.gf; },0);
   var media=g.jugados?(goles/g.jugados).toFixed(1):'0.0';
-  /* Misma ficha que un club (tm-hero + tm-stats) y la misma tabla que la
-     clasificación de liga: nada de estilos propios. */
+  var pct=g.total?Math.round(g.jugados*100/g.total):0;
+  var jors=[]; g.ms.forEach(function(p){ if(jors.indexOf(p.jornada)<0) jors.push(p.jornada); });
+  jors.sort(function(a,b){ return (parseInt(a)||0)-(parseInt(b)||0); });
+  function lado(p,side){
+    var n=resolveSide(p,side).n, t=team(n);
+    return '<span class="gp-eq">'+(t?crest(t,22):'')+'<span class="nm">'+esc(X(n))+'</span></span>';
+  }
+  function partido(p){
+    var fin=isFin(p), a=gl(p), b=gv(p);
+    return '<div class="gp-m'+(fin?'':' gp-pend')+'" data-comp="copa" data-idx="'+bd.partidos_copa.indexOf(p)+'" role="button" tabindex="0">'+
+      lado(p,'local')+
+      '<span class="gp-sc mono">'+(fin?'<b class="'+(a>b?'w':'')+'">'+a+'</b><i>–</i><b class="'+(b>a?'w':'')+'">'+b+'</b>':'<em>'+esc(T('match.vs','VS'))+'</em>')+'</span>'+
+      lado(p,'visitante')+'</div>';
+  }
   $('sheet-grupo-body').innerHTML=
     '<header class="tm-hero">'+
       '<div class="tm-hero-wash" style="background:radial-gradient(ellipse 70% 100% at 12% 0%, var(--accent-glow), transparent 70%)"></div>'+
       '<div class="tm-hero-in"><div>'+
         '<h1 class="tm-name">'+esc(T('grupo','Grupo'))+' '+esc(k)+'</h1>'+
-        '<div class="tm-sub"><span class="badge badge-copa">'+esc(T('sec.copa','Fútbol Frontier'))+'</span><span>'+esc(T('fase.grupos','Fase de grupos'))+'</span></div>'+
+        '<div class="tm-sub"><span class="badge badge-copa">'+esc(T('sec.copa','Fútbol Frontier'))+'</span><span>'+esc(T('fase.grupos','Fase de grupos'))+'</span>'+
+          '<span class="gp-prog" title="'+pct+'%"><i style="width:'+pct+'%"></i></span></div>'+
       '</div></div>'+
     '</header>'+
     '<div class="tm-stats" style="grid-template-columns:repeat(3,1fr)">'+
@@ -682,22 +696,32 @@ function openGrupo(k){
       '<div class="tm-stat"><b class="mono">'+goles+'</b><span>'+esc(T('grupo.goles','Goles'))+'</span></div>'+
       '<div class="tm-stat"><b class="mono">'+media+'</b><span>'+esc(T('grupo.media','Media'))+'</span></div>'+
     '</div>'+
-    '<div class="mt-body">'+
-      '<div class="tbl-wrap"><div class="tbl-scroll"><table class="tbl"><thead><tr>'+
-        '<th>'+T('th.pos','Pos')+'</th><th>'+T('th.equipo','Equipo')+'</th><th>'+T('th.pj','PJ')+'</th>'+
-        '<th class="hide-sm">'+T('th.g','G')+'</th><th class="hide-sm">'+T('th.e','E')+'</th><th class="hide-sm">'+T('th.p','P')+'</th>'+
-        '<th class="hide-sm">'+T('th.gf','GF')+'</th><th class="hide-sm">'+T('th.gc','GC')+'</th><th class="hide-xs">'+T('th.dg','DG')+'</th><th>'+T('th.pts','Pts')+'</th>'+
-      '</tr></thead><tbody>'+
-      g.rows.map(function(r,i){
-        var dg=r.gf-r.gc, t=team(r.n);
-        return '<tr style="cursor:default"><td class="pos"><span class="zone '+(i<2?'z-po':'')+'"></span>'+(i+1)+'</td>'+
-          '<td><span class="tm">'+(t?crest(t):'')+esc(X(r.n))+'</span></td>'+
-          '<td class="mono">'+r.pj+'</td><td class="mono hide-sm">'+r.g+'</td><td class="mono hide-sm">'+r.e+'</td><td class="mono hide-sm">'+r.p+'</td>'+
-          '<td class="mono hide-sm">'+r.gf+'</td><td class="mono hide-sm">'+r.gc+'</td><td class="mono hide-xs">'+(dg>0?'+':'')+dg+'</td>'+
-          '<td class="pts">'+r.pts+'</td></tr>';
-      }).join('')+
-      '</tbody></table></div></div>'+
-      '<div class="legend"><span><i class="z-po"></i>'+esc(T('grupo.clasifican','Pasan a cuartos de final'))+'</span></div>'+
+    '<div class="gp-body">'+
+      '<div>'+
+        '<div class="tbl-wrap"><div class="tbl-scroll"><table class="tbl"><thead><tr>'+
+          '<th>'+T('th.pos','Pos')+'</th><th>'+T('th.equipo','Equipo')+'</th><th>'+T('th.pj','PJ')+'</th>'+
+          '<th class="hide-sm">'+T('th.g','G')+'</th><th class="hide-sm">'+T('th.e','E')+'</th><th class="hide-sm">'+T('th.p','P')+'</th>'+
+          '<th class="hide-sm">'+T('th.gf','GF')+'</th><th class="hide-sm">'+T('th.gc','GC')+'</th><th class="hide-xs">'+T('th.dg','DG')+'</th><th>'+T('th.pts','Pts')+'</th><th class="hide-sm">'+T('th.forma','Forma')+'</th>'+
+        '</tr></thead><tbody>'+
+        g.rows.map(function(r,i){
+          var dg=r.gf-r.gc, t=team(r.n);
+          return '<tr'+(t?' data-team="'+esc(t.id)+'"':'')+'><td class="pos"><span class="zone '+(i<2?'z-po':'')+'"></span>'+(i+1)+'</td>'+
+            '<td><span class="tm">'+(t?crest(t):'')+esc(X(r.n))+'</span></td>'+
+            '<td class="mono">'+r.pj+'</td><td class="mono hide-sm">'+r.g+'</td><td class="mono hide-sm">'+r.e+'</td><td class="mono hide-sm">'+r.p+'</td>'+
+            '<td class="mono hide-sm">'+r.gf+'</td><td class="mono hide-sm">'+r.gc+'</td><td class="mono hide-xs">'+(dg>0?'+':'')+dg+'</td>'+
+            '<td class="pts">'+r.pts+'</td>'+
+            '<td class="hide-sm"><span class="frm">'+r.f.slice(-5).map(function(x){ return '<i class="f-'+x+'"></i>'; }).join('')+'</span></td></tr>';
+        }).join('')+
+        '</tbody></table></div></div>'+
+        '<div class="legend"><span><i class="z-po"></i>'+esc(T('grupo.clasifican','Pasan a cuartos de final'))+'</span></div>'+
+      '</div>'+
+      '<div>'+
+        '<div class="sec-label">'+esc(T('grupo.partidos','Partidos'))+'</div>'+
+        jors.map(function(j){
+          return '<div class="gp-jor" data-no-tr>'+esc(T('jornada','Jornada'))+' '+esc(j)+'</div>'+
+            g.ms.filter(function(p){ return p.jornada===j; }).map(partido).join('');
+        }).join('')+
+      '</div>'+
     '</div>';
   openSheet('sheet-grupo');
 }
@@ -716,10 +740,10 @@ function renderCopa(){
       /* La plaza de un ganador de la preliminar aún sin decidir cuenta como
          una fila más ("ABC / DEF"), para que el grupo se vea con sus cinco. */
       var l=resolveSide(p,'local').n, v=resolveSide(p,'visitante').n;
-      [l,v].forEach(function(n){ if(!t[n]) t[n]={n:n,pts:0,gf:0,gc:0,pj:0,g:0,e:0,p:0}; });
+      [l,v].forEach(function(n){ if(!t[n]) t[n]={n:n,pts:0,gf:0,gc:0,pj:0,g:0,e:0,p:0,f:[]}; });
       if(!isFin(p)) return;
       var a=gl(p), b=gv(p);
-      t[l].gf+=a; t[l].gc+=b; t[v].gf+=b; t[v].gc+=a; t[l].pj++; t[v].pj++;
+      t[l].gf+=a; t[l].gc+=b; t[v].gf+=b; t[v].gc+=a; t[l].pj++; t[v].pj++; t[l].f.push(a>b?'w':a<b?'l':'e'); t[v].f.push(b>a?'w':b<a?'l':'e');
       if(a>b){ t[l].pts+=3; t[l].g++; t[v].p++; } else if(b>a){ t[v].pts+=3; t[v].g++; t[l].p++; } else { t[l].pts++; t[v].pts++; t[l].e++; t[v].e++; }
     });
     /* Puntos, diferencia, goles a favor y nombre: el mismo orden con el que
@@ -730,7 +754,7 @@ function renderCopa(){
       if(b.gf!==a.gf) return b.gf-a.gf;
       return a.n<b.n?-1:a.n>b.n?1:0;
     });
-    gruposCopa[k]={rows:rows,total:by[k].length,jugados:by[k].filter(isFin).length};
+    gruposCopa[k]={rows:rows,ms:by[k],total:by[k].length,jugados:by[k].filter(isFin).length};
     return '<div class="card group" data-grupo="'+esc(k)+'" role="button" tabindex="0" style="cursor:pointer"><h4>'+esc(T('grupo','Grupo'))+' '+esc(k)+'</h4>'+rows.map(function(r,i){
       return '<div class="group-row '+(i<2?'group-q':'')+'">'+(team(r.n)?crest(team(r.n),18):'')+'<span class="nm">'+esc(X(r.n))+'</span><span class="p">'+r.pts+'</span></div>';
     }).join('')+'</div>';
@@ -1849,7 +1873,7 @@ var FAQ=[
     ['¿Qué significan los colores de la clasificación?','Marcan las zonas de Play-off, Play-in y descenso en la Superliga, y las de ascenso directo y Play-off de ascenso en el Ascenso Frontier. La leyenda está justo debajo de la tabla.'],
     ['¿Qué son las afinidades elementales?','La afinidad de cada jugador dentro del juego: Fuego, Montaña, Bosque, Aire y Neutro. Aparecen en su ficha, en la tabla de goleadores y en el detalle de cada partido.'],
     ['¿Puedo compartir la ficha de un jugador o un resultado?','Sí. En la ficha de jugador y en el detalle de partido hay un botón para descargar una tarjeta en imagen, lista para publicar.'],
-    ['¿En qué idiomas está la web?','En español, inglés, portugués, italiano, francés, japonés, coreano, polaco, búlgaro y serbio, desde el selector de idioma de la cabecera.'],
+    ['¿En qué idiomas está la web?','En 30 idiomas. La web se abre en el idioma de tu navegador y puedes cambiarlo en cualquier momento desde el selector de idioma de la cabecera.'],
     ['¿La web es oficial de Level-5?','No. El arte de jugadores y equipos pertenece a Level-5, creadores de Inazuma Eleven. Superliga Frontier es un proyecto de fans sin ánimo de lucro.']
   ]}
 ];
