@@ -6,7 +6,7 @@
   {"code":"fr","name":"Français","flag":"fr","locale":"fr_FR"},
   {"code":"it","name":"Italiano","flag":"it","locale":"it_IT"},
   {"code":"de","name":"Deutsch","flag":"de","locale":"de_DE"},
-  {"code":"ar","name":"العربية","flag":"ma","locale":"ar_AR","dir":"rtl"},
+  {"code":"ar","name":"العربية","flag":"sa","locale":"ar_AR","dir":"rtl"},
   {"code":"ro","name":"Română","flag":"ro","locale":"ro_RO"},
   {"code":"nl","name":"Nederlands","flag":"nl","locale":"nl_NL"},
   {"code":"uk","name":"Українська","flag":"ua","locale":"uk_UA"},
